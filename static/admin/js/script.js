@@ -51,35 +51,35 @@ function initializeWebSocket() {
         console.error('Admin ID not found for WebSocket connection');
         return;
     }
-    
+
     try {
         // Determine WebSocket URL based on current location
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/${adminId}`;
-        
+
         socket = new WebSocket(wsUrl);
-        
-        socket.onopen = function(event) {
+
+        socket.onopen = function (event) {
             console.log('WebSocket connected successfully for admin');
             updateConnectionStatus('connected', 'Connected');
             reconnectAttempts = 0;
         };
-        
-        socket.onmessage = function(event) {
+
+        socket.onmessage = function (event) {
             const data = JSON.parse(event.data);
             console.log('WebSocket message received:', data);
-            
+
             if (data.type === 'notification') {
                 handleNewNotification(data.notification);
             } else if (data.type === 'connected_users') {
                 console.log('Connected users:', data.users);
             }
         };
-        
-        socket.onclose = function(event) {
+
+        socket.onclose = function (event) {
             console.log('WebSocket disconnected:', event);
             updateConnectionStatus('disconnected', 'Disconnected');
-            
+
             // Attempt to reconnect
             if (reconnectAttempts < maxReconnectAttempts) {
                 setTimeout(() => {
@@ -89,12 +89,12 @@ function initializeWebSocket() {
                 }, 3000);
             }
         };
-        
-        socket.onerror = function(error) {
+
+        socket.onerror = function (error) {
             console.error('WebSocket error:', error);
             updateConnectionStatus('disconnected', 'Connection Error');
         };
-        
+
     } catch (error) {
         console.error('Error initializing WebSocket:', error);
         updateConnectionStatus('disconnected', 'Connection Failed');
@@ -104,7 +104,7 @@ function initializeWebSocket() {
 function updateConnectionStatus(status, text) {
     const indicator = document.getElementById('statusIndicator');
     const statusText = document.getElementById('statusText');
-    
+
     if (indicator && statusText) {
         indicator.className = 'status-indicator';
         indicator.classList.add(`status-${status}`);
@@ -115,28 +115,28 @@ function updateConnectionStatus(status, text) {
 // ====== Notification Functions ======
 function handleNewNotification(notificationData) {
     const [message, status, timestamp] = notificationData;
-    
+
     // Add to notifications array
     const newNotification = {
         id: notifications.length + 1,
         message: message,
         read: status === 1
     };
-    
+
     notifications.unshift(newNotification);
-    
+
     // Update notification badge
     updateNotificationBadge();
-    
+
     // Show toast notification
     showToast(message, 'success');
-    
+
     // If notification modal is open, update it
     const modal = document.getElementById('notificationModal');
     if (modal && modal.classList.contains('flex')) {
         renderNotifications();
     }
-    
+
     // Play notification sound
     playNotificationSound();
 }
@@ -147,16 +147,16 @@ function playNotificationSound() {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.value = 800;
         oscillator.type = 'sine';
-        
+
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
@@ -167,12 +167,11 @@ function playNotificationSound() {
 function showToast(message, type) {
     // Create a simple toast notification
     const toast = document.createElement('div');
-    toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white font-medium z-50 ${
-        type === 'success' ? 'bg-secondary' : 'bg-primary'
-    }`;
+    toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg text-white font-medium z-50 ${type === 'success' ? 'bg-secondary' : 'bg-primary'
+        }`;
     toast.textContent = message;
     document.body.appendChild(toast);
-    
+
     // Remove toast after 3 seconds
     setTimeout(() => {
         toast.remove();
@@ -182,7 +181,7 @@ function showToast(message, type) {
 function updateNotificationBadge() {
     const unreadCount = notifications.filter(n => !n.read).length;
     const badge = document.getElementById('notificationBadge');
-    
+
     if (badge) {
         if (unreadCount > 0) {
             badge.textContent = unreadCount;
@@ -197,19 +196,19 @@ function updateNotificationBadge() {
 function showDeleteConfirmation(itemId, itemName, itemType) {
     currentDeleteItem = itemId;
     currentDeleteType = itemType;
-    
-    const message = itemType === 'project' 
-        ? `Are you sure you want to delete the project "${itemName}"?` 
+
+    const message = itemType === 'project'
+        ? `Are you sure you want to delete the project "${itemName}"?`
         : `Are you sure you want to delete the task "${itemName}"?`;
-    
+
     const messageElement = document.getElementById('deleteConfirmationMessage');
     const deleteBtnText = document.getElementById('deleteBtnText');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    
+
     if (messageElement) messageElement.textContent = message;
     if (deleteBtnText) deleteBtnText.textContent = 'Delete';
     if (confirmDeleteBtn) confirmDeleteBtn.disabled = false;
-    
+
     toggleModal('deleteConfirmationModal', true);
 }
 
@@ -222,14 +221,14 @@ function closeDeleteConfirmation() {
 
 async function confirmDelete() {
     if (deleteInProgress || !currentDeleteItem || !currentDeleteType) return;
-    
+
     deleteInProgress = true;
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
     const deleteBtnText = document.getElementById('deleteBtnText');
-    
+
     if (confirmDeleteBtn) confirmDeleteBtn.disabled = true;
     if (deleteBtnText) deleteBtnText.innerHTML = '<div class="loading-spinner"></div> Deleting...';
-    
+
     try {
         const endpoint = currentDeleteType === 'project' ? '/delete-project' : '/delete-task';
         const response = await fetch(endpoint, {
@@ -241,17 +240,17 @@ async function confirmDelete() {
                 x: currentDeleteItem
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        
+
         if (result === true) {
             // Successfully deleted
             showToast(`${currentDeleteType.charAt(0).toUpperCase() + currentDeleteType.slice(1)} deleted successfully!`, 'success');
-            
+
             // Remove from UI
             if (currentDeleteType === 'project') {
                 // Remove project from projectStatusData
@@ -262,7 +261,7 @@ async function confirmDelete() {
                 taskStatusData = taskStatusData.filter(t => t.task_id !== currentDeleteItem);
                 renderTaskStatus();
             }
-            
+
             closeDeleteConfirmation();
         } else {
             throw new Error('Deletion failed on server');
@@ -281,10 +280,10 @@ async function fetchNotificationsFromAPI() {
     try {
         const loadingElement = document.getElementById('signUpRequestsLoading');
         const listElement = document.getElementById('signUpRequestsList');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
-        
+
         const response = await fetch('/notification-admin', {
             method: 'POST',
             headers: {
@@ -294,13 +293,13 @@ async function fetchNotificationsFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Transform the API response into our notifications format
         notifications = data.map((notification, index) => {
             return {
@@ -309,11 +308,11 @@ async function fetchNotificationsFromAPI() {
                 read: notification[1] === 1
             };
         });
-        
+
         // Update notification badge to zero when clicked
         const badge = document.getElementById('notificationBadge');
         if (badge) badge.classList.add('hidden');
-        
+
         return notifications;
     } catch (error) {
         console.error('Error fetching notifications from API:', error);
@@ -337,28 +336,28 @@ function closeNotificationModal() {
 function renderNotifications() {
     const container = document.getElementById('notificationsList');
     const noNotifications = document.getElementById('noNotifications');
-    
+
     if (!container || !noNotifications) return;
-    
+
     container.innerHTML = '';
-    
+
     if (notifications.length === 0) {
         noNotifications.classList.remove('hidden');
         container.classList.add('hidden');
         return;
     }
-    
+
     noNotifications.classList.add('hidden');
     container.classList.remove('hidden');
-    
+
     notifications.forEach(notification => {
         const notificationEl = document.createElement('div');
         notificationEl.className = `notification-item ${!notification.read ? 'notification-unread' : ''}`;
-        
+
         // Determine icon based on read status
         const iconClass = !notification.read ? 'notification-icon-unread' : 'notification-icon-read';
         const icon = !notification.read ? 'fa-exclamation' : 'fa-check';
-        
+
         notificationEl.innerHTML = `
             <div class="notification-icon-container ${iconClass}">
                 <i class="fas ${icon}"></i>
@@ -367,7 +366,7 @@ function renderNotifications() {
                 <div class="text-sm text-white">${notification.message}</div>
             </div>
         `;
-        
+
         container.appendChild(notificationEl);
     });
 }
@@ -377,10 +376,10 @@ async function fetchMembersFromAPI() {
     try {
         const loadingElement = document.getElementById('membersProfileLoading');
         const membersList = document.getElementById('membersList');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (membersList) membersList.innerHTML = '';
-        
+
         const response = await fetch('/mps', {
             method: 'POST',
             headers: {
@@ -390,34 +389,34 @@ async function fetchMembersFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Transform the API response into our membersData format
         membersData = Object.entries(data).map(([email, memberInfo], index) => {
             // Process assignedProjects to separate assigned projects and manager projects
             const assignedProjects = [];
             const managerProjects = [];
-            
+
             if (memberInfo.assignedProjects && Array.isArray(memberInfo.assignedProjects)) {
                 memberInfo.assignedProjects.forEach(project => {
                     if (Array.isArray(project) && project.length >= 2) {
                         const projectName = project[0];
                         const isManager = project[1];
-                        
+
                         assignedProjects.push(projectName);
-                        
+
                         if (isManager === true) {
                             managerProjects.push(projectName);
                         }
                     }
                 });
             }
-            
+
             return {
                 id: index + 1,
                 fullName: memberInfo.name || "Unknown",
@@ -432,7 +431,7 @@ async function fetchMembersFromAPI() {
                 techStack: memberInfo.techStack || []
             };
         });
-        
+
         renderMembers();
         if (loadingElement) loadingElement.classList.add('hidden');
         return membersData;
@@ -448,9 +447,9 @@ async function fetchMembersFromAPI() {
 function renderMembers() {
     const list = document.getElementById('membersList');
     if (!list) return;
-    
+
     list.innerHTML = '';
-    
+
     let filteredMembers = membersData;
     if (window.memberFilter && window.memberFilter !== 'all') {
         // Convert filter to match API team values
@@ -458,10 +457,10 @@ function renderMembers() {
         if (teamFilter === 'Dev Team') teamFilter = 'Dev';
         if (teamFilter === 'Design Team') teamFilter = 'Design';
         if (teamFilter === 'Marketing Team') teamFilter = 'Marketing';
-        
+
         filteredMembers = membersData.filter(member => member.team === teamFilter);
     }
-    
+
     if (filteredMembers.length === 0) {
         list.innerHTML = `
             <tr>
@@ -472,15 +471,15 @@ function renderMembers() {
         `;
         return;
     }
-    
+
     filteredMembers.forEach(member => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-white/5';
-        
+
         // Determine team display name and color
         let teamDisplay = member.team;
         let teamColorClass = 'bg-white/10 text-gray-300';
-        
+
         if (member.team === 'Dev') {
             teamDisplay = 'Dev Team';
             teamColorClass = 'bg-primary/20 text-primary';
@@ -491,7 +490,7 @@ function renderMembers() {
             teamDisplay = 'Marketing Team';
             teamColorClass = 'bg-secondary/20 text-secondary';
         }
-        
+
         // Determine role color
         let roleColorClass = 'bg-white/10 text-gray-300';
         if (member.role === 'Manager') {
@@ -501,7 +500,7 @@ function renderMembers() {
         } else if (member.role === 'Intern') {
             roleColorClass = 'bg-white/10 text-gray-300';
         }
-        
+
         row.innerHTML = `
             <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center">
@@ -527,7 +526,7 @@ function renderMembers() {
                 <button onclick="openMemberDetailsModal(${member.id})" class="text-secondary hover:text-primary">View Details</button>
             </td>
         `;
-        
+
         list.appendChild(row);
     });
 }
@@ -535,24 +534,24 @@ function renderMembers() {
 function openMemberDetailsModal(memberId) {
     const member = membersData.find(m => m.id === memberId);
     if (!member) return;
-    
+
     const titleElement = document.getElementById('memberDetailsTitle');
     if (titleElement) titleElement.textContent = `Member Details: ${member.fullName}`;
-    
+
     document.getElementById('detailFullName').textContent = member.fullName;
     document.getElementById('detailEmail').textContent = member.email;
     document.getElementById('detailPhone').textContent = member.phone;
     document.getElementById('detailLastActive').textContent = member.lastActive;
-    
+
     // Determine team display name
     let teamDisplay = member.team;
     if (member.team === 'Dev') teamDisplay = 'Dev Team';
     else if (member.team === 'Design') teamDisplay = 'Design Team';
     else if (member.team === 'Marketing') teamDisplay = 'Marketing Team';
-    
+
     document.getElementById('detailTeam').textContent = teamDisplay;
     document.getElementById('detailRole').textContent = member.role;
-    
+
     // Tech Stack
     const techStackContainer = document.getElementById('detailTechStack');
     if (techStackContainer) {
@@ -568,7 +567,7 @@ function openMemberDetailsModal(memberId) {
             techStackContainer.innerHTML = '<span class="text-gray-400 text-sm">No tech stack specified</span>';
         }
     }
-    
+
     // Assigned Projects
     const assignedProjectsList = document.getElementById('detailAssignedProjects');
     if (assignedProjectsList) {
@@ -587,7 +586,7 @@ function openMemberDetailsModal(memberId) {
             assignedProjectsList.appendChild(li);
         }
     }
-    
+
     // Assigned Tasks
     const assignedTasksList = document.getElementById('detailAssignedTasks');
     if (assignedTasksList) {
@@ -606,7 +605,7 @@ function openMemberDetailsModal(memberId) {
             assignedTasksList.appendChild(li);
         }
     }
-    
+
     // Manager Projects
     const managerProjectsList = document.getElementById('detailManagerProjects');
     if (managerProjectsList) {
@@ -625,7 +624,7 @@ function openMemberDetailsModal(memberId) {
             managerProjectsList.appendChild(li);
         }
     }
-    
+
     toggleModal('memberDetailsModal', true);
 }
 
@@ -639,10 +638,10 @@ async function fetchSignUpRequestsFromAPI() {
         // Show loading state
         const loadingElement = document.getElementById('signUpRequestsLoading');
         const listElement = document.getElementById('signUpRequestsList');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
-        
+
         // Send POST request to FastAPI endpoint
         const response = await fetch('/approve-signups', {
             method: 'POST',
@@ -653,22 +652,22 @@ async function fetchSignUpRequestsFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Store the sign up requests data
         signUpRequests = data;
-        
+
         // Render the sign up requests
         renderSignUpRequests();
-        
+
         // Hide loading
         if (loadingElement) loadingElement.classList.add('hidden');
-        
+
         return data;
     } catch (error) {
         console.error('Error fetching sign up requests from API:', error);
@@ -693,23 +692,23 @@ async function sendUserAction(email, action) {
                 action: action
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        
+
         // Refresh the sign up requests after action
         await fetchSignUpRequestsFromAPI();
-        
+
         // Show success message
         if (action === 1) {
             alert(`User ${email} has been approved successfully!`);
         } else {
             alert(`User ${email} has been rejected successfully!`);
         }
-        
+
         return result;
     } catch (error) {
         console.error('Error sending user action to API:', error);
@@ -725,16 +724,16 @@ function initializeDashboard() {
     const completedProjects = document.getElementById('completedProjects');
     const totalTasks = document.getElementById('totalTasks');
     const completedTasks = document.getElementById('completedTasks');
-    
+
     if (totalProjects) totalProjects.textContent = templateData.tp || 0;
     if (completedProjects) completedProjects.textContent = templateData.pd || 0;
     if (totalTasks) totalTasks.textContent = templateData.tt || 0;
     if (completedTasks) completedTasks.textContent = templateData.td || 0;
-    
+
     // Render recent projects and tasks
     renderRecentProjects();
     renderRecentTasks();
-    
+
     // Initialize notification badge
     updateNotificationBadge();
 }
@@ -743,20 +742,20 @@ function initializeDashboard() {
 function renderRecentProjects() {
     const container = document.getElementById('recentProjects');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     const recentProjects = templateData.rp || [];
-    
+
     if (recentProjects.length === 0) {
         container.innerHTML = '<p class="text-gray-400 text-center py-4">No recent projects</p>';
         return;
     }
-    
+
     recentProjects.forEach(project => {
         const projectEl = document.createElement('div');
         projectEl.className = 'flex justify-between items-center p-3 border border-gray-700 rounded-lg';
-        
+
         projectEl.innerHTML = `
             <div>
                 <h4 class="font-medium text-white">${project.project_name}</h4>
@@ -766,7 +765,7 @@ function renderRecentProjects() {
                 ${project.Status === 0 ? 'ongoing' : 'completed'}
             </span>
         `;
-        
+
         container.appendChild(projectEl);
     });
 }
@@ -775,20 +774,20 @@ function renderRecentProjects() {
 function renderRecentTasks() {
     const container = document.getElementById('recentTasks');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     const recentTasks = templateData.rt || [];
-    
+
     if (recentTasks.length === 0) {
         container.innerHTML = '<p class="text-gray-400 text-center py-4">No recent tasks</p>';
         return;
     }
-    
+
     recentTasks.forEach(task => {
         const taskEl = document.createElement('div');
         taskEl.className = 'flex justify-between items-center p-3 border border-gray-700 rounded-lg';
-        
+
         taskEl.innerHTML = `
             <div>
                 <h4 class="font-medium text-white">${task.task_name}</h4>
@@ -798,7 +797,7 @@ function renderRecentTasks() {
                 ${task.Status === 0 ? 'ongoing' : 'completed'}
             </span>
         `;
-        
+
         container.appendChild(taskEl);
     });
 }
@@ -807,15 +806,15 @@ function renderRecentTasks() {
 function renderSignUpRequests() {
     const list = document.getElementById('signUpRequestsList');
     const pendingCountElement = document.getElementById('pendingRequestsCount');
-    
+
     if (!list) return;
-    
+
     list.innerHTML = '';
-    
+
     // Count pending requests (action = -1)
     const pendingCount = signUpRequests.filter(req => req.action === -1).length;
     if (pendingCountElement) pendingCountElement.textContent = pendingCount;
-    
+
     if (signUpRequests.length === 0) {
         list.innerHTML = `
             <tr>
@@ -826,11 +825,11 @@ function renderSignUpRequests() {
         `;
         return;
     }
-    
+
     signUpRequests.forEach(request => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-white/5';
-        
+
         // Determine action buttons based on action value
         let actionButtons = '';
         if (request.action === -1) {
@@ -846,7 +845,7 @@ function renderSignUpRequests() {
             // Rejected - show rejected status
             actionButtons = '<span class="status-rejected px-2 py-1 rounded-full text-xs font-medium">Rejected</span>';
         }
-        
+
         row.innerHTML = `
             <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center">
@@ -863,9 +862,9 @@ function renderSignUpRequests() {
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${request.role === 'manager' ? 'bg-purple-500/20 text-purple-400' : 
-                      request.role === 'intern' ? 'bg-secondary/20 text-secondary' : 
-                      'bg-primary/20 text-primary'}">
+                    ${request.role === 'manager' ? 'bg-purple-500/20 text-purple-400' :
+                request.role === 'intern' ? 'bg-secondary/20 text-secondary' :
+                    'bg-primary/20 text-primary'}">
                     ${request.role}
                 </span>
             </td>
@@ -873,7 +872,7 @@ function renderSignUpRequests() {
                 ${actionButtons}
             </td>
         `;
-        
+
         list.appendChild(row);
     });
 }
@@ -896,10 +895,10 @@ async function fetchTaskStatusFromAPI() {
     try {
         const loadingElement = document.getElementById('taskStatusLoading');
         const listElement = document.getElementById('taskStatusList');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
-        
+
         const response = await fetch('/show-task-status', {
             method: 'POST',
             headers: {
@@ -909,11 +908,11 @@ async function fetchTaskStatusFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         taskStatusData = data;
         renderTaskStatus();
@@ -932,21 +931,21 @@ async function fetchTaskStatusFromAPI() {
 function openTaskDetailsModal(taskIndex) {
     const task = taskStatusData[taskIndex];
     if (!task) return;
-    
+
     const titleElement = document.getElementById('taskDetailsTitle');
     if (titleElement) titleElement.textContent = `Task Details: ${task.task_name}`;
-    
+
     document.getElementById('detailTaskName').textContent = task.task_name;
     document.getElementById('detailTaskDescription').textContent = task.desc;
     document.getElementById('detailTaskInitiatedDate').textContent = task.initiated_date;
     document.getElementById('detailTaskDueDate').textContent = task.due_date;
-    
+
     const statusElement = document.getElementById('detailTaskStatus');
     if (statusElement) {
         statusElement.textContent = task.Status === 0 ? 'ongoing' : 'completed';
         statusElement.className = `status-tag ${task.Status === 0 ? 'status-ongoing' : 'status-completed'}`;
     }
-    
+
     toggleModal('taskDetailsModal', true);
 }
 
@@ -959,10 +958,10 @@ async function fetchProjectStatusFromAPI() {
     try {
         const loadingElement = document.getElementById('projectStatusLoading');
         const listElement = document.getElementById('projectStatusList');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
-        
+
         const response = await fetch('/show-project-status', {
             method: 'POST',
             headers: {
@@ -972,11 +971,11 @@ async function fetchProjectStatusFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         projectStatusData = data;
         renderProjectStatus();
@@ -995,28 +994,28 @@ async function fetchProjectStatusFromAPI() {
 function openProjectDetailsModal(projectIndex) {
     const project = projectStatusData[projectIndex];
     if (!project) return;
-    
+
     const titleElement = document.getElementById('projectDetailsTitle');
     if (titleElement) titleElement.textContent = `Project Details: ${project.project_name}`;
-    
+
     document.getElementById('detailProjectName').textContent = project.project_name;
     document.getElementById('detailInitiatedDate').textContent = project.initiated_date;
     document.getElementById('detailDueDate').textContent = project.due_date;
     document.getElementById('detailTeam').textContent = project.team;
-    
+
     const statusElement = document.getElementById('detailStatus');
     if (statusElement) {
         statusElement.textContent = project.Status === 0 ? 'ongoing' : 'completed';
         statusElement.className = `status-tag ${project.Status === 0 ? 'status-ongoing' : 'status-completed'}`;
     }
-    
+
     const projectManagerElement = document.getElementById('detailProjectManager');
     if (projectManagerElement && project.project_manager && project.project_manager[0] && project.project_manager[0][1]) {
         projectManagerElement.textContent = project.project_manager[0][1];
     } else if (projectManagerElement) {
         projectManagerElement.textContent = 'Not assigned';
     }
-    
+
     const assignedMembersList = document.getElementById('detailAssignedMembers');
     if (assignedMembersList) {
         assignedMembersList.innerHTML = '';
@@ -1047,7 +1046,7 @@ function openProjectDetailsModal(projectIndex) {
             });
         }
     }
-    
+
     const componentsContainer = document.getElementById('detailComponents');
     if (componentsContainer) {
         componentsContainer.innerHTML = '';
@@ -1063,7 +1062,7 @@ function openProjectDetailsModal(projectIndex) {
             });
         }
     }
-    
+
     toggleModal('projectDetailsModal', true);
 }
 
@@ -1076,10 +1075,10 @@ async function fetchProjectUsersFromAPI() {
     try {
         const loadingElement = document.getElementById('projectMembersLoading');
         const membersElement = document.getElementById('projectMembers');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (membersElement) membersElement.classList.add('hidden');
-        
+
         const response = await fetch('/load-add-project', {
             method: 'POST',
             headers: {
@@ -1089,18 +1088,18 @@ async function fetchProjectUsersFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         projectUsersDict = data;
         populateProjectUserDropdowns();
-        
+
         if (loadingElement) loadingElement.classList.add('hidden');
         if (membersElement) membersElement.classList.remove('hidden');
-        
+
         return data;
     } catch (error) {
         console.error('Error fetching users from project API:', error);
@@ -1114,18 +1113,18 @@ async function fetchProjectUsersFromAPI() {
 function populateProjectUserDropdowns() {
     const projectMembersSelect = document.getElementById('projectMembers');
     const projectManagerSelect = document.getElementById('projectManager');
-    
+
     if (!projectMembersSelect || !projectManagerSelect) return;
-    
+
     projectMembersSelect.innerHTML = '';
     projectManagerSelect.innerHTML = '<option value="">Select Manager</option>';
-    
+
     Object.entries(projectUsersDict).forEach(([email, username]) => {
         const memberOption = document.createElement('option');
         memberOption.value = email;
         memberOption.textContent = username;
         projectMembersSelect.appendChild(memberOption);
-        
+
         const managerOption = document.createElement('option');
         managerOption.value = email;
         managerOption.textContent = username;
@@ -1138,10 +1137,10 @@ async function fetchTaskUsersFromAPI() {
     try {
         const loadingElement = document.getElementById('taskMembersLoading');
         const membersElement = document.getElementById('taskMembers');
-        
+
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (membersElement) membersElement.classList.add('hidden');
-        
+
         const response = await fetch('/load-add-task', {
             method: 'POST',
             headers: {
@@ -1151,18 +1150,18 @@ async function fetchTaskUsersFromAPI() {
                 x: "any string value"
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         taskUsersDict = data;
         populateTaskUserDropdowns();
-        
+
         if (loadingElement) loadingElement.classList.add('hidden');
         if (membersElement) membersElement.classList.remove('hidden');
-        
+
         return data;
     } catch (error) {
         console.error('Error fetching users from task API:', error);
@@ -1176,9 +1175,9 @@ async function fetchTaskUsersFromAPI() {
 function populateTaskUserDropdowns() {
     const taskMembersSelect = document.getElementById('taskMembers');
     if (!taskMembersSelect) return;
-    
+
     taskMembersSelect.innerHTML = '';
-    
+
     Object.entries(taskUsersDict).forEach(([email, username]) => {
         const memberOption = document.createElement('option');
         memberOption.value = email;
@@ -1192,17 +1191,17 @@ function setActiveProjectFilter(filter) {
     const allProjectsBtn = document.getElementById('allProjectsBtn');
     const ongoingProjectsBtn = document.getElementById('ongoingProjectsBtn');
     const completedProjectsBtn = document.getElementById('completedProjectsBtn');
-    
+
     if (!allProjectsBtn || !ongoingProjectsBtn || !completedProjectsBtn) return;
-    
+
     allProjectsBtn.classList.remove('bg-primary/20', 'text-primary');
     ongoingProjectsBtn.classList.remove('bg-primary/20', 'text-primary');
     completedProjectsBtn.classList.remove('bg-primary/20', 'text-primary');
-    
+
     allProjectsBtn.classList.add('bg-white/10', 'text-gray-300');
     ongoingProjectsBtn.classList.add('bg-white/10', 'text-gray-300');
     completedProjectsBtn.classList.add('bg-white/10', 'text-gray-300');
-    
+
     if (filter === 'all') {
         allProjectsBtn.classList.remove('bg-white/10', 'text-gray-300');
         allProjectsBtn.classList.add('bg-primary/20', 'text-primary');
@@ -1213,7 +1212,7 @@ function setActiveProjectFilter(filter) {
         completedProjectsBtn.classList.remove('bg-white/10', 'text-gray-300');
         completedProjectsBtn.classList.add('bg-primary/20', 'text-primary');
     }
-    
+
     window.projectFilter = filter;
 }
 
@@ -1221,17 +1220,17 @@ function setActiveTaskFilter(filter) {
     const allTasksBtn = document.getElementById('allTasksBtn');
     const ongoingTasksBtn = document.getElementById('ongoingTasksBtn');
     const completedTasksBtn = document.getElementById('completedTasksBtn');
-    
+
     if (!allTasksBtn || !ongoingTasksBtn || !completedTasksBtn) return;
-    
+
     allTasksBtn.classList.remove('bg-primary/20', 'text-primary');
     ongoingTasksBtn.classList.remove('bg-primary/20', 'text-primary');
     completedTasksBtn.classList.remove('bg-primary/20', 'text-primary');
-    
+
     allTasksBtn.classList.add('bg-white/10', 'text-gray-300');
     ongoingTasksBtn.classList.add('bg-white/10', 'text-gray-300');
     completedTasksBtn.classList.add('bg-white/10', 'text-gray-300');
-    
+
     if (filter === 'all') {
         allTasksBtn.classList.remove('bg-white/10', 'text-gray-300');
         allTasksBtn.classList.add('bg-primary/20', 'text-primary');
@@ -1242,7 +1241,7 @@ function setActiveTaskFilter(filter) {
         completedTasksBtn.classList.remove('bg-white/10', 'text-gray-300');
         completedTasksBtn.classList.add('bg-primary/20', 'text-primary');
     }
-    
+
     window.taskFilter = filter;
 }
 
@@ -1251,19 +1250,19 @@ function setActiveMemberFilter(filter) {
     const devTeamBtn = document.getElementById('devTeamBtn');
     const designTeamBtn = document.getElementById('designTeamBtn');
     const marketingTeamBtn = document.getElementById('marketingTeamBtn');
-    
+
     if (!allMembersBtn || !devTeamBtn || !designTeamBtn || !marketingTeamBtn) return;
-    
+
     allMembersBtn.classList.remove('bg-primary/20', 'text-primary');
     devTeamBtn.classList.remove('bg-primary/20', 'text-primary');
     designTeamBtn.classList.remove('bg-primary/20', 'text-primary');
     marketingTeamBtn.classList.remove('bg-primary/20', 'text-primary');
-    
+
     allMembersBtn.classList.add('bg-white/10', 'text-gray-300');
     devTeamBtn.classList.add('bg-white/10', 'text-gray-300');
     designTeamBtn.classList.add('bg-white/10', 'text-gray-300');
     marketingTeamBtn.classList.add('bg-white/10', 'text-gray-300');
-    
+
     if (filter === 'all') {
         allMembersBtn.classList.remove('bg-white/10', 'text-gray-300');
         allMembersBtn.classList.add('bg-primary/20', 'text-primary');
@@ -1277,24 +1276,24 @@ function setActiveMemberFilter(filter) {
         marketingTeamBtn.classList.remove('bg-white/10', 'text-gray-300');
         marketingTeamBtn.classList.add('bg-primary/20', 'text-primary');
     }
-    
+
     window.memberFilter = filter;
 }
 
 function showSection(sectionId) {
     // Hide all sections
-    const sections = ['dashboardSection', 'signUpRequestsSection', 'projectStatusSection', 
-                     'taskStatusSection', 'membersProfileSection', 'communitySection'];
-    
+    const sections = ['dashboardSection', 'signUpRequestsSection', 'projectStatusSection',
+        'taskStatusSection', 'membersProfileSection', 'communitySection'];
+
     sections.forEach(id => {
         const section = document.getElementById(id);
         if (section) section.classList.add('hidden');
     });
-    
+
     // Show the selected section
     const section = document.getElementById(sectionId);
     if (section) section.classList.remove('hidden');
-    
+
     // Update active tab
     const tabIds = {
         'dashboardSection': 'dashboardBtn',
@@ -1304,20 +1303,20 @@ function showSection(sectionId) {
         'membersProfileSection': 'membersProfileBtn',
         'communitySection': 'communityBtn'
     };
-    
+
     // Remove active class from all tabs
     Object.values(tabIds).forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) btn.classList.remove('active-tab');
     });
-    
+
     // Add active class to the selected tab
     const activeBtnId = tabIds[sectionId];
     if (activeBtnId) {
         const activeBtn = document.getElementById(activeBtnId);
         if (activeBtn) activeBtn.classList.add('active-tab');
     }
-    
+
     // Handle special section behaviors
     if (sectionId === 'communitySection') {
         loadCommunityChat();
@@ -1329,21 +1328,21 @@ function showSection(sectionId) {
 function renderProjectStatus() {
     const list = document.getElementById('projectStatusList');
     if (!list) return;
-    
+
     list.innerHTML = '';
-    
+
     let filteredProjects = projectStatusData;
     if (window.projectFilter === 'ongoing') {
         filteredProjects = projectStatusData.filter(p => p.Status === 0);
     } else if (window.projectFilter === 'completed') {
         filteredProjects = projectStatusData.filter(p => p.Status === 1);
     }
-    
+
     filteredProjects.forEach((project, index) => {
         const card = document.createElement('div');
         card.className = 'valorant-card p-5 card-hover';
         card.id = project.project_id;
-        
+
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-bold text-white">${project.project_name}</h3>
@@ -1372,7 +1371,7 @@ function renderProjectStatus() {
                 <button onclick="openProjectDetailsModal(${index})" class="text-secondary hover:text-primary text-sm font-medium">View Details</button>
             </div>
         `;
-        
+
         list.appendChild(card);
     });
 }
@@ -1381,21 +1380,21 @@ function renderProjectStatus() {
 function renderTaskStatus() {
     const list = document.getElementById('taskStatusList');
     if (!list) return;
-    
+
     list.innerHTML = '';
-    
+
     let filteredTasks = taskStatusData;
     if (window.taskFilter === 'ongoing') {
         filteredTasks = taskStatusData.filter(t => t.Status === 0);
     } else if (window.taskFilter === 'completed') {
         filteredTasks = taskStatusData.filter(t => t.Status === 1);
     }
-    
+
     filteredTasks.forEach((task, index) => {
         const card = document.createElement('div');
         card.className = 'valorant-card p-5 card-hover';
         card.id = task.task_id;
-        
+
         // Safely handle assigned_members
         let assignedMembersHTML = '';
         if (task.assigned_members && Array.isArray(task.assigned_members)) {
@@ -1421,7 +1420,7 @@ function renderTaskStatus() {
                 `;
             }).join('');
         }
-        
+
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-bold text-white">${task.task_name}</h3>
@@ -1475,7 +1474,7 @@ function getCurrentTime() {
 function toggleModal(id, show = true) {
     const modal = document.getElementById(id);
     if (!modal) return;
-    
+
     if (show) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -1497,7 +1496,7 @@ async function openProjectModal(editIndex = null) {
     const saveBtn = document.getElementById("saveProjectBtn");
     const updateBtn = document.getElementById("updateProjectBtn");
     const editIndexInput = document.getElementById("editProjectIndex");
-    
+
     if (titleElement) titleElement.textContent = title;
     if (saveBtn) saveBtn.classList.toggle("hidden", isEdit);
     if (updateBtn) updateBtn.classList.toggle("hidden", !isEdit);
@@ -1508,7 +1507,7 @@ async function openProjectModal(editIndex = null) {
         document.getElementById("projectName").value = p.name;
         document.getElementById("projectDueDate").value = p.due;
         document.getElementById("projectTeam").value = p.team;
-        
+
         if (p.managerEmail && projectUsersDict[p.managerEmail]) {
             document.getElementById("projectManager").value = p.managerEmail;
         } else {
@@ -1551,7 +1550,7 @@ async function openTaskModal(editIndex = null) {
     const saveBtn = document.getElementById("saveTaskBtn");
     const updateBtn = document.getElementById("updateTaskBtn");
     const editIndexInput = document.getElementById("editTaskIndex");
-    
+
     if (titleElement) titleElement.textContent = title;
     if (saveBtn) saveBtn.classList.toggle("hidden", isEdit);
     if (updateBtn) updateBtn.classList.toggle("hidden", !isEdit);
@@ -1591,12 +1590,12 @@ function closeComponentModal() {
 function updateAssigned(type) {
     const select = document.getElementById(`${type}Members`);
     if (!select) return;
-    
+
     assigned[type] = [...select.selectedOptions].map(opt => opt.value);
 
     const display = document.getElementById(`${type}AssignedDisplay`);
     if (!display) return;
-    
+
     display.innerHTML = "";
 
     assigned[type].forEach(email => {
@@ -1612,9 +1611,9 @@ function updateAssigned(type) {
 function addComponent() {
     const nameInput = document.getElementById("componentName");
     const featureInput = document.getElementById("featureName");
-    
+
     if (!nameInput || !featureInput) return;
-    
+
     const name = nameInput.value.trim();
     const feature = featureInput.value.trim();
 
@@ -1631,7 +1630,7 @@ function addComponent() {
 function renderComponents() {
     const list = document.getElementById("componentsList");
     if (!list) return;
-    
+
     list.innerHTML = "";
 
     components.forEach(c => {
@@ -1664,7 +1663,7 @@ async function addProject() {
     const compDict = Object.fromEntries(components.map(c => [c.name, c.feature]));
 
     const assignedMembersFormatted = assigned.project.map(email => [
-        email, 
+        email,
         projectUsersDict[email]
     ]);
 
@@ -1690,10 +1689,10 @@ async function addProject() {
 
         if (res.ok) {
             alert("Project added successfully!");
-            projects.push({ 
-                name, 
-                due, 
-                team, 
+            projects.push({
+                name,
+                due,
+                team,
                 manager: managerUsername,
                 managerEmail: managerEmail,
                 memberEmails: [...assigned.project],
@@ -1726,7 +1725,7 @@ async function addTask() {
     }
 
     const assignedMembersFormatted = assigned.task.map(email => [
-        email, 
+        email,
         taskUsersDict[email]
     ]);
 
@@ -1746,10 +1745,10 @@ async function addTask() {
 
         if (res.ok) {
             alert("Task added successfully!");
-            tasks.push({ 
-                name, 
-                desc, 
-                due, 
+            tasks.push({
+                name,
+                desc,
+                due,
                 memberEmails: [...assigned.task],
                 members: assigned.task.map(email => taskUsersDict[email]),
                 initiatedDate: getCurrentDateFormatted(),
@@ -1806,13 +1805,13 @@ function updateTask() {
 async function loadCommunityChat() {
     const chatArea = document.getElementById('chatArea');
     const loadingSpinner = document.getElementById('communityLoading');
-    
+
     if (!chatArea || !loadingSpinner) return;
-    
+
     // Show loading spinner
     chatArea.innerHTML = '';
     loadingSpinner.classList.remove('hidden');
-    
+
     try {
         // Use the unified endpoint
         const response = await fetch('/community', {
@@ -1822,17 +1821,17 @@ async function loadCommunityChat() {
             },
             body: JSON.stringify({ x: 'any string value' })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const chats = await response.json();
         // console.log('Received unified community chats:', chats);
-        
+
         // Hide loading spinner
         loadingSpinner.classList.add('hidden');
-        
+
         // Render chats
         if (chats && chats.length > 0) {
             renderChatMessages(chats);
@@ -1844,7 +1843,7 @@ async function loadCommunityChat() {
                 </div>
             `;
         }
-        
+
     } catch (error) {
         console.error('Error loading community chat:', error);
         loadingSpinner.classList.add('hidden');
@@ -1861,14 +1860,21 @@ async function loadCommunityChat() {
 function renderChatMessages(chats) {
     const chatArea = document.getElementById('chatArea');
     if (!chatArea) return;
-    
+
     chatArea.innerHTML = chats.map(chat => {
         const isOwnMessage = chat.user === currentAdminId;
         const messageClass = isOwnMessage ? 'own-message' : 'other-message';
-        
+
         return `
             <div class="message-container ${messageClass}">
-                <div class="message-bubble">
+                <div class="message-bubble" id="${chat.message_id}">
+                    <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
+                    <div class="message-menu-dropdown">
+                        <div class="menu-item"><i class="fas fa-reply"></i> Reply</div>
+                        <div class="menu-item" onclick="navigator.clipboard.writeText('${chat.message.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
+                        <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
+                        <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400"><i class="fas fa-trash"></i> Delete</div>
+                    </div>
                     <div class="message-header">${chat.username || 'Unknown User'}</div>
                     <div class="message-content">${chat.message}</div>
                     <div class="message-time">${chat.time}</div>
@@ -1876,7 +1882,7 @@ function renderChatMessages(chats) {
             </div>
         `;
     }).join('');
-    
+
     // Scroll to bottom
     scrollToBottom();
 }
@@ -1884,7 +1890,7 @@ function renderChatMessages(chats) {
 // Format time for display
 function formatTime(timeString) {
     if (!timeString) return '';
-    
+
     try {
         const date = new Date(timeString);
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1907,21 +1913,21 @@ function initializeCommunityWebSocket() {
         console.error('Admin ID not found for Community WebSocket connection');
         return;
     }
-    
+
     try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/community/${currentAdminId}`;
-        
+
         communitySocket = new WebSocket(wsUrl);
-        
-        communitySocket.onopen = function(event) {
+
+        communitySocket.onopen = function (event) {
             console.log('Unified Community WebSocket connected successfully for admin');
         };
-        
-        communitySocket.onmessage = function(event) {
+
+        communitySocket.onmessage = function (event) {
             const data = JSON.parse(event.data);
             console.log('Unified Community WebSocket message received:', data);
-            
+
             if (data.type === 'chat_message') {
                 handleNewChatMessage(data.message);
             } else if (data.type === 'user_joined') {
@@ -1930,15 +1936,15 @@ function initializeCommunityWebSocket() {
                 showSystemMessage(`${data.username} left the chat`);
             }
         };
-        
-        communitySocket.onclose = function(event) {
+
+        communitySocket.onclose = function (event) {
             console.log('Community WebSocket disconnected:', event);
         };
-        
-        communitySocket.onerror = function(error) {
+
+        communitySocket.onerror = function (error) {
             console.error('Community WebSocket error:', error);
         };
-        
+
     } catch (error) {
         console.error('Error initializing Community WebSocket:', error);
     }
@@ -1949,26 +1955,33 @@ function handleNewChatMessage(messageData) {
     // Add the new message to the chat area
     const chatArea = document.getElementById('chatArea');
     if (!chatArea) return;
-    
+
     // Remove empty state if it exists
     const emptyState = chatArea.querySelector('.chat-empty');
     if (emptyState) {
         emptyState.remove();
     }
-    
+
     const isOwnMessage = messageData.user === currentAdminId;
     const messageClass = isOwnMessage ? 'own-message' : 'other-message';
-    
+
     const messageElement = document.createElement('div');
     messageElement.className = `message-container ${messageClass}`;
     messageElement.innerHTML = `
-        <div class="message-bubble">
+        <div class="message-bubble" id="${messageData.message_id}">
+            <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
+            <div class="message-menu-dropdown">
+                <div class="menu-item"><i class="fas fa-reply"></i> Reply</div>
+                <div class="menu-item" onclick="navigator.clipboard.writeText('${messageData.message.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
+                <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
+                <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400"><i class="fas fa-trash"></i> Delete</div>
+            </div>
             <div class="message-header">${messageData.username || 'Unknown User'}</div>
             <div class="message-content">${messageData.message}</div>
             <div class="message-time">${messageData.time}</div>
         </div>
     `;
-    
+
     chatArea.appendChild(messageElement);
     scrollToBottom();
 }
@@ -1977,13 +1990,13 @@ function handleNewChatMessage(messageData) {
 function showSystemMessage(message) {
     const chatArea = document.getElementById('chatArea');
     if (!chatArea) return;
-    
+
     // Remove empty state if it exists
     const emptyState = chatArea.querySelector('.chat-empty');
     if (emptyState) {
         emptyState.remove();
     }
-    
+
     const systemElement = document.createElement('div');
     systemElement.className = 'system-message';
     systemElement.innerHTML = `
@@ -1991,7 +2004,7 @@ function showSystemMessage(message) {
             ${message}
         </div>
     `;
-    
+
     chatArea.appendChild(systemElement);
     scrollToBottom();
 }
@@ -2000,10 +2013,10 @@ function showSystemMessage(message) {
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     if (!messageInput) return;
-    
+
     const message = messageInput.value.trim();
     if (!message) return;
-    
+
     if (communitySocket && communitySocket.readyState === WebSocket.OPEN) {
         // Send via WebSocket with admin info
         communitySocket.send(JSON.stringify({
@@ -2013,7 +2026,7 @@ async function sendMessage() {
             username: "Admin", // Admin identifier
             user_type: "admin"
         }));
-        
+
         // Clear input
         messageInput.value = '';
     } else {
@@ -2024,14 +2037,14 @@ async function sendMessage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     message: message,
                     user_id: currentAdminId,
                     username: "Admin",
                     user_type: "admin"
                 })
             });
-            
+
             if (response.ok) {
                 messageInput.value = '';
             } else {
@@ -2062,14 +2075,14 @@ function initializeEventListeners() {
     // Tab navigation
     const dashboardBtn = document.getElementById('dashboardBtn');
     if (dashboardBtn) {
-        dashboardBtn.addEventListener('click', function() {
+        dashboardBtn.addEventListener('click', function () {
             showSection('dashboardSection');
         });
     }
 
     const approveSignUpsBtn = document.getElementById('approveSignUpsBtn');
     if (approveSignUpsBtn) {
-        approveSignUpsBtn.addEventListener('click', function() {
+        approveSignUpsBtn.addEventListener('click', function () {
             showSection('signUpRequestsSection');
             fetchSignUpRequestsFromAPI();
         });
@@ -2077,7 +2090,7 @@ function initializeEventListeners() {
 
     const showProjectStatusBtn = document.getElementById('showProjectStatusBtn');
     if (showProjectStatusBtn) {
-        showProjectStatusBtn.addEventListener('click', function() {
+        showProjectStatusBtn.addEventListener('click', function () {
             showSection('projectStatusSection');
             fetchProjectStatusFromAPI();
         });
@@ -2085,7 +2098,7 @@ function initializeEventListeners() {
 
     const showTaskStatusBtn = document.getElementById('showTaskStatusBtn');
     if (showTaskStatusBtn) {
-        showTaskStatusBtn.addEventListener('click', function() {
+        showTaskStatusBtn.addEventListener('click', function () {
             showSection('taskStatusSection');
             fetchTaskStatusFromAPI();
         });
@@ -2093,7 +2106,7 @@ function initializeEventListeners() {
 
     const membersProfileBtn = document.getElementById('membersProfileBtn');
     if (membersProfileBtn) {
-        membersProfileBtn.addEventListener('click', function() {
+        membersProfileBtn.addEventListener('click', function () {
             showSection('membersProfileSection');
             fetchMembersFromAPI();
         });
@@ -2101,7 +2114,7 @@ function initializeEventListeners() {
 
     const communityBtn = document.getElementById('communityBtn');
     if (communityBtn) {
-        communityBtn.addEventListener('click', function(e) {
+        communityBtn.addEventListener('click', function (e) {
             e.preventDefault();
             showSection('communitySection');
             loadCommunityChat();
@@ -2112,7 +2125,7 @@ function initializeEventListeners() {
     // Notification button
     const notificationBtn = document.getElementById('notificationBtn');
     if (notificationBtn) {
-        notificationBtn.addEventListener('click', function() {
+        notificationBtn.addEventListener('click', function () {
             openNotificationModal();
         });
     }
@@ -2120,7 +2133,7 @@ function initializeEventListeners() {
     // Project filter buttons
     const allProjectsBtn = document.getElementById('allProjectsBtn');
     if (allProjectsBtn) {
-        allProjectsBtn.addEventListener('click', function() {
+        allProjectsBtn.addEventListener('click', function () {
             setActiveProjectFilter('all');
             renderProjectStatus();
         });
@@ -2128,7 +2141,7 @@ function initializeEventListeners() {
 
     const ongoingProjectsBtn = document.getElementById('ongoingProjectsBtn');
     if (ongoingProjectsBtn) {
-        ongoingProjectsBtn.addEventListener('click', function() {
+        ongoingProjectsBtn.addEventListener('click', function () {
             setActiveProjectFilter('ongoing');
             renderProjectStatus();
         });
@@ -2136,7 +2149,7 @@ function initializeEventListeners() {
 
     const completedProjectsBtn = document.getElementById('completedProjectsBtn');
     if (completedProjectsBtn) {
-        completedProjectsBtn.addEventListener('click', function() {
+        completedProjectsBtn.addEventListener('click', function () {
             setActiveProjectFilter('completed');
             renderProjectStatus();
         });
@@ -2145,7 +2158,7 @@ function initializeEventListeners() {
     // Task filter buttons
     const allTasksBtn = document.getElementById('allTasksBtn');
     if (allTasksBtn) {
-        allTasksBtn.addEventListener('click', function() {
+        allTasksBtn.addEventListener('click', function () {
             setActiveTaskFilter('all');
             renderTaskStatus();
         });
@@ -2153,7 +2166,7 @@ function initializeEventListeners() {
 
     const ongoingTasksBtn = document.getElementById('ongoingTasksBtn');
     if (ongoingTasksBtn) {
-        ongoingTasksBtn.addEventListener('click', function() {
+        ongoingTasksBtn.addEventListener('click', function () {
             setActiveTaskFilter('ongoing');
             renderTaskStatus();
         });
@@ -2161,7 +2174,7 @@ function initializeEventListeners() {
 
     const completedTasksBtn = document.getElementById('completedTasksBtn');
     if (completedTasksBtn) {
-        completedTasksBtn.addEventListener('click', function() {
+        completedTasksBtn.addEventListener('click', function () {
             setActiveTaskFilter('completed');
             renderTaskStatus();
         });
@@ -2170,7 +2183,7 @@ function initializeEventListeners() {
     // Member filter buttons
     const allMembersBtn = document.getElementById('allMembersBtn');
     if (allMembersBtn) {
-        allMembersBtn.addEventListener('click', function() {
+        allMembersBtn.addEventListener('click', function () {
             setActiveMemberFilter('all');
             renderMembers();
         });
@@ -2178,7 +2191,7 @@ function initializeEventListeners() {
 
     const devTeamBtn = document.getElementById('devTeamBtn');
     if (devTeamBtn) {
-        devTeamBtn.addEventListener('click', function() {
+        devTeamBtn.addEventListener('click', function () {
             setActiveMemberFilter('Dev Team');
             renderMembers();
         });
@@ -2186,7 +2199,7 @@ function initializeEventListeners() {
 
     const designTeamBtn = document.getElementById('designTeamBtn');
     if (designTeamBtn) {
-        designTeamBtn.addEventListener('click', function() {
+        designTeamBtn.addEventListener('click', function () {
             setActiveMemberFilter('Design Team');
             renderMembers();
         });
@@ -2194,7 +2207,7 @@ function initializeEventListeners() {
 
     const marketingTeamBtn = document.getElementById('marketingTeamBtn');
     if (marketingTeamBtn) {
-        marketingTeamBtn.addEventListener('click', function() {
+        marketingTeamBtn.addEventListener('click', function () {
             setActiveMemberFilter('Marketing Team');
             renderMembers();
         });
@@ -2203,10 +2216,10 @@ function initializeEventListeners() {
     // Sidebar toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
     if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
+        sidebarToggle.addEventListener('click', function () {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
-            
+
             if (sidebar && mainContent) {
                 sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('expanded');
@@ -2228,7 +2241,7 @@ function initializeEventListeners() {
     // Community buttons
     const refreshCommunityBtn = document.getElementById('refreshCommunity');
     if (refreshCommunityBtn) {
-        refreshCommunityBtn.addEventListener('click', function(e) {
+        refreshCommunityBtn.addEventListener('click', function (e) {
             e.preventDefault();
             loadCommunityChat();
         });
@@ -2241,7 +2254,7 @@ function initializeEventListeners() {
 
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
-        messageInput.addEventListener('keypress', function(e) {
+        messageInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
@@ -2251,7 +2264,7 @@ function initializeEventListeners() {
     // Modal close buttons
     const closeButtons = document.querySelectorAll('.modal-close, .cancel-btn');
     closeButtons.forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const modal = this.closest('.modal');
             if (modal) {
                 modal.classList.remove('flex');
@@ -2289,40 +2302,40 @@ function initializeEventListeners() {
     // Project and Task member selection
     const projectMembersSelect = document.getElementById('projectMembers');
     if (projectMembersSelect) {
-        projectMembersSelect.addEventListener('change', function() {
+        projectMembersSelect.addEventListener('change', function () {
             updateAssigned('project');
         });
     }
 
     const taskMembersSelect = document.getElementById('taskMembers');
     if (taskMembersSelect) {
-        taskMembersSelect.addEventListener('change', function() {
+        taskMembersSelect.addEventListener('change', function () {
             updateAssigned('task');
         });
     }
 }
 
 // ====== Initialize Application ======
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize filter variables
     window.projectFilter = 'all';
     window.taskFilter = 'all';
     window.memberFilter = 'all';
-    
+
     // Set initial active filters
     setActiveProjectFilter('all');
     setActiveTaskFilter('all');
     setActiveMemberFilter('all');
-    
+
     // Initialize event listeners
     initializeEventListeners();
-    
+
     // Initialize dashboard with template data
     initializeDashboard();
-    
+
     // Initialize WebSocket connection
     initializeWebSocket();
-    
+
     // Show dashboard by default
     showSection('dashboardSection');
 });
@@ -2386,3 +2399,24 @@ window.initializeCommunityWebSocket = initializeCommunityWebSocket;
 window.sendMessage = sendMessage;
 window.refreshCommunity = refreshCommunity;
 window.closeCommunityWebSocket = closeCommunityWebSocket;
+
+// ====== Message Dropdown Position Logic ======
+document.addEventListener('mouseover', function (e) {
+    const dots = e.target.closest('.message-menu-dots');
+    if (dots) {
+        const dropdown = dots.nextElementSibling;
+        if (dropdown && dropdown.classList.contains('message-menu-dropdown')) {
+            const rect = dots.getBoundingClientRect();
+            // Get the chat container to check boundaries
+            const chatArea = dots.closest('.chat-area');
+            const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
+
+            // Estimate dropdown height as ~150px
+            if (rect.bottom + 150 > containerBottom) {
+                dropdown.classList.add('show-upwards');
+            } else {
+                dropdown.classList.remove('show-upwards');
+            }
+        }
+    }
+});

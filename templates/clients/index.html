@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,8 +10,8 @@
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}">
-      
+    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=2">
+
     <script>
         tailwind.config = {
             theme: {
@@ -39,6 +40,7 @@
         }
     </script>
 </head>
+
 <body class="valorant-bg text-white font-rajdhani min-h-screen">
     <div class="container">
         <!-- Sidebar -->
@@ -168,7 +170,8 @@
                         <div class="section" style="width: 48%; float: left; margin-right: 4%;">
                             <div class="section-header">
                                 <h2 class="section-title">Recent Projects</h2>
-                                <button class="btn btn-outline" onclick="showSection('projectsSection', 'Projects')">View All</button>
+                                <button class="btn btn-outline"
+                                    onclick="showSection('projectsSection', 'Projects')">View All</button>
                             </div>
                             <div class="table-responsive">
                                 <table>
@@ -189,7 +192,8 @@
                         <div class="section" style="width: 48%; float: left;">
                             <div class="section-header">
                                 <h2 class="section-title">Recent Tasks</h2>
-                                <button class="btn btn-outline" onclick="showSection('tasksSection', 'Tasks')">View All</button>
+                                <button class="btn btn-outline" onclick="showSection('tasksSection', 'Tasks')">View
+                                    All</button>
                             </div>
                             <div class="table-responsive">
                                 <table>
@@ -216,12 +220,12 @@
                         <h2 class="section-title">Projects</h2>
                         <button class="btn valorant-button" id="refreshProjects">Refresh</button>
                     </div>
-                    
+
                     <div class="loading-spinner" id="projectsLoading">
                         <div class="spinner"></div>
                         <p>Loading projects...</p>
                     </div>
-                    
+
                     <div id="projectsContainer">
                         <!-- Projects will be dynamically loaded here -->
                     </div>
@@ -233,12 +237,12 @@
                         <h2 class="section-title">All Tasks</h2>
                         <button class="btn valorant-button" id="refreshTasks">Refresh</button>
                     </div>
-                    
+
                     <div class="loading-spinner" id="tasksLoading">
                         <div class="spinner"></div>
                         <p>Loading tasks...</p>
                     </div>
-                    
+
                     <div class="tasks-container" id="tasksContainer">
                         <!-- Tasks will be dynamically loaded here -->
                     </div>
@@ -249,18 +253,19 @@
                         <h2 class="section-title">Community Chat</h2>
                         <button class="btn valorant-button" id="refreshCommunity">Refresh</button>
                     </div>
-                    
+
                     <div class="loading-spinner" id="communityLoading">
                         <div class="spinner"></div>
                         <p>Loading community chat...</p>
                     </div>
-                    
+
                     <div class="community-container" id="communityContainer">
                         <div class="chat-area" id="chatArea">
                             <!-- Messages will be displayed here -->
                         </div>
                         <div class="message-input-container">
-                            <input type="text" id="messageInput" placeholder="Type your message here..." class="message-input">
+                            <input type="text" id="messageInput" placeholder="Type your message here..."
+                                class="message-input">
                             <button class="btn valorant-button" id="sendMessageBtn">Send</button>
                         </div>
                     </div>
@@ -279,7 +284,7 @@
             <h2 class="profile-name">{{ fullname if fullname else 'User' }}</h2>
             <p class="profile-email" id="profileEmail">{{ user_email if user_email else 'user@example.com' }}</p>
         </div>
-        
+
         <div class="profile-section">
             <h3 class="profile-section-title">Team Assigned</h3>
             <div class="tags-container" id="teamContainer">
@@ -288,7 +293,7 @@
                 <span class="tag">Marketing Team</span>
             </div>
         </div>
-        
+
         <div class="profile-section">
             <div class="profile-section-title">
                 <span>Skills</span>
@@ -305,7 +310,7 @@
                 <button class="btn valorant-button btn-sm" onclick="saveProfileData('skills')">Save</button>
             </div>
         </div>
-        
+
         <div class="profile-section">
             <div class="profile-section-title">
                 <span>Tools & Platform</span>
@@ -340,11 +345,15 @@
     <!-- Toast Notification -->
     <div class="toast" id="toastNotification"></div>
 
+    <script id="dashboard-data" type="application/json">
+        {% if details %}{{ details | tojson | safe }}{% else %}{}{% endif %}
+    </script>
     <script>
         // Pass template variables to JavaScript
-        window.dashboardData = {% if details %}{{ details | tojson }}{% else %}{}{% endif %};
+        window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent || '{}');
         window.fullname = "{{ fullname if fullname else 'User' }}";
     </script>
-    <script src="{{ url_for('static', path='client/js/index.js') }}"></script>
+    <script src="{{ url_for('static', path='client/js/index.js') }}?v=2"></script>
 </body>
+
 </html>
