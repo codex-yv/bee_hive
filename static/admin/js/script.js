@@ -1865,18 +1865,34 @@ function renderChatMessages(chats) {
         const isOwnMessage = chat.user === currentAdminId;
         const messageClass = isOwnMessage ? 'own-message' : 'other-message';
 
+        let actualMessage = chat.message;
+        let repliedData = chat.replied;
+
+        let replyHtml = '';
+        if (repliedData && repliedData.message_id) {
+            let words = repliedData.message.split(/\\s+/);
+            let truncText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : repliedData.message;
+            replyHtml = `
+                <div class="attached-reply" onclick="scrollToMessageHighlight('${repliedData.message_id}')">
+                    <div class="attached-reply-header">${repliedData.username}</div>
+                    <div class="attached-reply-text">${truncText}</div>
+                </div>
+            `;
+        }
+
         return `
             <div class="message-container ${messageClass}">
                 <div class="message-bubble" id="${chat.message_id}">
                     <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
                     <div class="message-menu-dropdown">
-                        <div class="menu-item"><i class="fas fa-reply"></i> Reply</div>
-                        <div class="menu-item" onclick="navigator.clipboard.writeText('${chat.message.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
+                        <div class="menu-item" onclick="triggerReply('${chat.message_id}', '${(chat.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
+                        <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                         <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
                         <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400"><i class="fas fa-trash"></i> Delete</div>
                     </div>
                     <div class="message-header">${chat.username || 'Unknown User'}</div>
-                    <div class="message-content">${chat.message}</div>
+                    ${replyHtml}
+                    <div class="message-content">${actualMessage}</div>
                     <div class="message-time">${chat.time}</div>
                 </div>
             </div>
@@ -1904,6 +1920,18 @@ function scrollToBottom() {
     const chatArea = document.getElementById('chatArea');
     if (chatArea) {
         chatArea.scrollTop = chatArea.scrollHeight;
+    }
+}
+
+// Highlight message
+function scrollToMessageHighlight(msgId) {
+    const el = document.getElementById(msgId);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight-reply');
+        setTimeout(() => {
+            el.classList.remove('highlight-reply');
+        }, 2000);
     }
 }
 
@@ -1965,19 +1993,35 @@ function handleNewChatMessage(messageData) {
     const isOwnMessage = messageData.user === currentAdminId;
     const messageClass = isOwnMessage ? 'own-message' : 'other-message';
 
+    let actualMessage = messageData.message;
+    let repliedData = messageData.replied;
+
+    let replyHtml = '';
+    if (repliedData && repliedData.message_id) {
+        let words = repliedData.message.split(/\\s+/);
+        let truncText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : repliedData.message;
+        replyHtml = `
+            <div class="attached-reply" onclick="scrollToMessageHighlight('${repliedData.message_id}')">
+                <div class="attached-reply-header">${repliedData.username}</div>
+                <div class="attached-reply-text">${truncText}</div>
+            </div>
+        `;
+    }
+
     const messageElement = document.createElement('div');
     messageElement.className = `message-container ${messageClass}`;
     messageElement.innerHTML = `
         <div class="message-bubble" id="${messageData.message_id}">
             <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
             <div class="message-menu-dropdown">
-                <div class="menu-item"><i class="fas fa-reply"></i> Reply</div>
-                <div class="menu-item" onclick="navigator.clipboard.writeText('${messageData.message.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
+                <div class="menu-item" onclick="triggerReply('${messageData.message_id}', '${(messageData.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
+                <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                 <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
                 <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400"><i class="fas fa-trash"></i> Delete</div>
             </div>
             <div class="message-header">${messageData.username || 'Unknown User'}</div>
-            <div class="message-content">${messageData.message}</div>
+            ${replyHtml}
+            <div class="message-content">${actualMessage}</div>
             <div class="message-time">${messageData.time}</div>
         </div>
     `;
@@ -2017,18 +2061,22 @@ async function sendMessage() {
     const message = messageInput.value.trim();
     if (!message) return;
 
+    let payload = {
+        type: 'chat_message',
+        message: message,
+        user_id: currentAdminId,
+        username: "Admin", // Admin identifier
+        user_type: "admin",
+        replied: window.currentReply ? window.currentReply : false
+    };
+
     if (communitySocket && communitySocket.readyState === WebSocket.OPEN) {
         // Send via WebSocket with admin info
-        communitySocket.send(JSON.stringify({
-            type: 'chat_message',
-            message: message,
-            user_id: currentAdminId,
-            username: "Admin", // Admin identifier
-            user_type: "admin"
-        }));
+        communitySocket.send(JSON.stringify(payload));
 
         // Clear input
         messageInput.value = '';
+        if (window.cancelReply) window.cancelReply();
     } else {
         // Fallback: Send via HTTP POST with admin info
         try {
@@ -2037,16 +2085,12 @@ async function sendMessage() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    message: message,
-                    user_id: currentAdminId,
-                    username: "Admin",
-                    user_type: "admin"
-                })
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
                 messageInput.value = '';
+                if (window.cancelReply) window.cancelReply();
             } else {
                 alert('Error sending message. Please try again.');
             }
@@ -2399,6 +2443,49 @@ window.initializeCommunityWebSocket = initializeCommunityWebSocket;
 window.sendMessage = sendMessage;
 window.refreshCommunity = refreshCommunity;
 window.closeCommunityWebSocket = closeCommunityWebSocket;
+
+// ====== Reply State Management ======
+window.currentReply = null;
+
+window.triggerReply = function (messageId, username, messageText) {
+    window.currentReply = {
+        message_id: messageId,
+        username: username,
+        message: messageText
+    };
+
+    let words = messageText.split(/\\s+/);
+    let previewText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : messageText;
+
+    const replyContainer = document.getElementById('replyPreviewContainer');
+    const replyName = document.getElementById('replyPreviewName');
+    const replyText = document.getElementById('replyPreviewText');
+
+    if (replyContainer && replyName && replyText) {
+        replyName.textContent = username;
+        replyText.textContent = previewText;
+        replyContainer.style.display = 'flex';
+
+        const input = document.getElementById('messageInput');
+        if (input) input.focus();
+    }
+};
+
+window.cancelReply = function () {
+    window.currentReply = null;
+    const replyContainer = document.getElementById('replyPreviewContainer');
+    if (replyContainer) {
+        replyContainer.style.display = 'none';
+    }
+};
+
+// Listen for reply cancel
+document.addEventListener('DOMContentLoaded', () => {
+    const closeReplyBtn = document.getElementById('closeReplyBtn');
+    if (closeReplyBtn) {
+        closeReplyBtn.addEventListener('click', window.cancelReply);
+    }
+});
 
 // ====== Message Dropdown Position Logic ======
 document.addEventListener('mouseover', function (e) {

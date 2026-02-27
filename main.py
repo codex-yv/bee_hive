@@ -310,6 +310,7 @@ async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: st
                             "user": user_id,
                             "username": await get_username(collection_name=user_id),
                             "message": message_content,
+                            "replied": message_data.get('replied', {}),
                             "time": ISTTime() +" ["+ ISTdate()+"]",
                             "user_type": user_type
                         }
@@ -319,6 +320,7 @@ async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: st
                             "user": user_id,
                             "username": username,
                             "message": message_content,
+                            "replied": message_data.get('replied', {}),
                             "time": ISTTime() +" ["+ ISTdate()+"]",
                             "user_type": user_type
                         }
@@ -699,6 +701,7 @@ async def send_unified_chat_message(request: Request):
             "user": user_id,
             "username": username,
             "message": message_content,
+            "replied": data.get('replied', {}),
             "time": ISTTime() +" ["+ ISTdate()+"]",
             "user_type": user_type
         }

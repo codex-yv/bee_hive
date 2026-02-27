@@ -1119,6 +1119,96 @@ th {
     border-color: #ff4655;
 }
 
+/* Reply Preview Styles */
+.reply-preview-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(45, 55, 65, 0.85);
+    /* Slightly lighter theme background */
+    padding: 10px 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    border-radius: 10px 10px 0 0;
+    /* Match container rounding */
+}
+
+.reply-preview-content {
+    flex: 1;
+    border-left: 3px solid #ff4655;
+    /* Theme accent color */
+    padding-left: 10px;
+    overflow: hidden;
+}
+
+.reply-preview-header {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #ff4655;
+    margin-bottom: 3px;
+}
+
+.reply-preview-text {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reply-preview-close {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 5px;
+    transition: color 0.2s;
+    font-size: 1.2rem;
+}
+
+.reply-preview-close:hover {
+    color: white;
+}
+
+/* Attached Reply Bubble Styling */
+.attached-reply {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    padding: 5px 8px;
+    margin-bottom: 5px;
+    border-left: 3px solid #ff4655;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.attached-reply:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.own-message .attached-reply {
+    border-left: 3px solid #00ffff;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.own-message .attached-reply:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.attached-reply-header {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #ff4655;
+    margin-bottom: 2px;
+}
+
+.own-message .attached-reply-header {
+    color: #00ffff;
+}
+
+.attached-reply-text {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+
 #sendMessageBtn {
     border-radius: 25px;
     padding: 12px 25px;
@@ -1216,6 +1306,38 @@ th {
 }
 
 /* Responsive Styles */
+@keyframes ownReplyHighlightAnim {
+    0% {
+        background-color: rgba(0, 255, 255, 0.4);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+
+    100% {
+        background-color: rgba(0, 255, 255, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+}
+
+@keyframes otherReplyHighlightAnim {
+    0% {
+        background-color: rgba(255, 70, 85, 0.4);
+        box-shadow: 0 0 15px rgba(255, 70, 85, 0.5);
+    }
+
+    100% {
+        background-color: rgba(25, 30, 35, 0.9);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.own-message .message-bubble.highlight-reply {
+    animation: ownReplyHighlightAnim 4s ease-out;
+}
+
+.other-message .message-bubble.highlight-reply {
+    animation: otherReplyHighlightAnim 4s ease-out;
+}
+
 @media (max-width: 992px) {
     .sidebar {
         width: 70px;

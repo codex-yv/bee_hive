@@ -54,6 +54,7 @@ async def save_unified_chat_message(chat_data: dict):
         'user':chat_data['user'],
         'username':chat_data['username'],
         'message':chat_data['message'],
+        "replied":chat_data['replied'],
         'time':chat_data['time'], 
         'user_type':chat_data['user_type']
     }

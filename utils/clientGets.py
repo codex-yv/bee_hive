@@ -235,6 +235,6 @@ async def get_unified_chat_history(limit: int = 100):
     chats = await collection.find().limit(limit).to_list(length=limit)
 
     if chats:
-        return [{"user": chat["user"], "message": chat["message"], "time": chat["time"], "username": chat["username"]} for chat in chats]
+        return [{"message_id":chat["message_id"], "user": chat["user"], "message": chat["message"],"replied":chat["replied"], "time": chat["time"], "username": chat["username"]} for chat in chats]
     else:
         return []
