@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.docs import get_swagger_ui_html
 import secrets
-
+import uuid
 from configs.access_configs import doc_username, doc_password, admin_password, admin_username
 
 from utils.adminPosts import insert_project, insert_task, push_notification_by_admin, first_admin_login
@@ -306,18 +306,20 @@ async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: st
                     # Store message in database
                     if username != "Admin":
                         chat_data = {
+                            "message_id": str(uuid.uuid4()),
                             "user": user_id,
                             "username": await get_username(collection_name=user_id),
                             "message": message_content,
-                            "time": ISTTime(),
+                            "time": ISTTime() + ISTdate(),
                             "user_type": user_type
                         }
                     else:
                         chat_data = {
+                            "message_id": str(uuid.uuid4()),
                             "user": user_id,
                             "username": username,
                             "message": message_content,
-                            "time": ISTTime(),
+                            "time": ISTTime() +" ["+ ISTdate()+"]",
                             "user_type": user_type
                         }
                     # Save to MongoDB
@@ -672,6 +674,7 @@ async def get_unified_community_chats(request: Request):
 @app.post("/send-message")
 async def send_unified_chat_message(request: Request):
     try:
+        print("HELLO WORLD")
         data = await request.json()
         message_content = data.get('message', '').strip()
         
@@ -692,6 +695,7 @@ async def send_unified_chat_message(request: Request):
             user_type = "admin"
         # Save message to database
         chat_data = {
+            "message_id": str(uuid.uuid4()),
             "user": user_id,
             "username": username,
             "message": message_content,

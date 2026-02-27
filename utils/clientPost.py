@@ -50,6 +50,7 @@ async def save_unified_chat_message(chat_data: dict):
     collection = db["chat"]
 
     format_chat = {
+        'message_id':chat_data['message_id'],
         'user':chat_data['user'],
         'username':chat_data['username'],
         'message':chat_data['message'],

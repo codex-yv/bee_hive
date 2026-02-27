@@ -1828,7 +1828,7 @@ async function loadCommunityChat() {
         }
         
         const chats = await response.json();
-        console.log('Received unified community chats:', chats);
+        // console.log('Received unified community chats:', chats);
         
         // Hide loading spinner
         loadingSpinner.classList.add('hidden');
