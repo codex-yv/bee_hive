@@ -346,6 +346,7 @@ async def home(request:Request):
 
 @app.get("/admin-dashboard") # FOR ADMIN PAGE.
 async def load_admin(request:Request, authenticated: bool = Depends(verify_credentials)):
+    request.session["email"] = "qwertyuiop"
     pd, total_projects = await get_projet_info()
     projects = await get_projects()
     recent_projects = projects[0:3]
@@ -737,7 +738,7 @@ async def deleted_message(request:Request, req: DeleteMessageRequest):
                 success= False,
                 error= f"An error occured while deltion of message:{e}",
                 message= "Unable to delete message due to internal server error."
-            ).model_dump
+            ).model_dump()
         )
 
 @app.post("/super-sender")

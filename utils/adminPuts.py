@@ -143,7 +143,7 @@ ghost:[]
 async def delete_message_from_db(message_id:str, del_type:str, user:str = None)-> dict:
     db = client["History"]
     collection = db["chat"]
-
+    print(user)
     message_data = await collection.find_one({"message_id": message_id})
     if message_data:
         try:
@@ -165,7 +165,7 @@ async def delete_message_from_db(message_id:str, del_type:str, user:str = None)-
                 if updated_values_dfe:
                     await collection.update_one({
                         "message_id":message_id
-                    },updated_values_dfe)
+                    },{"$set":updated_values_dfe})
                     
                 else:
                     return {
@@ -188,7 +188,7 @@ async def delete_message_from_db(message_id:str, del_type:str, user:str = None)-
 
                 await collection.update_one({
                         "message_id":message_id
-                    },updated_values_dfm)
+                    },{"$set":updated_values_dfm})
                 return {
                     "success":True,
                     "message":"Message deleted."

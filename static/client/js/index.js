@@ -1129,19 +1129,25 @@ function renderChatMessages(chats) {
             `;
         }
 
+        const isDeleted = chat.is_deleted === 'DFE';
+        const displayMessage = isDeleted
+            ? `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${chat.del_message || 'This message was deleted'}</em>`
+            : actualMessage;
+
         return `
             <div class="message-container ${messageClass}">
                 <div class="message-bubble" id="${chat.message_id}">
+                    ${isDeleted ? '' : `
                     <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
                     <div class="message-menu-dropdown">
                         <div class="menu-item" onclick="triggerReply('${chat.message_id}', '${(chat.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
                         <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                         <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
                         <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${chat.message_id}')"><i class="fas fa-trash"></i> Delete</div>
-                    </div>
+                    </div>`}
                     <div class="message-header">${chat.username || 'Unknown User'}</div>
                     ${replyHtml}
-                    <div class="message-content">${actualMessage}</div>
+                    <div class="message-content">${displayMessage}</div>
                     <div class="message-time">${chat.time}</div>
                 </div>
             </div>
@@ -1612,13 +1618,77 @@ window.closeMessageDeleteModal = function () {
     if (modal) modal.style.display = 'none';
 };
 
-window.deleteMessageForMe = function () {
-    console.log("Deleting for me: ", messageToDelete);
+window.deleteMessageForMe = async function () {
+    const msgId = messageToDelete;
     window.closeMessageDeleteModal();
+
+    if (!msgId) return;
+
+    try {
+        const response = await fetch('/delete-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message_id: msgId, deletion_type: 'DFM' })
+        });
+
+        const data = await response.json();
+
+        // Show server message as toast
+        if (data.success) {
+            showToast(data.message || 'Message deleted.', 'success');
+            // Remove the message bubble from UI
+            const msgEl = document.getElementById(msgId);
+            if (msgEl) {
+                const container = msgEl.closest('.message-container');
+                if (container) container.remove();
+                else msgEl.remove();
+            }
+        } else {
+            showToast(data.message || data.error || 'Could not delete message.', 'error');
+        }
+    } catch (err) {
+        console.error('Delete for me error:', err);
+        showToast('Error deleting message. Please try again.', 'error');
+    }
 };
 
-window.deleteMessageForEveryone = function () {
-    console.log("Deleting for everyone: ", messageToDelete);
+window.deleteMessageForEveryone = async function () {
+    const msgId = messageToDelete;
     window.closeMessageDeleteModal();
+
+    if (!msgId) return;
+
+    try {
+        const response = await fetch('/delete-message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message_id: msgId, deletion_type: 'DFE' })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast(data.message || 'Message deleted for everyone.', 'success');
+            // Replace message bubble content with deleted placeholder
+            const msgEl = document.getElementById(msgId);
+            if (msgEl) {
+                // Hide menu dots
+                const dots = msgEl.querySelector('.message-menu-dots');
+                const dropdown = msgEl.querySelector('.message-menu-dropdown');
+                if (dots) dots.style.display = 'none';
+                if (dropdown) dropdown.style.display = 'none';
+                // Replace message content
+                const contentEl = msgEl.querySelector('.message-content');
+                if (contentEl) {
+                    contentEl.innerHTML = '<em style="color:rgba(255,255,255,0.45); font-style:italic;">This message was deleted</em>';
+                }
+            }
+        } else {
+            showToast(data.message || data.error || 'Could not delete message.', 'error');
+        }
+    } catch (err) {
+        console.error('Delete for everyone error:', err);
+        showToast('Error deleting message. Please try again.', 'error');
+    }
 };
 
