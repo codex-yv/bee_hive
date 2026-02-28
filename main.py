@@ -13,7 +13,7 @@ from configs.access_configs import doc_username, doc_password, admin_password, a
 
 from utils.adminPosts import insert_project, insert_task, push_notification_by_admin, first_admin_login
 from utils.adminGets import get_users, get_projects, get_tasks, get_projet_info, get_task_info, get_users_for_approve, get_all_members, get_admin_notification
-from utils.adminPuts import update_user_action, update_project_status_act, update_task_status_act, update_admin_notification, delete_project_by_id, delete_task_by_id
+from utils.adminPuts import update_user_action, update_project_status_act, update_task_status_act, update_admin_notification, delete_project_by_id, delete_task_by_id, delete_message_from_db
 
 from utils.clientPost import add_new_client, push_notification_by_client, save_unified_chat_message
 from utils.clientGets import check_existing_user, check_password, get_username, get_user_action, get_user_projects, get_user_tasks, get_client_profile, get_client_notification, get_project_by_id, get_task_by_id, get_total_unread_messages, get_unified_chat_history, get_all_clients
@@ -37,6 +37,7 @@ from schemas.updatePjtSchemas import UpdateProjets
 from schemas.updateTskSchema import UpdateTask
 from schemas.profileSchemas import Updated
 from schemas.DevSchemas import DevMessage
+from schemas.messageDeletionSchemas import DeleteMessageRequest, DeleteMessageResponse, DeleteMsgErrorResponse
 from datetime import datetime
 from typing import Dict, List
 import json
@@ -665,7 +666,7 @@ async def get_notification_user(request:Request, x:UselessClient):
 async def get_unified_community_chats(request: Request):
     try:
         # Get unified chat history from MongoDB
-        chats = await get_unified_chat_history()
+        chats = await get_unified_chat_history(user=request.session.get("email"))
         return chats
     except Exception as e:
         print(f"Error getting unified community chats: {e}")
@@ -716,6 +717,28 @@ async def send_unified_chat_message(request: Request):
     except Exception as e:
         print(f"Error sending unified message: {e}")
         return JSONResponse(status_code=500, content={"error": "Failed to send message"})
+
+
+@app.post("/delete-message", 
+          response_model=DeleteMessageResponse, 
+          responses={500 : {"model": DeleteMsgErrorResponse}})
+async def deleted_message(request:Request, req: DeleteMessageRequest):
+    try:
+        deletion_status = await delete_message_from_db(message_id=req.message_id, del_type=req.deletion_type, user=request.session.get("email"))
+
+        return DeleteMessageResponse(
+            success=deletion_status["success"],
+            message=deletion_status["message"],
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail= DeleteMsgErrorResponse(
+                success= False,
+                error= f"An error occured while deltion of message:{e}",
+                message= "Unable to delete message due to internal server error."
+            ).model_dump
+        )
 
 @app.post("/super-sender")
 async def send_developer_notification_to_all(request:Request, message:DevMessage):

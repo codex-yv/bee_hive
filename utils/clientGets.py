@@ -224,7 +224,7 @@ async def get_total_unread_messages(collection_name:str):
     return unread
 
 
-async def get_unified_chat_history(limit: int = 100):
+async def get_unified_chat_history(user:str, limit: int = 100, ):
     """
     Retrieve chat history from database
     Replace this with your actual database implementation
@@ -233,8 +233,21 @@ async def get_unified_chat_history(limit: int = 100):
     collection = db["chat"]
 
     chats = await collection.find().limit(limit).to_list(length=limit)
-
+    chat_list = []
     if chats:
-        return [{"message_id":chat["message_id"], "user": chat["user"], "message": chat["message"],"replied":chat["replied"], "time": chat["time"], "username": chat["username"]} for chat in chats]
+        for chat in chats:
+            if user not in chat["ghost"]:
+                chat_details = {
+                    "message_id":chat["message_id"], 
+                    "user": chat["user"], 
+                    "message": chat["message"],
+                    "replied":chat["replied"],
+                    "is_deleted":chat["is_deleted"],
+                    "del_message":chat["del_message"],
+                    "time": chat["time"], 
+                    "username": chat["username"]
+                }
+                chat_list.append(chat_details)
+        return chat_list
     else:
         return []
