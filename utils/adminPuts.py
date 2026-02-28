@@ -174,8 +174,9 @@ async def delete_message_from_db(message_id:str, del_type:str, user:str = None)-
                     }
                 
                 return {
-                    "success":True,
-                    "message":"Message deleted."
+                    "success": True,
+                    "message": "Message deleted.",
+                    "del_message": updated_values_dfe.get("del_message", "This message was deleted")
                 }
             elif del_type == "DFM":
                 current_ghost = message_data.get("ghost")

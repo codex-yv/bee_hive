@@ -278,6 +278,13 @@ class UnifiedCommunityConnectionManager:
             "message": message_data
         })
     
+    async def broadcast_message_deleted(self, message_id: str, del_message: str):
+        await self.broadcast_message({
+            "type": "message_deleted",
+            "message_id": message_id,
+            "del_message": del_message
+        })
+
     def get_connected_users(self) -> List[str]:
         return list(self.active_connections.keys())
 
@@ -726,6 +733,14 @@ async def send_unified_chat_message(request: Request):
 async def deleted_message(request:Request, req: DeleteMessageRequest):
     try:
         deletion_status = await delete_message_from_db(message_id=req.message_id, del_type=req.deletion_type, user=request.session.get("email"))
+
+        # Broadcast real-time deletion event for DFE (Delete for Everyone)
+        if req.deletion_type == "DFE" and deletion_status["success"]:
+            del_msg = deletion_status.get("del_message", "This message was deleted")
+            await unified_community_manager.broadcast_message_deleted(
+                message_id=req.message_id,
+                del_message=del_msg
+            )
 
         return DeleteMessageResponse(
             success=deletion_status["success"],

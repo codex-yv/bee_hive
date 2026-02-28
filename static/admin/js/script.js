@@ -1960,7 +1960,6 @@ function initializeCommunityWebSocket() {
 
         communitySocket.onmessage = function (event) {
             const data = JSON.parse(event.data);
-            console.log('Unified Community WebSocket message received:', data);
 
             if (data.type === 'chat_message') {
                 handleNewChatMessage(data.message);
@@ -1968,6 +1967,19 @@ function initializeCommunityWebSocket() {
                 showSystemMessage(`${data.username} joined the chat`);
             } else if (data.type === 'user_left') {
                 showSystemMessage(`${data.username} left the chat`);
+            } else if (data.type === 'message_deleted') {
+                // Real-time DFE: update the bubble for all connected users
+                const msgEl = document.getElementById(data.message_id);
+                if (msgEl) {
+                    const dots = msgEl.querySelector('.message-menu-dots');
+                    const dropdown = msgEl.querySelector('.message-menu-dropdown');
+                    if (dots) dots.style.display = 'none';
+                    if (dropdown) dropdown.style.display = 'none';
+                    const contentEl = msgEl.querySelector('.message-content');
+                    if (contentEl) {
+                        contentEl.innerHTML = `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${data.del_message || 'This message was deleted'}</em>`;
+                    }
+                }
             }
         };
 
