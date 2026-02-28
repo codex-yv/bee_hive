@@ -13,12 +13,12 @@ from configs.access_configs import doc_username, doc_password, admin_password, a
 
 from utils.adminPosts import insert_project, insert_task, push_notification_by_admin, first_admin_login
 from utils.adminGets import get_users, get_projects, get_tasks, get_projet_info, get_task_info, get_users_for_approve, get_all_members, get_admin_notification
-from utils.adminPuts import update_user_action, update_project_status_act, update_task_status_act, update_admin_notification, delete_project_by_id, delete_task_by_id, delete_message_from_db
+from utils.adminPuts import update_user_action, update_project_status_act, update_task_status_act, update_admin_notification, delete_project_by_id, delete_task_by_id
 
 from utils.clientPost import add_new_client, push_notification_by_client, save_unified_chat_message
 from utils.clientGets import check_existing_user, check_password, get_username, get_user_action, get_user_projects, get_user_tasks, get_client_profile, get_client_notification, get_project_by_id, get_task_by_id, get_total_unread_messages, get_unified_chat_history, get_all_clients
 from utils.clientPuts import update_assign_member, update_task_member, update_project_manager, update_project_status_bid, update_task_status_bid, update_user_profile, update_client_notification, update_user_last_active
-
+from utils.messageSystem import delete_message_from_db, add_reaction_to_db
 from utils.general import create_message, get_users_list, create_message_for_admin, send_otp, send_password, send_group_email_for_projects, send_email_for_task, send_request_result
 from utils.IST import ISTTime, ISTdate
 from utils.devgets import get_total_users, push_notification_by_dev
@@ -37,7 +37,7 @@ from schemas.updatePjtSchemas import UpdateProjets
 from schemas.updateTskSchema import UpdateTask
 from schemas.profileSchemas import Updated
 from schemas.DevSchemas import DevMessage
-from schemas.messageDeletionSchemas import DeleteMessageRequest, DeleteMessageResponse, DeleteMsgErrorResponse
+from schemas.messageSystemSchemas import DeleteMessageRequest, DeleteMessageResponse, ErrorResponse, AddReactionRequest, AddReactionResponse
 from datetime import datetime
 from typing import Dict, List
 import json
@@ -729,7 +729,7 @@ async def send_unified_chat_message(request: Request):
 
 @app.post("/delete-message", 
           response_model=DeleteMessageResponse, 
-          responses={500 : {"model": DeleteMsgErrorResponse}})
+          responses={500 : {"model": ErrorResponse}})
 async def deleted_message(request:Request, req: DeleteMessageRequest):
     try:
         deletion_status = await delete_message_from_db(message_id=req.message_id, del_type=req.deletion_type, user=request.session.get("email"))
@@ -749,7 +749,27 @@ async def deleted_message(request:Request, req: DeleteMessageRequest):
     except Exception as e:
         raise HTTPException(
             status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail= DeleteMsgErrorResponse(
+            detail= ErrorResponse(
+                success= False,
+                error= f"An error occured while deltion of message:{e}",
+                message= "Unable to delete message due to internal server error."
+            ).model_dump()
+        )
+
+@app.post("/add-reaction", 
+          response_model=AddReactionResponse,
+          responses={500:{"model":ErrorResponse}})
+async def add_reactions(request: Request, req:AddReactionRequest):
+    try:
+        request_status = await add_reaction_to_db(message_id=req.message_id, reaction=req.reaction, user= request.session.get("email"))
+        return AddReactionResponse(
+            status=request_status["status"],
+            message=request_status["message"]
+        )
+    except Exception as e:
+        return HTTPException(
+            status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail= ErrorResponse(
                 success= False,
                 error= f"An error occured while deltion of message:{e}",
                 message= "Unable to delete message due to internal server error."

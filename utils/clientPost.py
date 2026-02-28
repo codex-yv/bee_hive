@@ -58,6 +58,8 @@ async def save_unified_chat_message(chat_data: dict):
         "ghost":[],
         "del_message":None,
         "is_deleted":False,
+        "reactions":{},
+        "react_count":{},
         'time':chat_data['time'], 
         'user_type':chat_data['user_type']
     }

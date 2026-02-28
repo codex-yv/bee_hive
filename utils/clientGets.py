@@ -245,6 +245,8 @@ async def get_unified_chat_history(user:str, limit: int = 100, ):
                     "is_deleted":chat["is_deleted"],
                     "del_message":chat["del_message"],
                     "time": chat["time"], 
+                    "reactions":chat["reactions"],
+                    "react_count":chat["react_count"],
                     "username": chat["username"]
                 }
                 chat_list.append(chat_details)
