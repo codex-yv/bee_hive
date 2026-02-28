@@ -88,19 +88,23 @@ async def add_reaction_to_db(message_id:str, reaction:str, user:str):
 
         await collection.update_one({
                 "message_id":message_id
-            },{"$set":{"reaction":current_reaction}})
+            },{"$set":{"reactions":current_reaction}})
         
-        await count_and_update_reactions_from_message(message_id=message_id)
+        react_count = await count_and_update_reactions_from_message(message_id=message_id)
 
         return {
             "success":True,
-            "message":"Reaction Added."
+            "message":"Reaction Added.",
+            "react_count":react_count,
+            "reactions":current_reaction
         }
 
     else:
         return {
             "success":False,
-            "message":"Message not found!"
+            "message":"Message not found!",
+            "react_count":{},
+            "reactions":{}
         }
     
 
@@ -121,8 +125,9 @@ async def count_and_update_reactions_from_message(message_id:str) -> dict:
             reaction_count[icon] = icon_count + 1
         else:
             reaction_count[icon] = 1
-
+    
     await collection.update_one({
             "message_id":message_id
-        },{"$set":{"reac_count": reaction_count}})
+        },{"$set":{"react_count": reaction_count}})
     
+    return reaction_count

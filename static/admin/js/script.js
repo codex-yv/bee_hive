@@ -1885,6 +1885,9 @@ function renderChatMessages(chats) {
             ? `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${chat.del_message || 'This message was deleted'}</em>`
             : actualMessage;
 
+        // Build reaction summary bar from persisted data
+        const reactionBarHtml = _buildReactionBarHtml(chat.message_id, chat.react_count || {}, chat.reactions || {});
+
         return `
             <div class="message-container ${messageClass}">
                 <div class="message-bubble" id="${chat.message_id}">
@@ -1893,7 +1896,7 @@ function renderChatMessages(chats) {
                     <div class="message-menu-dropdown">
                         <div class="menu-item" onclick="triggerReply('${chat.message_id}', '${(chat.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
                         <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
-                        <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
+                        <div class="menu-item" onclick="window.triggerEmojiPicker(event, '${chat.message_id}')"><i class="fas fa-smile"></i> Add Reactions</div>
                         <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${chat.message_id}')"><i class="fas fa-trash"></i> Delete</div>
                     </div>`}
                     <div class="message-header">${chat.username || 'Unknown User'}</div>
@@ -1901,6 +1904,7 @@ function renderChatMessages(chats) {
                     <div class="message-content">${displayMessage}</div>
                     <div class="message-time">${chat.time}</div>
                 </div>
+                ${reactionBarHtml}
             </div>
         `;
     }).join('');
@@ -1980,6 +1984,9 @@ function initializeCommunityWebSocket() {
                         contentEl.innerHTML = `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${data.del_message || 'This message was deleted'}</em>`;
                     }
                 }
+            } else if (data.type === 'reaction_added') {
+                // Real-time reaction: update reaction bar for all connected users
+                _handleReactionAdded(data.message_id, data.react_count || {}, data.reactions || {});
             }
         };
 
@@ -2034,7 +2041,7 @@ function handleNewChatMessage(messageData) {
             <div class="message-menu-dropdown">
                 <div class="menu-item" onclick="triggerReply('${messageData.message_id}', '${(messageData.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
                 <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
-                <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
+                <div class="menu-item" onclick="window.triggerEmojiPicker(event, '${messageData.message_id}')"><i class="fas fa-smile"></i> Add Reactions</div>
                 <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${messageData.message_id}')"><i class="fas fa-trash"></i> Delete</div>
             </div>
             <div class="message-header">${messageData.username || 'Unknown User'}</div>
@@ -2620,3 +2627,188 @@ window.deleteMessageForEveryone = async function () {
         showToast('Error deleting message. Please try again.', 'error');
     }
 };
+
+// ====== Reaction helpers ======
+
+function _buildReactionBarHtml(msgId, reactCount, reactions) {
+    if (!reactCount || !Object.keys(reactCount).length) return '';
+
+    const emojis = Object.entries(reactCount)
+        .map(([icon, count]) => `<span class="reaction-chip">${icon}<span class="reaction-count">${count}</span></span>`)
+        .join('');
+
+    return `<div class="reaction-bar">
+        <div class="reaction-summary"
+             data-counts='${JSON.stringify(reactCount).replace(/'/g, "&#39;")}'
+             data-reactions='${JSON.stringify(reactions).replace(/'/g, "&#39;")}'
+             onclick="window._showReactionTooltip(event, this)">
+            ${emojis}
+        </div>
+    </div>`;
+}
+
+function _renderSummaryPill(el, counts, reactions) {
+    const emojis = Object.entries(counts)
+        .map(([icon, count]) => `<span class="reaction-chip">${icon}<span class="reaction-count">${count}</span></span>`)
+        .join('');
+    el.innerHTML = emojis;
+    el.onclick = (e) => window._showReactionTooltip(e, el);
+    el.classList.add('reaction-bump');
+    setTimeout(() => el.classList.remove('reaction-bump'), 300);
+}
+
+window._showReactionTooltip = function (event, summaryEl) {
+    event.stopPropagation();
+    document.querySelectorAll('.reaction-tooltip').forEach(t => t.remove());
+
+    let reactions = {};
+    try { reactions = JSON.parse(summaryEl.dataset.reactions || '{}'); } catch (e) { }
+
+    if (!Object.keys(reactions).length) return;
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'reaction-tooltip';
+
+    const rows = Object.values(reactions).map(r =>
+        `<div class="reaction-tooltip-row"><span class="rt-emoji">${r.reaction}</span><span class="rt-name">${r.username}</span></div>`
+    ).join('');
+
+    tooltip.innerHTML = `<div class="reaction-tooltip-title">Reactions</div>${rows}`;
+    document.body.appendChild(tooltip);
+
+    const rect = summaryEl.getBoundingClientRect();
+    let top = rect.top - tooltip.offsetHeight - 8;
+    let left = rect.left;
+    if (top < 8) top = rect.bottom + 8;
+    if (left + 200 > window.innerWidth) left = window.innerWidth - 208;
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+
+    setTimeout(() => {
+        document.addEventListener('click', () => tooltip.remove(), { once: true });
+    }, 0);
+};
+
+/**
+ * Upsert the reaction pill below a message bubble from server-authoritative data.
+ * Called by both the REST response handler and the WS reaction_added event.
+ */
+function _handleReactionAdded(msgId, counts, reactions) {
+    const bubble = document.getElementById(msgId);
+    if (!bubble) return;
+
+    const container = bubble.closest('.message-container') || bubble.parentElement;
+    let bar = container.querySelector('.reaction-bar');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.className = 'reaction-bar';
+        bubble.insertAdjacentElement('afterend', bar);
+    }
+
+    let summaryEl = bar.querySelector('.reaction-summary');
+    if (!summaryEl) {
+        summaryEl = document.createElement('div');
+        summaryEl.className = 'reaction-summary';
+        bar.appendChild(summaryEl);
+    }
+
+    summaryEl.dataset.counts = JSON.stringify(counts);
+    summaryEl.dataset.reactions = JSON.stringify(reactions);
+    _renderSummaryPill(summaryEl, counts, reactions);
+}
+
+// ====== Emoji Picker (emoji-mart v5) ======
+let _emojiPicker = null;
+let _emojiTargetMsgId = null;
+
+function _getOrCreateEmojiPicker() {
+    if (_emojiPicker) return _emojiPicker;
+    const wrapper = document.getElementById('emojiPickerWrapper');
+    if (!wrapper || typeof EmojiMart === 'undefined') return null;
+
+    _emojiPicker = new EmojiMart.Picker({
+        onEmojiSelect: (emoji) => {
+            if (_emojiTargetMsgId) {
+                _addReactionToMessage(_emojiTargetMsgId, emoji.native);
+            }
+            _closeEmojiPicker();
+        },
+        theme: 'dark',
+        previewPosition: 'none',
+        skinTonePosition: 'none',
+    });
+    wrapper.appendChild(_emojiPicker);
+    return _emojiPicker;
+}
+
+function _closeEmojiPicker() {
+    const wrapper = document.getElementById('emojiPickerWrapper');
+    if (wrapper) wrapper.style.display = 'none';
+    _emojiTargetMsgId = null;
+}
+
+window.triggerEmojiPicker = function (event, msgId) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const wrapper = document.getElementById('emojiPickerWrapper');
+    if (!wrapper) return;
+
+    // If same msg and already open, close it
+    if (wrapper.style.display !== 'none' && _emojiTargetMsgId === msgId) {
+        _closeEmojiPicker();
+        return;
+    }
+
+    _emojiTargetMsgId = msgId;
+    _getOrCreateEmojiPicker();
+
+    // Position near the clicked button
+    const rect = event.currentTarget.getBoundingClientRect();
+    const pickerWidth = 352;
+    const pickerHeight = 435;
+    let left = rect.right + 8;
+    let top = rect.top;
+
+    // Prevent overflow off screen
+    if (left + pickerWidth > window.innerWidth) left = rect.left - pickerWidth - 8;
+    if (top + pickerHeight > window.innerHeight) top = window.innerHeight - pickerHeight - 8;
+    if (top < 8) top = 8;
+
+    wrapper.style.left = left + 'px';
+    wrapper.style.top = top + 'px';
+    wrapper.style.display = 'block';
+};
+
+async function _addReactionToMessage(msgId, emoji) {
+    let data;
+    try {
+        const res = await fetch('/add-reaction', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message_id: msgId, reaction: emoji })
+        });
+        data = await res.json();
+        if (!data.success) {
+            showToast(data.message || 'Could not add reaction.', 'error');
+            return;
+        }
+    } catch (err) {
+        console.error('Add reaction error:', err);
+        showToast('Error adding reaction.', 'error');
+        return;
+    }
+    // DOM update is handled by the WS broadcast (reaction_added event)
+    // but also update immediately for the sender in case WS is slow
+    _handleReactionAdded(msgId, data.react_count || {}, data.reactions || {});
+}
+
+// Close emoji picker when clicking outside
+document.addEventListener('click', function (e) {
+    const wrapper = document.getElementById('emojiPickerWrapper');
+    if (wrapper && wrapper.style.display !== 'none') {
+        if (!wrapper.contains(e.target) && !e.target.closest('.menu-item')) {
+            _closeEmojiPicker();
+        }
+    }
+});

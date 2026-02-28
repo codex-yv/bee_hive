@@ -758,21 +758,33 @@ async def deleted_message(request:Request, req: DeleteMessageRequest):
 
 @app.post("/add-reaction", 
           response_model=AddReactionResponse,
-          responses={500:{"model":ErrorResponse}})
+          responses={500 : {"model": ErrorResponse}})
 async def add_reactions(request: Request, req:AddReactionRequest):
     try:
         request_status = await add_reaction_to_db(message_id=req.message_id, reaction=req.reaction, user= request.session.get("email"))
+
+        # Broadcast real-time reaction update to all connected community users
+        if request_status["success"]:
+            await unified_community_manager.broadcast_message({
+                "type": "reaction_added",
+                "message_id": req.message_id,
+                "react_count": request_status["react_count"],
+                "reactions": request_status["reactions"]
+            })
+
         return AddReactionResponse(
-            status=request_status["status"],
-            message=request_status["message"]
+            success=request_status["success"],
+            message=request_status["message"],
+            react_count=request_status["react_count"],
+            reactions=request_status["reactions"]
         )
     except Exception as e:
         return HTTPException(
             status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail= ErrorResponse(
                 success= False,
-                error= f"An error occured while deltion of message:{e}",
-                message= "Unable to delete message due to internal server error."
+                error= f"An error occured while adding reaction:{e}",
+                message= "Unable to add reaction due to internal server error."
             ).model_dump()
         )
 

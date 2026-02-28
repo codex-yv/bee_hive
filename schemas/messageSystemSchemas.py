@@ -16,8 +16,10 @@ class ErrorResponse(BaseModel):
 
 
 class AddReactionResponse(BaseModel):
-    status:bool
+    success:bool
     message:str
+    react_count:dict
+    reactions:dict
 
 class AddReactionRequest(BaseModel):
     message_id:str

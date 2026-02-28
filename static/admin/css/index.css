@@ -808,3 +808,155 @@ input[type="date"] {
 .other-message .message-bubble.highlight-reply {
     animation: otherReplyHighlightAnim 4s ease-out;
 }
+
+/* ====== Reaction Bar ====== */
+.reaction-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: -8px;
+    margin-bottom: 6px;
+    padding: 0 6px;
+}
+
+.own-message .reaction-bar {
+    justify-content: flex-end;
+    padding-right: 10px;
+}
+
+.other-message .reaction-bar {
+    justify-content: flex-start;
+    padding-left: 10px;
+}
+
+.reaction-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    user-select: none;
+}
+
+.reaction-chip:hover {
+    background: rgba(255, 70, 85, 0.18);
+    border-color: rgba(255, 70, 85, 0.4);
+}
+
+.reaction-count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1;
+}
+
+@keyframes reactionBump {
+    0% {
+        transform: scale(1);
+    }
+
+    40% {
+        transform: scale(1.35);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.reaction-bump {
+    animation: reactionBump 0.3s ease;
+}
+
+/* Reaction summary: clickable grouped pill */
+.reaction-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 999px;
+    padding: 3px 10px 3px 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+}
+
+.reaction-summary:hover {
+    background: rgba(255, 70, 85, 0.15);
+    border-color: rgba(255, 70, 85, 0.35);
+}
+
+.reaction-summary .reaction-chip {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1rem;
+    cursor: inherit;
+}
+
+.reaction-summary .reaction-count {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Reaction tooltip popup */
+.reaction-tooltip {
+    position: fixed;
+    z-index: 10100;
+    background: rgba(18, 20, 26, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55);
+    min-width: 160px;
+    max-width: 240px;
+    backdrop-filter: blur(12px);
+    pointer-events: none;
+}
+
+.reaction-tooltip-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 8px;
+}
+
+.reaction-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+}
+
+.rt-emoji {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.rt-name {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ====== emoji-mart dark theme tweaks ====== */
+#emojiPickerWrapper em-emoji-picker {
+    --border-radius: 12px;
+    --shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    --color-border: rgba(255, 255, 255, 0.08);
+    --rgb-background: 20, 22, 26;
+    --rgb-accent: 255, 70, 85;
+    --rgb-color: 220, 220, 230;
+    height: 435px;
+}

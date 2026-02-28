@@ -10,7 +10,10 @@
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', path='admin/css/index.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', path='admin/css/index.css') }}?v=9">
+    <!-- Emoji Mart -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/css/emoji-mart.css">
+    <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -735,6 +738,9 @@
                 onclick="window.closeMessageDeleteModal()">Cancel</button>
         </div>
     </div>
+
+    <!-- Emoji Picker Container -->
+    <div id="emojiPickerWrapper" style="display:none; position:fixed; z-index:10001;"></div>
 
     <script id="admin-data" type="application/json">
         {
