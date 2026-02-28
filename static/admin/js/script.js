@@ -1888,7 +1888,7 @@ function renderChatMessages(chats) {
                         <div class="menu-item" onclick="triggerReply('${chat.message_id}', '${(chat.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
                         <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                         <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
-                        <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400"><i class="fas fa-trash"></i> Delete</div>
+                        <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${chat.message_id}')"><i class="fas fa-trash"></i> Delete</div>
                     </div>
                     <div class="message-header">${chat.username || 'Unknown User'}</div>
                     ${replyHtml}
@@ -2017,7 +2017,7 @@ function handleNewChatMessage(messageData) {
                 <div class="menu-item" onclick="triggerReply('${messageData.message_id}', '${(messageData.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
                 <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                 <div class="menu-item"><i class="fas fa-smile"></i> Add Reactions</div>
-                <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400"><i class="fas fa-trash"></i> Delete</div>
+                <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${messageData.message_id}')"><i class="fas fa-trash"></i> Delete</div>
             </div>
             <div class="message-header">${messageData.username || 'Unknown User'}</div>
             ${replyHtml}
@@ -2507,3 +2507,36 @@ document.addEventListener('mouseover', function (e) {
         }
     }
 });
+
+// ====== Message Delete Logic ======
+let messageToDelete = null;
+
+window.triggerDeleteMessage = function (event, msgId) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    messageToDelete = msgId;
+    const overlay = document.getElementById('messageDeleteOverlay');
+    const modal = document.getElementById('messageDeleteModal');
+    if (overlay) overlay.style.display = 'block';
+    if (modal) modal.style.display = 'block';
+};
+
+window.closeMessageDeleteModal = function () {
+    messageToDelete = null;
+    const overlay = document.getElementById('messageDeleteOverlay');
+    const modal = document.getElementById('messageDeleteModal');
+    if (overlay) overlay.style.display = 'none';
+    if (modal) modal.style.display = 'none';
+};
+
+window.deleteMessageForMe = function () {
+    // To be implemented
+    window.closeMessageDeleteModal();
+};
+
+window.deleteMessageForEveryone = function () {
+    // To be implemented
+    window.closeMessageDeleteModal();
+};

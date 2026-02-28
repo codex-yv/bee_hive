@@ -711,6 +711,31 @@
         </div>
     </div>
 
+    <div id="messageDeleteOverlay"
+        style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:9998;">
+    </div>
+    <div id="messageDeleteModal"
+        style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; width:300px; padding:25px; border-radius:12px; text-align:center; background:linear-gradient(135deg,rgba(30,35,40,0.97) 0%,rgba(15,20,25,0.97) 100%); border:1px solid rgba(255,70,85,0.4); box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+        <h3 style="margin-bottom:20px; color:#ff4655; font-size:1.2rem; font-weight:bold;">Delete message?</h3>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <button
+                style="width:100%; border-radius:8px; padding:10px; background:rgba(255,70,85,0.1); border:1px solid #ff4655; color:white; cursor:pointer; font-size:0.95rem; transition:background 0.2s;"
+                onmouseover="this.style.background='rgba(255,70,85,0.3)'"
+                onmouseout="this.style.background='rgba(255,70,85,0.1)'" onclick="window.deleteMessageForMe()">Delete
+                for me</button>
+            <button
+                style="width:100%; border-radius:8px; padding:10px; background:rgba(255,70,85,0.1); border:1px solid #ff4655; color:white; cursor:pointer; font-size:0.95rem; transition:background 0.2s;"
+                onmouseover="this.style.background='rgba(255,70,85,0.3)'"
+                onmouseout="this.style.background='rgba(255,70,85,0.1)'"
+                onclick="window.deleteMessageForEveryone()">Delete for everyone</button>
+            <button
+                style="width:100%; border-radius:8px; padding:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.2); color:white; cursor:pointer; font-size:0.95rem; transition:background 0.2s;"
+                onmouseover="this.style.background='rgba(255,255,255,0.12)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.05)'"
+                onclick="window.closeMessageDeleteModal()">Cancel</button>
+        </div>
+    </div>
+
     <script id="admin-data" type="application/json">
         {
             "tp": {{ tp | tojson | safe }},
@@ -734,7 +759,7 @@
             console.error("Failed to parse admin data", e);
         }
     </script>
-    <script src="{{ url_for('static', path='admin/js/script.js') }}?v=2"></script>
+    <script src="{{ url_for('static', path='admin/js/script.js') }}?v=9"></script>
 
 </body>
 
