@@ -197,7 +197,7 @@ async def get_client_notification(collection_name:str):
 
     try:
         notifications = docs[0]["notify"]
-    except KeyError:
+    except (KeyError, IndexError):
         notifications = []
     
     return notifications[::-1]

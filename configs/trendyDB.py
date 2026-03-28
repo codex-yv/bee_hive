@@ -4,4 +4,4 @@ import os
 
 load_dotenv()
 
-client = AsyncIOMotorClient(os.getenv('MONGO_URI'))
+client = AsyncIOMotorClient(os.getenv('MONGO_URI')) # mongod --port 27020 --dbpath /data/tirthghumo
