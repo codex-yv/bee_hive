@@ -72,7 +72,6 @@ This system is especially useful for:
 - Lightweight and modular design
 - RESTful API architecture
 - Real-time communication capabilities
-- Extensible plugin system
 
 ## 🌱 Project Vision
 
@@ -144,6 +143,40 @@ pip install -r requirements.txt
 # Run the application
 uvicorn main:app --reload
 ```
+
+# Screenshots
+## Admin Page
+### Dashboards
+<img width="1919" height="877" alt="Screenshot 2026-03-20 144528" src="https://github.com/user-attachments/assets/94402c3c-f37d-46a1-a007-85649d4f99d4" />
+
+### Approve Pending Signups
+<img width="2560" height="1600" alt="admin-approvals" src="https://github.com/user-attachments/assets/c6dd9163-f6c7-4464-8ebf-8b1d08898d59" />
+
+### Project Status
+<img width="1919" height="878" alt="Screenshot 2026-03-20 144547" src="https://github.com/user-attachments/assets/6d6b1633-2497-4aec-b72d-cd417210ea6c" />
+
+### Task Status
+<img width="1919" height="878" alt="Screenshot 2026-03-20 144604" src="https://github.com/user-attachments/assets/9f0df7ab-b2c1-4ec9-9212-3adda5fa4715" />
+
+### Member's Profile
+<img width="2560" height="1600" alt="members-profile" src="https://github.com/user-attachments/assets/f03b0810-c850-42fd-8b36-7d6fa42b3438" />
+
+
+## Member's Page
+### Dashboard
+<img width="1919" height="872" alt="Screenshot 2026-03-20 145758" src="https://github.com/user-attachments/assets/2ca853a0-23c1-42bd-8d6f-5b42b93a7337" />
+
+### Member's Profile
+<img width="2560" height="1600" alt="profile-client" src="https://github.com/user-attachments/assets/38e1c96e-edd2-40d0-a71f-dcb822036ddf" />
+
+### Projects Assigned to Members    
+<img width="1919" height="874" alt="Screenshot 2026-03-20 145900" src="https://github.com/user-attachments/assets/ee58bc49-2905-4856-91e6-6cb4706d5e93" />
+
+### Tasks Assigned to Members
+<img width="1919" height="874" alt="Screenshot 2026-03-20 150134" src="https://github.com/user-attachments/assets/7b0987c3-f599-4f83-ad1b-dc9ff9243e0e" />
+
+### Community Chat (Admin/Members)
+<img width="1919" height="875" alt="Screenshot 2026-03-01 175004" src="https://github.com/user-attachments/assets/a20cab9a-84cd-40b8-b401-a2589febc505" />
 
 ## 🤝 Contributing
 We welcome contributions from the community! Here's how you can help:
