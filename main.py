@@ -43,11 +43,39 @@ from typing import Dict, List
 import json
 import asyncio
 
+from rtc import manager
+
+from app.routes.clients.dashboard import router as client_dashboard
+from app.routes.clients.projects import router as client_projects
+from app.routes.clients.tasks import router as client_tasks
+from app.routes.clients.community import router as client_community
+from app.routes.clients.entry import router as client_entry
+
+from app.routes.admin.dashboard import router as admin_dashboard
+from app.routes.admin.pendings import router as admin_pendings
+from app.routes.admin.profiles import router as admin_profiles
+from app.routes.admin.projects import router as admin_projects
+from app.routes.admin.tasks import router as admin_tasks
+from app.routes.admin.community import router as admin_community
+
 templates_clients = Jinja2Templates(directory="templates/clients")
 templates_admin = Jinja2Templates(directory="templates/admin")
 
 
 app = FastAPI(docs_url=None, redoc_url=None)
+
+app.include_router(client_dashboard)
+app.include_router(client_projects)
+app.include_router(client_tasks)
+app.include_router(client_community)
+app.include_router(client_entry)
+
+app.include_router(admin_dashboard)
+app.include_router(admin_projects)
+app.include_router(admin_tasks)
+app.include_router(admin_community)
+app.include_router(admin_pendings)
+app.include_router(admin_profiles)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -74,17 +102,6 @@ def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
     return credentials.username
 
 
-def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = admin_username
-    correct_password = admin_password
-    if credentials.username != correct_username or credentials.password != correct_password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
-    return True
-
 
 @app.get("/docs", include_in_schema=False)
 def custom_swagger_ui(user: str = Depends(get_current_user)):
@@ -96,83 +113,6 @@ async def welcome_head():
     return {"Message": "Ok"}
 
 
-# Store connected clients
-class ConnectionManager:
-    def __init__(self):
-        # Dictionary to store active connections: {user_id: WebSocket}
-        self.active_connections: Dict[str, WebSocket] = {}
-        
-    async def connect(self, websocket: WebSocket, user_id: str):
-        await websocket.accept()
-        self.active_connections[user_id] = websocket
-        # print(f"User {user_id} connected. Total connections: {len(self.active_connections)}")
-        
-        # Send current connected users to all clients (optional)
-        await self.broadcast_connected_users()
-        asyncio.create_task(update_user_last_active(collection_name=user_id, status=True))
-        
-    def disconnect(self, user_id: str):
-        if user_id in self.active_connections:
-            del self.active_connections[user_id]
-            # print(f"User {user_id} disconnected. Total connections: {len(self.active_connections)}")
-            # Notify remaining users about connection change
-            asyncio.create_task(self.broadcast_connected_users())
-            asyncio.create_task(update_user_last_active(collection_name=user_id, status=False))
-    
-    async def send_personal_message(self, message: str, user_id: str):
-        if user_id in self.active_connections:
-            try:
-                await self.active_connections[user_id].send_text(message)
-            except Exception as e:
-                print(f"Error sending message to {user_id}: {e}")
-                self.disconnect(user_id)
-    
-    async def send_notification(self, notification: List, to_users: List[str]):
-        """
-        Send notification to specific users
-        notification format: [message, 0, timestamp]
-        """
-        message_data = {
-            "type": "notification",
-            "notification": notification
-        }
-        
-        for user_id in to_users:
-            if user_id in self.active_connections:
-                try:
-                    await self.active_connections[user_id].send_text(json.dumps(message_data))
-                    # print(f"Notification sent to {user_id}: {notification[0]}")
-                except Exception as e:
-                    print(f"Error sending notification to {user_id}: {e}")
-                    self.disconnect(user_id)
-    
-    async def broadcast(self, message: str):
-        disconnected_users = []
-        for user_id, connection in self.active_connections.items():
-            try:
-                await connection.send_text(message)
-            except Exception as e:
-                print(f"Error broadcasting to {user_id}: {e}")
-                disconnected_users.append(user_id)
-        
-        # Remove disconnected users
-        for user_id in disconnected_users:
-            self.disconnect(user_id)
-    
-    async def broadcast_connected_users(self):
-        """Broadcast list of connected users to all clients"""
-        connected_users = list(self.active_connections.keys())
-        message_data = {
-            "type": "connected_users",
-            "users": connected_users
-        }
-        await self.broadcast(json.dumps(message_data))
-    
-    def get_connected_users(self) -> List[str]:
-        return list(self.active_connections.keys())
-
-# Create connection manager instance
-manager = ConnectionManager()
 
 # WebSocket endpoint
 @app.websocket("/ws/{user_id}")
@@ -351,18 +291,6 @@ async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: st
 async def home(request:Request):
     return templates_clients.TemplateResponse("login.html", {"request":request})
 
-@app.get("/admin-dashboard") # FOR ADMIN PAGE.
-async def load_admin(request:Request, authenticated: bool = Depends(verify_credentials)):
-    request.session["email"] = "qwertyuiop"
-    pd, total_projects = await get_projet_info()
-    projects = await get_projects()
-    recent_projects = projects[0:3]
-
-    td, total_tasks = await get_task_info()
-    tasks = await get_tasks()
-    recent_tasks = tasks[0:3]
-    await first_admin_login()
-    return templates_admin.TemplateResponse("index.html", {"request":request, "tp":total_projects, "pd":pd, "tt":total_tasks, "td":td, "rp":recent_projects, "rt":recent_tasks})
 
 @app.get("/rejected")
 async def display_rejected_page(request: Request):
@@ -477,94 +405,6 @@ async def forget_password(request:Request, data:Email):
     else:
         return 0
 
-@app.post("/add-project") # FOR ADMIN PAGE.
-async def admin_add_projects(request: Request, project: Project):
-
-    # print(project)
-    Inserted_id = await insert_project(project=project)
-    await update_assign_member(collecation_name=project.assigned_members, pid=Inserted_id)
-    await update_project_manager(collecation_name=project.project_manager, pid=Inserted_id)
-
-    rmessage = await create_message(message=[project.project_name, "p"])
-
-    await push_notification_by_admin(collections=project.assigned_members, message=rmessage)
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    to_users = await get_users_list(data = project.assigned_members)
-    await manager.send_notification(notification, to_users)
-    notify_for_project = await settings.projects_notifications_enabled()
-    if notify_for_project:
-        await send_group_email_for_projects(emails = to_users, project_name=project.project_name)
-
-@app.post("/add-task") # FOR ADMIN PAGE.
-async def admin_add_tasks(request: Request, task: Task):
-    Inserted_id = await insert_task(task=task)
-    await update_task_member(collecation_name=task.assigned_members, pid=Inserted_id)
-
-    rmessage = await create_message(message=[task.task_name, "t"])
-
-    await push_notification_by_admin(collections=task.assigned_members, message=rmessage)
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    to_users = await get_users_list(data = task.assigned_members)
-    await manager.send_notification(notification, to_users)
-    notify_for_task = await settings.tasks_notifications_enabled()
-    if notify_for_task:
-        await send_email_for_task(emails=to_users, task=task)
-
-@app.post("/load-add-project") # FOR ADMIN PAGE.
-async def load_add_projects(data:Useless):
-    val = await get_users()
-    return val
-    
-@app.post("/load-add-task") # FOR ADMIN PAGE.
-async def load_add_projects(data:Useless):
-    val = await get_users()
-    return val
-
-
-@app.post("/show-project-status") # FOR ADMIN PAGE.
-async def show_projects(data:Useless):
-    val = await get_projects()
-    return val
-
-@app.post("/delete-project") # For admin Page
-async def delete_project(data:Useless):
-    members, project_title = await delete_project_by_id(project_id=data.x)
-    rmessage = f"The project {project_title.title()} which was assigned to you, is deleted by the admin on {ISTdate()} at {ISTTime()}."
-    asgn_members = await get_users_list(data=members)
-    await push_notification_by_admin(collections=members, message=rmessage)
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    await manager.send_notification(notification, asgn_members)
-    # print(data.x)
-    return True
-@app.post("/show-task-status") # FOR ADMIN PAGE.
-async def show_task(data:Useless):
-    val = await get_tasks()
-    return val
-
-@app.post("/delete-task") # for admin page
-async def delete_task(data:Useless):
-    members, task_title = await delete_task_by_id(task_id=data.x)
-    rmessage = f"The task {task_title.title()} which was assigned to you, is deleted by the admin on {ISTdate()} at {ISTTime()}."
-    asgn_members = await get_users_list(data=members)
-    await push_notification_by_admin(collections=members, message=rmessage)
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    await manager.send_notification(notification, asgn_members)
-    # print(data.x)
-    return True
-
-@app.post("/approve-signups") # FOR ADMIN PAGE.
-async def show_signup_request(data:Useless):
-    user_list = await get_users_for_approve()
-    return user_list
-
-@app.post("/action-admin") # FOR ADMIN PAGE.
-async def admin_action(data:AdminAction):
-
-    await update_user_action(email=data.email, action=data.action)
-    notify_approval = await settings.approvals_notifications_enabled()
-    if notify_approval:
-        await send_request_result(data=data)
-
 
 @app.post("/client-projects")
 async def show_client_projects(request: Request, x:UselessClient):
@@ -633,12 +473,6 @@ async def update_dashboard_fapi(request: Request, x:UselessClient):
     return details
 
 
-@app.post("/mps")
-async def show_members(request:Request, x:Useless):
-    return_value = await get_all_members()
-    # print(return_value)
-    return return_value
-
 
 @app.post("/client-profile")
 async def userProfile(request:Request, x:UselessClient):
@@ -660,13 +494,6 @@ async def get_notification_user(request:Request, x:UselessClient):
     await update_client_notification(collection_name=request.session.get("email"))
     return notifications
 
-
-@app.post("/notification-admin")
-async def get_notification_user(request:Request, x:UselessClient):
-    notifications = await get_admin_notification()
-    await update_admin_notification()
-    # print(manager.get_connected_users())
-    return notifications
 
 
 # HTTP endpoint to get unified community chats

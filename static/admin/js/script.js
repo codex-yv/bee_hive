@@ -230,7 +230,7 @@ async function confirmDelete() {
     if (deleteBtnText) deleteBtnText.innerHTML = '<div class="loading-spinner"></div> Deleting...';
 
     try {
-        const endpoint = currentDeleteType === 'project' ? '/delete-project' : '/delete-task';
+        const endpoint = currentDeleteType === 'project' ? '/admin/projects/delete-project' : '/admin/tasks/delete-task';
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
@@ -284,7 +284,7 @@ async function fetchNotificationsFromAPI() {
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
 
-        const response = await fetch('/notification-admin', {
+        const response = await fetch('/admin/dashboard/notification-admin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -380,7 +380,7 @@ async function fetchMembersFromAPI() {
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (membersList) membersList.innerHTML = '';
 
-        const response = await fetch('/mps', {
+        const response = await fetch('/admin/profiles/mps', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -643,7 +643,7 @@ async function fetchSignUpRequestsFromAPI() {
         if (listElement) listElement.innerHTML = '';
 
         // Send POST request to FastAPI endpoint
-        const response = await fetch('/approve-signups', {
+        const response = await fetch('/admin/pendings/approve-signups', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -682,7 +682,7 @@ async function fetchSignUpRequestsFromAPI() {
 async function sendUserAction(email, action) {
     try {
         // Send POST request to FastAPI endpoint
-        const response = await fetch('/action-admin', {
+        const response = await fetch('/admin/pendings/action-admin', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -899,7 +899,7 @@ async function fetchTaskStatusFromAPI() {
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
 
-        const response = await fetch('/show-task-status', {
+        const response = await fetch('/admin/tasks/show-task-status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -962,7 +962,7 @@ async function fetchProjectStatusFromAPI() {
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (listElement) listElement.innerHTML = '';
 
-        const response = await fetch('/show-project-status', {
+        const response = await fetch('/admin/projects/show-project-status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1079,7 +1079,7 @@ async function fetchProjectUsersFromAPI() {
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (membersElement) membersElement.classList.add('hidden');
 
-        const response = await fetch('/load-add-project', {
+        const response = await fetch('/admin/dashboard/load-add-project', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1141,7 +1141,7 @@ async function fetchTaskUsersFromAPI() {
         if (loadingElement) loadingElement.classList.remove('hidden');
         if (membersElement) membersElement.classList.add('hidden');
 
-        const response = await fetch('/load-add-task', {
+        const response = await fetch('/admin/dashboard/load-add-task', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1681,7 +1681,7 @@ async function addProject() {
     };
 
     try {
-        const res = await fetch("/add-project", {
+        const res = await fetch("/admin/dashboard/add-project", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -1737,7 +1737,7 @@ async function addTask() {
     };
 
     try {
-        const res = await fetch("/add-task", {
+        const res = await fetch("/admin/dashboard/add-task", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
