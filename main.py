@@ -43,12 +43,11 @@ from typing import Dict, List
 import json
 import asyncio
 
-from rtc import manager
+from rtc import manager, unified_community_manager
 
 from app.routes.clients.dashboard import router as client_dashboard
 from app.routes.clients.projects import router as client_projects
 from app.routes.clients.tasks import router as client_tasks
-from app.routes.clients.community import router as client_community
 from app.routes.clients.entry import router as client_entry
 
 from app.routes.admin.dashboard import router as admin_dashboard
@@ -56,8 +55,8 @@ from app.routes.admin.pendings import router as admin_pendings
 from app.routes.admin.profiles import router as admin_profiles
 from app.routes.admin.projects import router as admin_projects
 from app.routes.admin.tasks import router as admin_tasks
-from app.routes.admin.community import router as admin_community
 
+from app.routes.community import router as all_community
 templates_clients = Jinja2Templates(directory="templates/clients")
 templates_admin = Jinja2Templates(directory="templates/admin")
 
@@ -67,15 +66,16 @@ app = FastAPI(docs_url=None, redoc_url=None)
 app.include_router(client_dashboard)
 app.include_router(client_projects)
 app.include_router(client_tasks)
-app.include_router(client_community)
 app.include_router(client_entry)
 
 app.include_router(admin_dashboard)
 app.include_router(admin_projects)
 app.include_router(admin_tasks)
-app.include_router(admin_community)
 app.include_router(admin_pendings)
 app.include_router(admin_profiles)
+
+app.include_router(all_community)
+
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -112,309 +112,6 @@ def custom_swagger_ui(user: str = Depends(get_current_user)):
 async def welcome_head():
     return {"Message": "Ok"}
 
-
-
-# WebSocket endpoint
-@app.websocket("/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: str):
-    await manager.connect(websocket, user_id)
-    try:
-        while True:
-            # Wait for any message from client (can be used for ping/pong or other commands)
-            data = await websocket.receive_text()
-            message_data = json.loads(data)
-            
-            # Handle different types of messages from client
-            if message_data.get('type') == 'ping':
-                # Respond to ping
-                await manager.send_personal_message(json.dumps({
-                    "type": "pong",
-                    "timestamp": datetime.now().isoformat()
-                }), user_id)
-                
-            elif message_data.get('type') == 'test_notification':
-                # Echo test notification back to sender
-                await manager.send_personal_message(json.dumps({
-                    "type": "notification",
-                    "notification": message_data.get('notification')
-                }), user_id)
-                
-    except WebSocketDisconnect:
-        manager.disconnect(user_id)
-    except Exception as e:
-        print(f"WebSocket error for user {user_id}: {e}")
-        manager.disconnect(user_id)
-
-# Unified Community Connection Manager
-class UnifiedCommunityConnectionManager:
-    def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
-        self.user_info: Dict[str, Dict] = {}  # Store user info like username and type
-        
-    async def connect(self, websocket: WebSocket, user_id: str, username: str = None, user_type: str = "client"):
-        await websocket.accept()
-        self.active_connections[user_id] = websocket
-        self.user_info[user_id] = {
-            "username": username or user_id,
-            "type": user_type
-        }
-        
-        # Notify all users that someone joined
-        await self.broadcast_user_joined(user_id, username)
-        # print(f"User {user_id} ({user_type}) joined community chat. Total connections: {len(self.active_connections)}")
-        
-    def disconnect(self, user_id: str):
-        if user_id in self.active_connections:
-            username = self.user_info[user_id].get("username", user_id)
-            user_type = self.user_info[user_id].get("type", "client")
-            del self.active_connections[user_id]
-            if user_id in self.user_info:
-                del self.user_info[user_id]
-            
-            # Notify all users that someone left
-            asyncio.create_task(self.broadcast_user_left(user_id, username))
-            # print(f"User {user_id} ({user_type}) left community chat. Total connections: {len(self.active_connections)}")
-    
-    async def send_personal_message(self, message: str, user_id: str):
-        if user_id in self.active_connections:
-            try:
-                await self.active_connections[user_id].send_text(message)
-            except Exception as e:
-                print(f"Error sending message to {user_id}: {e}")
-                self.disconnect(user_id)
-    
-    async def broadcast_message(self, message_data: dict):
-        disconnected_users = []
-        for user_id, connection in self.active_connections.items():
-            try:
-                await connection.send_text(json.dumps(message_data))
-            except Exception as e:
-                print(f"Error broadcasting to {user_id}: {e}")
-                disconnected_users.append(user_id)
-        
-        # Remove disconnected users
-        for user_id in disconnected_users:
-            self.disconnect(user_id)
-    
-    async def broadcast_user_joined(self, user_id: str, username: str = None):
-        message_data = {
-            "type": "user_joined",
-            "user_id": user_id,
-            "username": username or user_id
-        }
-        await self.broadcast_message(message_data)
-    
-    async def broadcast_user_left(self, user_id: str, username: str = None):
-        message_data = {
-            "type": "user_left",
-            "user_id": user_id,
-            "username": username or user_id
-        }
-        await self.broadcast_message(message_data)
-    
-    async def broadcast_chat_message(self, message_data: dict):
-        await self.broadcast_message({
-            "type": "chat_message",
-            "message": message_data
-        })
-    
-    async def broadcast_message_deleted(self, message_id: str, del_message: str):
-        await self.broadcast_message({
-            "type": "message_deleted",
-            "message_id": message_id,
-            "del_message": del_message
-        })
-
-    def get_connected_users(self) -> List[str]:
-        return list(self.active_connections.keys())
-
-# Create unified community connection manager instance
-unified_community_manager = UnifiedCommunityConnectionManager()
-
-# Unified Community WebSocket endpoint for both clients and admins
-@app.websocket("/ws/community/{user_id}")
-async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: str):
-    # Determine if it's an admin or client based on user_id or session
-    # For now, we'll check if user_id contains "admin" or use a different method
-    user_type = "admin" if "@" not in user_id.lower() else "client"
-    
-    # Get username from database or use user_id as fallback
-    username = "Admin" if user_type == "admin" else user_id
-    
-    await unified_community_manager.connect(websocket, user_id, username, user_type)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            message_data = json.loads(data)
-            
-            if message_data.get('type') == 'chat_message':
-                # Save message to database
-                message_content = message_data.get('message', '').strip()
-                if message_content:
-                    # Store message in database
-                    if username != "Admin":
-                        chat_data = {
-                            "message_id": str(uuid.uuid4()),
-                            "user": user_id,
-                            "username": await get_username(collection_name=user_id),
-                            "message": message_content,
-                            "replied": message_data.get('replied', {}),
-                            "time": ISTTime() +" ["+ ISTdate()+"]",
-                            "user_type": user_type
-                        }
-                    else:
-                        chat_data = {
-                            "message_id": str(uuid.uuid4()),
-                            "user": user_id,
-                            "username": username,
-                            "message": message_content,
-                            "replied": message_data.get('replied', {}),
-                            "time": ISTTime() +" ["+ ISTdate()+"]",
-                            "user_type": user_type
-                        }
-                    # Save to MongoDB
-                    await save_unified_chat_message(chat_data)
-                    
-                    # Broadcast to ALL users (both clients and admins)
-                    await unified_community_manager.broadcast_chat_message(chat_data)
-                    
-    except WebSocketDisconnect:
-        unified_community_manager.disconnect(user_id)
-    except Exception as e:
-        print(f"Unified Community WebSocket error for user {user_id}: {e}")
-        unified_community_manager.disconnect(user_id)
-
-
-
-
-
-@app.get("/dev/{dev_id}")
-async def getTrendyInfo(dev_id:str):
-    if dev_id == dev:
-        total_users = await get_total_users()
-        return {"total users":total_users}
-    else:
-        return {"Message":dev_id}
-
-
-# HTTP endpoint to get unified community chats
-@app.post("/community")
-async def get_unified_community_chats(request: Request):
-    try:
-        # Get unified chat history from MongoDB
-        chats = await get_unified_chat_history(user=request.session.get("email"))
-        return chats
-    except Exception as e:
-        print(f"Error getting unified community chats: {e}")
-        return JSONResponse(status_code=500, content={"error": "Failed to load chats"})
-    
-
-# HTTP endpoint to send message (works for both clients and admins)
-@app.post("/send-message")
-async def send_unified_chat_message(request: Request):
-    try:
-        print("HELLO WORLD")
-        data = await request.json()
-        message_content = data.get('message', '').strip()
-        
-        if not message_content:
-            return JSONResponse(status_code=400, content={"error": "Message cannot be empty"})
-        
-        # Get user info from session or request
-        # For demo purposes, we'll use placeholders - replace with actual authentication
-        user_id = data.get('user_id', 'unknown_user')
-        # username = data.get('username', 'Unknown User')
-        # user_type = data.get('user_type', 'client')
-        
-        if "@" in user_id:
-            username = await get_username(collection_name= request.session.get("email"))
-            user_type = "client"
-        else:
-            username = "Admin"
-            user_type = "admin"
-        # Save message to database
-        chat_data = {
-            "message_id": str(uuid.uuid4()),
-            "user": user_id,
-            "username": username,
-            "message": message_content,
-            "replied": data.get('replied', {}),
-            "time": ISTTime() +" ["+ ISTdate()+"]",
-            "user_type": user_type
-        }
-        
-        await save_unified_chat_message(chat_data)
-        
-        # Broadcast to ALL connected users (both clients and admins)
-        await unified_community_manager.broadcast_chat_message(chat_data)
-        
-        return {"status": "success"}
-        
-    except Exception as e:
-        print(f"Error sending unified message: {e}")
-        return JSONResponse(status_code=500, content={"error": "Failed to send message"})
-
-
-@app.post("/delete-message", 
-          response_model=DeleteMessageResponse, 
-          responses={500 : {"model": ErrorResponse}})
-async def deleted_message(request:Request, req: DeleteMessageRequest):
-    try:
-        deletion_status = await delete_message_from_db(message_id=req.message_id, del_type=req.deletion_type, user=request.session.get("email"))
-
-        # Broadcast real-time deletion event for DFE (Delete for Everyone)
-        if req.deletion_type == "DFE" and deletion_status["success"]:
-            del_msg = deletion_status.get("del_message", "This message was deleted")
-            await unified_community_manager.broadcast_message_deleted(
-                message_id=req.message_id,
-                del_message=del_msg
-            )
-
-        return DeleteMessageResponse(
-            success=deletion_status["success"],
-            message=deletion_status["message"],
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail= ErrorResponse(
-                success= False,
-                error= f"An error occured while deltion of message:{e}",
-                message= "Unable to delete message due to internal server error."
-            ).model_dump()
-        )
-
-@app.post("/add-reaction", 
-          response_model=AddReactionResponse,
-          responses={500 : {"model": ErrorResponse}})
-async def add_reactions(request: Request, req:AddReactionRequest):
-    try:
-        request_status = await add_reaction_to_db(message_id=req.message_id, reaction=req.reaction, user= request.session.get("email"))
-
-        # Broadcast real-time reaction update to all connected community users
-        if request_status["success"]:
-            await unified_community_manager.broadcast_message({
-                "type": "reaction_added",
-                "message_id": req.message_id,
-                "react_count": request_status["react_count"],
-                "reactions": request_status["reactions"]
-            })
-
-        return AddReactionResponse(
-            success=request_status["success"],
-            message=request_status["message"],
-            react_count=request_status["react_count"],
-            reactions=request_status["reactions"]
-        )
-    except Exception as e:
-        return HTTPException(
-            status_code= status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail= ErrorResponse(
-                success= False,
-                error= f"An error occured while adding reaction:{e}",
-                message= "Unable to add reaction due to internal server error."
-            ).model_dump()
-        )
 
 @app.post("/super-sender")
 async def send_developer_notification_to_all(request:Request, message:DevMessage):

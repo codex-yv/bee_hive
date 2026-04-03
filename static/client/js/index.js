@@ -49,7 +49,7 @@ function initializeWebSocket() {
     try {
         // Determine WebSocket URL based on current location
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/${userId}`;
+        const wsUrl = `${protocol}//${window.location.host}/websocket/ws/${userId}`;
 
         socket = new WebSocket(wsUrl);
 
@@ -1064,7 +1064,7 @@ async function loadCommunityChat() {
 
     try {
         // Send POST request to FastAPI server
-        const response = await fetch('/community', {
+        const response = await fetch('/websocket/community', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1199,7 +1199,7 @@ function initializeCommunityWebSocket() {
 
     try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/community/${currentUserId}`;
+        const wsUrl = `${protocol}//${window.location.host}/websocket/ws/community/${currentUserId}`;
 
         communitySocket = new WebSocket(wsUrl);
 
@@ -1350,7 +1350,7 @@ async function sendMessage() {
     } else {
         // Fallback: Send via HTTP POST with user info
         try {
-            const response = await fetch('/send-message', {
+            const response = await fetch('/websocket/send-message', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1644,7 +1644,7 @@ window.deleteMessageForMe = async function () {
     if (!msgId) return;
 
     try {
-        const response = await fetch('/delete-message', {
+        const response = await fetch('/websocket/delete-message', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message_id: msgId, deletion_type: 'DFM' })
@@ -1678,7 +1678,7 @@ window.deleteMessageForEveryone = async function () {
     if (!msgId) return;
 
     try {
-        const response = await fetch('/delete-message', {
+        const response = await fetch('/websocket/delete-message', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message_id: msgId, deletion_type: 'DFE' })
@@ -1885,7 +1885,7 @@ window.triggerEmojiPicker = function (event, msgId) {
 async function _addReactionToMessage(msgId, emoji) {
     let data;
     try {
-        const res = await fetch('/add-reaction', {
+        const res = await fetch('/websocket/add-reaction', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message_id: msgId, reaction: emoji })
