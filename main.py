@@ -287,46 +287,46 @@ async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: st
 
 
 
-@app.get("/login") # FOR Client PAGE.
-async def home(request:Request):
-    return templates_clients.TemplateResponse("login.html", {"request":request})
+# @app.get("/login") # FOR Client PAGE.
+# async def home(request:Request):
+#     return templates_clients.TemplateResponse("login.html", {"request":request})
 
 
-@app.get("/rejected")
-async def display_rejected_page(request: Request):
-    fullname = await get_username(collection_name=request.session.get("email"))
-    return templates_clients.TemplateResponse("rejected.html", {"request": request, "fullname": fullname})
+# @app.get("/rejected")
+# async def display_rejected_page(request: Request):
+#     fullname = await get_username(collection_name=request.session.get("email"))
+#     return templates_clients.TemplateResponse("rejected.html", {"request": request, "fullname": fullname})
 
-@app.get("/pending")
-async def display_pending_page(request: Request):
+# @app.get("/pending")
+# async def display_pending_page(request: Request):
 
-    fullname = await get_username(collection_name=request.session.get("email"))
-    return templates_clients.TemplateResponse("pending.html", {"request": request, "fullname": fullname})
+#     fullname = await get_username(collection_name=request.session.get("email"))
+#     return templates_clients.TemplateResponse("pending.html", {"request": request, "fullname": fullname})
 
 
-@app.get("/dashboard") # FOR Client PAGE.
-async def get_dashboard(request: Request):
-    try:
-        fullname = await get_username(collection_name=request.session.get("email"))
-        tasks, total_task, done_task = await get_user_tasks(collection_name=request.session.get("email"))
-        projects, total_projects, done_projects = await get_user_projects(collection_name=request.session.get("email"))
-        details = {
-            "total assigned projects": total_projects,          
-            "completed projects": done_projects,               
-            "total assigned tasks": total_task,             
-            "completed tasks": done_task,                  
-            "recent projects": projects,                
-            "recent tasks": tasks                    
-        }
-        unread = await get_total_unread_messages(collection_name=request.session.get("email"))
-        return templates_clients.TemplateResponse("index.html", {"request": request, "fullname": fullname, "details":details, "emailUser":request.session.get("email"), "unreadd": unread})
+# @app.get("/dashboard") # FOR Client PAGE.
+# async def get_dashboard(request: Request):
+#     try:
+#         fullname = await get_username(collection_name=request.session.get("email"))
+#         tasks, total_task, done_task = await get_user_tasks(collection_name=request.session.get("email"))
+#         projects, total_projects, done_projects = await get_user_projects(collection_name=request.session.get("email"))
+#         details = {
+#             "total assigned projects": total_projects,          
+#             "completed projects": done_projects,               
+#             "total assigned tasks": total_task,             
+#             "completed tasks": done_task,                  
+#             "recent projects": projects,                
+#             "recent tasks": tasks                    
+#         }
+#         unread = await get_total_unread_messages(collection_name=request.session.get("email"))
+#         return templates_clients.TemplateResponse("index.html", {"request": request, "fullname": fullname, "details":details, "emailUser":request.session.get("email"), "unreadd": unread})
 
-    except TypeError:
-        return RedirectResponse("/login", status_code=HTTP_303_SEE_OTHER)
+#     except TypeError:
+#         return RedirectResponse("/login", status_code=HTTP_303_SEE_OTHER)
 
-@app.get("/success")
-async def sign_up_success(request: Request):
-    return templates_clients.TemplateResponse("success.html", {"request": request})
+# @app.get("/success")
+# async def sign_up_success(request: Request):
+#     return templates_clients.TemplateResponse("success.html", {"request": request})
 
 
 @app.get("/dev/{dev_id}")
@@ -337,162 +337,162 @@ async def getTrendyInfo(dev_id:str):
     else:
         return {"Message":dev_id}
 
-@app.post("/create-acc") # FOR Client PAGE.
-async def add_new_user(request: Request, data: NewUser = Body(...)):
-    request.session["email"] = data.email
-    request.session["password"] = data.password
+# @app.post("/create-acc") # FOR Client PAGE.
+# async def add_new_user(request: Request, data: NewUser = Body(...)):
+#     request.session["email"] = data.email
+#     request.session["password"] = data.password
 
-    if not await check_existing_user(collection_name=data.email):
-        return JSONResponse(content=0)  # Email already exists
+#     if not await check_existing_user(collection_name=data.email):
+#         return JSONResponse(content=0)  # Email already exists
 
-    # Validate OTP
-    to_validate = await settings.email_verification_enabled()
-    if to_validate:
-        try:
-            if int(data.otp)!= int(request.session.get("otp")):  # Replace with real OTP validation
-                return JSONResponse(content=1) 
-        except ValueError:
-            return JSONResponse(content=1) 
+#     # Validate OTP
+#     to_validate = await settings.email_verification_enabled()
+#     if to_validate:
+#         try:
+#             if int(data.otp)!= int(request.session.get("otp")):  # Replace with real OTP validation
+#                 return JSONResponse(content=1) 
+#         except ValueError:
+#             return JSONResponse(content=1) 
 
-    await add_new_client(client_add=data)
+#     await add_new_client(client_add=data)
 
-    rmessage = f" A new user '{(data.fullName).title()}' has send a signup request with email '{data.email}' on {ISTdate()} at {ISTTime()}."
+#     rmessage = f" A new user '{(data.fullName).title()}' has send a signup request with email '{data.email}' on {ISTdate()} at {ISTTime()}."
 
-    await push_notification_by_client(message=rmessage)
+#     await push_notification_by_client(message=rmessage)
 
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    to_users = ["qwertyuiop"]
-    await manager.send_notification(notification, to_users)
+#     notification = [rmessage, 0, "2023-12-07T10:30:00"]
+#     to_users = ["qwertyuiop"]
+#     await manager.send_notification(notification, to_users)
 
-    return RedirectResponse(url="/success", status_code=303)
-
-
-
-@app.post("/send-otp") # FOR Client PAGE.
-async def validate_otp(request: Request, data: OTPDetails = Body(...)):
-    to_validate = await settings.email_verification_enabled()
-    if to_validate:
-        request.session["otp"] = await send_otp(email=data.email)
-    return 1
-
-
-@app.post("/make-login") # FOR Client PAGE.
-async def trendy_login(request: Request, data: LoginSchema = Body(...)):
-
-    request.session["email"] = data.email
-    request.session["password"] = data.password
-
-    if not await check_existing_user(collection_name=data.email):
-        if await check_password(collection_name=data.email, password=data.password):
-            action = await get_user_action(collection_name=data.email)
-
-            if action == 0:
-                return RedirectResponse(url="/rejected", status_code=HTTP_303_SEE_OTHER)
-            elif action == -1:
-                return RedirectResponse(url="/pending", status_code=HTTP_303_SEE_OTHER)
-            else:        
-                return RedirectResponse(url="/dashboard", status_code=HTTP_303_SEE_OTHER)
-        else:
-            return 1
-    else:
-        return 0
-
-@app.post("/forget-password")
-async def forget_password(request:Request, data:Email):
-    if not await check_existing_user(collection_name=data.email):
-        val = await send_password(email= data.email)
-        return val
-    else:
-        return 0
-
-
-@app.post("/client-projects")
-async def show_client_projects(request: Request, x:UselessClient):
-    val, total_projects, done_projects = await get_user_projects(collection_name=request.session.get("email"))
-    return val
-
-@app.post("/project-checkbox")
-async def update_project_status(request: Request,data: UpdateProjets):
-    username = request.session.get("email")
-    await update_project_status_act(pid = data.project_id, status = data.status, username = username)
-    await update_project_status_bid(project_id=data.project_id, status=data.status, collection_name=request.session.get("email"))
-
-    fullname = await get_username(collection_name = username)
-    project_name = await get_project_by_id(project_id=data.project_id)
-
-    rmessage = await create_message_for_admin(fullname=fullname, project_taskname=project_name, status=data.status, sym='p')
-
-    await push_notification_by_client(message=rmessage)
-
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    to_users = ["qwertyuiop"]
-    await manager.send_notification(notification, to_users)
+#     return RedirectResponse(url="/success", status_code=303)
 
 
 
-
-@app.post("/client-tasks")
-async def show_client_task(request: Request, x:UselessClient):
-    val, total_task, done_task = await get_user_tasks(collection_name=request.session.get("email"))
-    # print(val)
-    return val
-
-
-@app.post("/task-checkbox")
-async def update_task_status(request: Request, data:UpdateTask):
-
-    username = request.session.get("email")
-    await update_task_status_act(pid = data.task_id, status=data.status, username=username)
-    await update_task_status_bid(task_id = data.task_id, status = data.status, collection_name= username)
-
-    fullname = await get_username(collection_name=username)
-    taskname = await get_task_by_id(task_id=data.task_id)
-
-    rmessage = await create_message_for_admin(fullname=fullname, project_taskname=taskname, status=data.status, sym='t')
-
-    await push_notification_by_client(message=rmessage)
-
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    to_users = ["qwertyuiop"]
-    await manager.send_notification(notification, to_users)
+# @app.post("/send-otp") # FOR Client PAGE.
+# async def validate_otp(request: Request, data: OTPDetails = Body(...)):
+#     to_validate = await settings.email_verification_enabled()
+#     if to_validate:
+#         request.session["otp"] = await send_otp(email=data.email)
+#     return 1
 
 
+# @app.post("/make-login") # FOR Client PAGE.
+# async def trendy_login(request: Request, data: LoginSchema = Body(...)):
 
-@app.post("/client-dashboard")
-async def update_dashboard_fapi(request: Request, x:UselessClient):
-    tasks, total_task, done_task = await get_user_tasks(collection_name=request.session.get("email"))
-    projects, total_projects, done_projects = await get_user_projects(collection_name=request.session.get("email"))
-    details = {
-        "total assigned projects": total_projects,          
-        "completed projects": done_projects,               
-        "total assigned tasks": total_task,             
-        "completed tasks": done_task,                  
-        "recent projects": projects,                
-        "recent tasks": tasks                    
-    }
-    return details
+#     request.session["email"] = data.email
+#     request.session["password"] = data.password
+
+#     if not await check_existing_user(collection_name=data.email):
+#         if await check_password(collection_name=data.email, password=data.password):
+#             action = await get_user_action(collection_name=data.email)
+
+#             if action == 0:
+#                 return RedirectResponse(url="/rejected", status_code=HTTP_303_SEE_OTHER)
+#             elif action == -1:
+#                 return RedirectResponse(url="/pending", status_code=HTTP_303_SEE_OTHER)
+#             else:        
+#                 return RedirectResponse(url="/dashboard", status_code=HTTP_303_SEE_OTHER)
+#         else:
+#             return 1
+#     else:
+#         return 0
+
+# @app.post("/forget-password")
+# async def forget_password(request:Request, data:Email):
+#     if not await check_existing_user(collection_name=data.email):
+#         val = await send_password(email= data.email)
+#         return val
+#     else:
+#         return 0
+
+
+# @app.post("/client-projects")
+# async def show_client_projects(request: Request, x:UselessClient):
+#     val, total_projects, done_projects = await get_user_projects(collection_name=request.session.get("email"))
+#     return val
+
+# @app.post("/project-checkbox")
+# async def update_project_status(request: Request,data: UpdateProjets):
+#     username = request.session.get("email")
+#     await update_project_status_act(pid = data.project_id, status = data.status, username = username)
+#     await update_project_status_bid(project_id=data.project_id, status=data.status, collection_name=request.session.get("email"))
+
+#     fullname = await get_username(collection_name = username)
+#     project_name = await get_project_by_id(project_id=data.project_id)
+
+#     rmessage = await create_message_for_admin(fullname=fullname, project_taskname=project_name, status=data.status, sym='p')
+
+#     await push_notification_by_client(message=rmessage)
+
+#     notification = [rmessage, 0, "2023-12-07T10:30:00"]
+#     to_users = ["qwertyuiop"]
+#     await manager.send_notification(notification, to_users)
 
 
 
-@app.post("/client-profile")
-async def userProfile(request:Request, x:UselessClient):
-    details = await get_client_profile(collection_name= request.session.get("email"))
-    return details
 
-@app.post("/update-profile")
-async def updateProfile(request:Request, data:Updated):
-    if data.skills or data.tnp:
-        await update_user_profile(collection_name=request.session.get("email"), data=data)
-        return 0
-    else:
-        return 1
+# @app.post("/client-tasks")
+# async def show_client_task(request: Request, x:UselessClient):
+#     val, total_task, done_task = await get_user_tasks(collection_name=request.session.get("email"))
+#     # print(val)
+#     return val
+
+
+# @app.post("/task-checkbox")
+# async def update_task_status(request: Request, data:UpdateTask):
+
+#     username = request.session.get("email")
+#     await update_task_status_act(pid = data.task_id, status=data.status, username=username)
+#     await update_task_status_bid(task_id = data.task_id, status = data.status, collection_name= username)
+
+#     fullname = await get_username(collection_name=username)
+#     taskname = await get_task_by_id(task_id=data.task_id)
+
+#     rmessage = await create_message_for_admin(fullname=fullname, project_taskname=taskname, status=data.status, sym='t')
+
+#     await push_notification_by_client(message=rmessage)
+
+#     notification = [rmessage, 0, "2023-12-07T10:30:00"]
+#     to_users = ["qwertyuiop"]
+#     await manager.send_notification(notification, to_users)
+
+
+
+# @app.post("/client-dashboard")
+# async def update_dashboard_fapi(request: Request, x:UselessClient):
+#     tasks, total_task, done_task = await get_user_tasks(collection_name=request.session.get("email"))
+#     projects, total_projects, done_projects = await get_user_projects(collection_name=request.session.get("email"))
+#     details = {
+#         "total assigned projects": total_projects,          
+#         "completed projects": done_projects,               
+#         "total assigned tasks": total_task,             
+#         "completed tasks": done_task,                  
+#         "recent projects": projects,                
+#         "recent tasks": tasks                    
+#     }
+#     return details
+
+
+
+# @app.post("/client-profile")
+# async def userProfile(request:Request, x:UselessClient):
+#     details = await get_client_profile(collection_name= request.session.get("email"))
+#     return details
+
+# @app.post("/update-profile")
+# async def updateProfile(request:Request, data:Updated):
+#     if data.skills or data.tnp:
+#         await update_user_profile(collection_name=request.session.get("email"), data=data)
+#         return 0
+#     else:
+#         return 1
     
 
-@app.post("/notification-user")
-async def get_notification_user(request:Request, x:UselessClient):
-    notifications = await get_client_notification(collection_name=request.session.get("email"))
-    await update_client_notification(collection_name=request.session.get("email"))
-    return notifications
+# @app.post("/notification-user")
+# async def get_notification_user(request:Request, x:UselessClient):
+#     notifications = await get_client_notification(collection_name=request.session.get("email"))
+#     await update_client_notification(collection_name=request.session.get("email"))
+#     return notifications
 
 
 

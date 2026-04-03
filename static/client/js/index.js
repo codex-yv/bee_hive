@@ -345,7 +345,7 @@ function showSection(sectionId, title) {
 async function loadDashboardData() {
     try {
         // Send POST request to FastAPI server
-        const response = await fetch('/client-dashboard', {
+        const response = await fetch('/client/dashboard/client-dashboard', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -466,7 +466,7 @@ function toggleCheckbox(checkbox) {
 
 async function updateProjectStatus(projectId, status, checkbox, previousState) {
     try {
-        const response = await fetch('/project-checkbox', {
+        const response = await fetch('/client/projects/project-checkbox', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -515,7 +515,7 @@ async function updateProjectStatus(projectId, status, checkbox, previousState) {
 
 async function updateTaskStatus(taskId, status, checkbox, previousState) {
     try {
-        const response = await fetch('/task-checkbox', {
+        const response = await fetch('/client/task/task-checkbox', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -589,7 +589,7 @@ async function loadProjects() {
 
     try {
         // Send POST request to FastAPI server
-        const response = await fetch('/client-projects', {
+        const response = await fetch('/client/projects/client-projects', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -689,7 +689,7 @@ async function loadTasks() {
 
     try {
         // Send POST request to FastAPI server
-        const response = await fetch('/client-tasks', {
+        const response = await fetch('/client/task/client-tasks', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -778,7 +778,7 @@ function createTaskCard(task) {
 async function loadProfileData() {
     try {
         // Send POST request to FastAPI server
-        const response = await fetch('/client-profile', {
+        const response = await fetch('/client/dashboard/client-profile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -874,7 +874,7 @@ async function saveProfileData(section) {
         console.log('Saving profile data:', requestData);
 
         // Send POST request to FastAPI server
-        const response = await fetch('/update-profile', {
+        const response = await fetch('/client/dashboard/update-profile', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -998,7 +998,7 @@ async function loadNotifications() {
 
     try {
         // Send POST request to FastAPI server
-        const response = await fetch('/notification-user', {
+        const response = await fetch('/client/dashboard/notification-user', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -636,7 +636,7 @@
             
             try {
                 // Send POST request to /forget-password endpoint
-                const response = await fetch('/forget-password', {
+                const response = await fetch('/client/entry/forget-password', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -681,7 +681,7 @@
             
             try {
                 // Send POST request to /send-otp endpoint
-                const response = await fetch('/send-otp', {
+                const response = await fetch('/client/entry/send-otp', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -728,7 +728,7 @@
             loginBtn.textContent = 'Logging in...';
             
             try {
-                const response = await fetch('/make-login', {
+                const response = await fetch('/client/entry/make-login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -799,7 +799,7 @@
             createAccountBtn.textContent = 'Creating Account...';
             
             try {
-                const response = await fetch('/create-acc', {
+                const response = await fetch('/client/entry/create-acc', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
