@@ -14,7 +14,7 @@ from datetime import datetime
 import json
 
 
-from rtc import manager, unified_community_manager
+from app.rtc import manager, unified_community_manager
 
 
 router = APIRouter(prefix="/websocket", tags=["Admin Community"])

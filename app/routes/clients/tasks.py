@@ -11,7 +11,7 @@ from utils.clientPuts import  update_task_status_bid
 
 from utils.general import create_message_for_admin
 
-from rtc import manager
+from app.rtc import manager
 
 router = APIRouter(prefix="/client/task", tags=["Client Task"])
 

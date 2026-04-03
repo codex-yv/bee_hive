@@ -18,7 +18,7 @@ from utils.settings import Settings
 from templates_jinja import templates_admin
 from configs.access_configs import admin_password, admin_username
 
-from rtc import manager
+from app.rtc import manager
 
 router = APIRouter(prefix="/admin/dashboard", tags=["Admin Dashboard"])
 

@@ -10,7 +10,7 @@ from utils.adminPuts import delete_task_by_id
 from utils.general import get_users_list
 from utils.IST import ISTTime, ISTdate
 
-from rtc import manager
+from app.rtc import manager
 
 router = APIRouter(prefix="/admin/tasks", tags=["Admin Tasks"])
 

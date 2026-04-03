@@ -15,7 +15,7 @@ from utils.settings import Settings
 from utils.IST import ISTTime, ISTdate
 
 from templates_jinja import templates_clients
-from rtc import manager
+from app.rtc import manager
 
 
 router = APIRouter(prefix="/client/entry", tags=["Client Entry"])
