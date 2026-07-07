@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
+            background: linear-gradient(135deg, rgba(43, 127, 255, 0.06) 0%, #ffffff 50%, rgba(139, 92, 246, 0.06) 100%), #ffffff;
             color: #111111;
             overflow-x: hidden;
         }
@@ -35,18 +36,46 @@
             border: 1px solid rgba(17, 17, 17, 0.06);
         }
 
+        .elevated-card {
+            background: linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)) padding-box,
+                linear-gradient(to bottom, rgba(139, 92, 246, 0.4) 0%, rgba(43, 127, 255, 0.3) 30%, rgba(17, 17, 17, 0.04) 90%, rgba(17, 17, 17, 0) 100%) border-box;
+            border: 1.5px solid transparent;
+            border-radius: 16px;
+            backdrop-filter: saturate(180%) blur(14px);
+            -webkit-backdrop-filter: saturate(180%) blur(14px);
+            box-shadow: 0 40px 80px -15px rgba(17, 17, 17, 0.15), 0 20px 40px -20px rgba(17, 17, 17, 0.1), 0 0 50px rgba(17, 17, 17, 0.03);
+        }
+
         @keyframes floaty {
-            0%, 100% { transform: translate3d(0,0,0); }
-            50% { transform: translate3d(0,-14px,0); }
+
+            0%,
+            100% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            50% {
+                transform: translate3d(0, -14px, 0);
+            }
         }
+
         @keyframes drift {
-            0% { transform: translate3d(0,0,0) scale(1); }
-            50% { transform: translate3d(20px,-24px,0) scale(1.05); }
-            100% { transform: translate3d(0,0,0) scale(1); }
+            0% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate3d(20px, -24px, 0) scale(1.05);
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0) scale(1);
+            }
         }
+
         .animate-floaty {
             animation: floaty 7s ease-in-out infinite;
         }
+
         .animate-drift {
             animation: drift 14s ease-in-out infinite;
         }
@@ -120,7 +149,7 @@
             padding: 10px 16px;
             background: rgba(255, 255, 255, 0.7);
             color: #111111;
-            border: 1px solid rgba(17, 17, 17, 0.08);
+            border: 1px solid rgba(17, 17, 17, 0.16);
             border-radius: 20px;
             cursor: pointer;
             font-weight: 500;
@@ -202,13 +231,18 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .tag-input-container {
             position: relative;
-            border: 1px solid rgba(17, 17, 17, 0.08);
+            border: 1px solid rgba(17, 17, 17, 0.16);
             border-radius: 8px;
             padding: 6px;
             min-height: 44px;
@@ -285,7 +319,7 @@
         .form-control {
             width: 100%;
             padding: 10px 14px;
-            border: 1px solid rgba(17, 17, 17, 0.08);
+            border: 1px solid rgba(17, 17, 17, 0.16);
             border-radius: 8px;
             font-size: 0.875rem;
             transition: all 0.2s ease-in-out;
@@ -425,28 +459,42 @@
     </script>
 </head>
 
-<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 relative bg-white text-foreground overflow-y-auto">
+<body class="min-h-screen flex flex-col md:flex-row relative bg-white text-foreground overflow-x-hidden">
     <!-- Particle Background -->
     <div aria-hidden class="pointer-events-none fixed inset-0 overflow-hidden">
         <!-- soft gradient blobs -->
-        <div class="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full opacity-60 blur-3xl animate-drift">
-            <div class="h-full w-full rounded-full" style="background: radial-gradient(closest-side, rgba(43,127,255,0.25), transparent 70%);"></div>
+        <div class="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full opacity-75 blur-3xl animate-drift">
+            <div class="h-full w-full rounded-full"
+                style="background: radial-gradient(closest-side, rgba(43,127,255,0.38), transparent 70%);"></div>
         </div>
-        <div class="absolute top-10 -right-32 h-[560px] w-[560px] rounded-full opacity-60 blur-3xl animate-drift" style="animation-delay: -4s;">
-            <div class="h-full w-full rounded-full" style="background: radial-gradient(closest-side, rgba(139,92,246,0.22), transparent 70%);"></div>
+        <div class="absolute top-10 -right-32 h-[560px] w-[560px] rounded-full opacity-75 blur-3xl animate-drift"
+            style="animation-delay: -4s;">
+            <div class="h-full w-full rounded-full"
+                style="background: radial-gradient(closest-side, rgba(139,92,246,0.34), transparent 70%);"></div>
         </div>
-        <div class="absolute -bottom-40 left-1/3 h-[600px] w-[600px] rounded-full opacity-50 blur-3xl animate-drift">
-            <div class="h-full w-full rounded-full" style="background: radial-gradient(closest-side, rgba(239,68,68,0.18), transparent 70%);"></div>
+        <div class="absolute -bottom-40 left-1/3 h-[600px] w-[600px] rounded-full opacity-65 blur-3xl animate-drift">
+            <div class="h-full w-full rounded-full"
+                style="background: radial-gradient(closest-side, rgba(239,68,68,0.28), transparent 70%);"></div>
         </div>
-        
+
         <!-- floating particles -->
-        <div class="absolute rounded-full animate-floaty" style="left: 10%; top: 20%; width: 6px; height: 6px; background: #2b7fff; opacity: 0.35; animation-duration: 8s; box-shadow: 0 0 12px rgba(43,127,255,0.35);"></div>
-        <div class="absolute rounded-full animate-floaty" style="left: 80%; top: 15%; width: 5px; height: 5px; background: #8b5cf6; opacity: 0.35; animation-duration: 12s; animation-delay: -2s; box-shadow: 0 0 12px rgba(139,92,246,0.35);"></div>
-        <div class="absolute rounded-full animate-floaty" style="left: 45%; top: 75%; width: 7px; height: 7px; background: #ef4444; opacity: 0.3; animation-duration: 10s; animation-delay: -5s; box-shadow: 0 0 12px rgba(239,68,68,0.35);"></div>
-        <div class="absolute rounded-full animate-floaty" style="left: 85%; top: 80%; width: 4px; height: 4px; background: #111111; opacity: 0.25; animation-duration: 14s; animation-delay: -7s; box-shadow: 0 0 12px rgba(17,17,17,0.35);"></div>
+        <div class="absolute rounded-full animate-floaty"
+            style="left: 10%; top: 20%; width: 6px; height: 6px; background: #2b7fff; opacity: 0.35; animation-duration: 8s; box-shadow: 0 0 12px rgba(43,127,255,0.35);">
+        </div>
+        <div class="absolute rounded-full animate-floaty"
+            style="left: 80%; top: 15%; width: 5px; height: 5px; background: #8b5cf6; opacity: 0.35; animation-duration: 12s; animation-delay: -2s; box-shadow: 0 0 12px rgba(139,92,246,0.35);">
+        </div>
+        <div class="absolute rounded-full animate-floaty"
+            style="left: 45%; top: 75%; width: 7px; height: 7px; background: #ef4444; opacity: 0.3; animation-duration: 10s; animation-delay: -5s; box-shadow: 0 0 12px rgba(239,68,68,0.35);">
+        </div>
+        <div class="absolute rounded-full animate-floaty"
+            style="left: 85%; top: 80%; width: 4px; height: 4px; background: #111111; opacity: 0.25; animation-duration: 14s; animation-delay: -7s; box-shadow: 0 0 12px rgba(17,17,17,0.35);">
+        </div>
 
         <!-- grid overlay -->
-        <div class="absolute inset-0 opacity-[0.35]" style="background-image: linear-gradient(rgba(17,17,17,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,0.045) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%); -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%);"></div>
+        <div class="absolute inset-0 opacity-[0.35]"
+            style="background-image: linear-gradient(rgba(17,17,17,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,0.045) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%); -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%);">
+        </div>
     </div>
 
     <!-- Loading Overlay -->
@@ -457,477 +505,531 @@
         </div>
     </div>
 
-    <div class="relative z-10 w-full max-w-[460px] my-8">
-        <div class="glass rounded-2xl shadow-[0_40px_100px_-40px_rgba(17,17,17,0.18)] border border-hairline p-8 sm:p-10">
-            <!-- Branding Header -->
-            <div class="flex flex-col items-center mb-6">
-                <span class="relative inline-flex h-10 w-10 items-center justify-center mb-3">
-                    <span class="absolute inset-0 rounded-[12px]" style="background: conic-gradient(from 220deg, #2b7fff, #8b5cf6, #ef4444, #2b7fff)"></span>
-                    <span class="absolute inset-[3px] rounded-[9px] bg-white"></span>
-                    <span class="relative text-[16px] font-black tracking-tight text-black">B</span>
-                </span>
-                <h1 class="text-2xl font-bold tracking-tight text-[#111111] text-center">Trendy Member's Portal</h1>
-                <p class="mt-2 text-sm text-zinc-500 text-center max-w-sm">Welcome to Trendy Office. Access your projects, track progress, and communicate with our team all in one place.</p>
-            </div>
-
-            <div class="form-tabs">
-                <div class="form-tab active" id="loginTab">Login</div>
-                <div class="form-tab" id="signupTab">Sign Up</div>
-            </div>
-            
-            <!-- Alert Messages -->
-            <div class="alert alert-error" id="errorAlert"></div>
-            <div class="alert alert-success" id="successAlert"></div>
-            <div class="alert alert-info" id="infoAlert"></div>
-            
-            <!-- Login Form -->
-            <div class="form-content active" id="loginForm">
-                <h2>Client Login</h2>
-                <form id="loginFormData">
-                    <div class="form-group">
-                        <label for="loginEmail">Email Address</label>
-                        <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required>
-                    </div>
-                    <div class="form-group">
-                        <div class="auth-links">
-                            <a href="#" id="forgotPassword">Forgot Password?</a>
-                        </div>
-                    </div>
-                    <button type="submit" class="auth-btn" id="loginBtn">Login</button>
-                </form>
-            </div>
-            
-            <!-- Signup Form -->
-            <div class="form-content" id="signupForm">
-                <h2>Create Account</h2>
-                <form id="signupFormData">
-                    <div class="form-group">
-                        <label for="fullName">Full Name</label>
-                        <input type="text" id="fullName" class="form-control" placeholder="Enter your full name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signupEmail">Email Address</label>
-                        <div class="email-input-group">
-                            <input type="email" id="signupEmail" class="form-control" placeholder="Enter your email" required>
-                            <button type="button" class="send-otp-btn" id="sendOtpBtn">Send OTP</button>
-                        </div>
-                    </div>
-                    <div class="form-group otp-section" id="otpSection">
-                        <label for="otp">OTP</label>
-                        <input type="text" id="otp" class="form-control" placeholder="Enter OTP" maxlength="6">
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="tel" id="phone" class="form-control" placeholder="Enter your phone number" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="role">Role</label>
-                        <select id="role" class="form-control" required>
-                            <option value="">Select your role</option>
-                            <option value="Manager">Manager</option>
-                            <option value="Employee">Employee</option>
-                            <option value="Intern">Intern</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="team">Team</label>
-                        <select id="team" class="form-control" required>
-                            <option value="">Select your team</option>
-                            <option value="Dev">Dev</option>
-                            <option value="Design">Design</option>
-                            <option value="Marketing">Marketing</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Additional fields for skills and tools -->
-                    <div class="additional-fields" id="additionalFields">
-                        <div class="form-group">
-                            <label for="skills">Skills</label>
-                            <div class="tag-input-container" id="skillsContainer">
-                                <input type="text" class="tag-input" id="skillsInput" placeholder="Type a skill and press Enter">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="tools">Tools & Platforms</label>
-                            <div class="tag-input-container" id="toolsContainer">
-                                <input type="text" class="tag-input" id="toolsInput" placeholder="Type a tool/platform and press Enter">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signupPassword">Password</label>
-                        <input type="password" id="signupPassword" class="form-control" placeholder="Create a password" required>
-                    </div>
-                    <div class="form-group terms-container">
-                        <input type="checkbox" id="terms" required>
-                        <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
-                    </div>
-                    <button type="submit" class="auth-btn" id="createAccountBtn">Create Account</button>
-                </form>
-            </div>
-        </div>
+    <!-- Left Side (Image) -->
+    <div class="hidden md:flex md:w-1/2 md:fixed md:h-screen md:left-0 md:top-0 items-center justify-center p-8 lg:p-12 z-10 pointer-events-none">
+        <img src="/static/loginbg.png" alt="Login Background"
+            class="max-w-full max-h-[82vh] object-contain select-none" />
     </div>
 
-    <script>
-        // Tab switching functionality
-        document.getElementById('loginTab').addEventListener('click', function() {
-            document.getElementById('loginTab').classList.add('active');
-            document.getElementById('signupTab').classList.remove('active');
-            document.getElementById('loginForm').classList.add('active');
-            document.getElementById('signupForm').classList.remove('active');
-            hideAlerts();
-        });
-        
-        document.getElementById('signupTab').addEventListener('click', function() {
-            document.getElementById('signupTab').classList.add('active');
-            document.getElementById('loginTab').classList.remove('active');
-            document.getElementById('signupForm').classList.add('active');
-            document.getElementById('loginForm').classList.remove('active');
-            hideAlerts();
-        });
-        
-        // Show alert message
-        function showAlert(message, type) {
-            hideAlerts();
-            if (type === 'error') {
-                const alert = document.getElementById('errorAlert');
-                alert.textContent = message;
-                alert.style.display = 'block';
-            } else if (type === 'success') {
-                const alert = document.getElementById('successAlert');
-                alert.textContent = message;
-                alert.style.display = 'block';
-            } else if (type === 'info') {
-                const alert = document.getElementById('infoAlert');
-                alert.textContent = message;
-                alert.style.display = 'block';
+    <!-- Right Side (Form Container) -->
+    <div class="w-full md:w-1/2 md:ml-auto min-h-screen flex flex-col items-center relative z-20 p-4 sm:p-6 lg:p-8">
+        <div class="w-full max-w-[460px] my-auto py-8">
+            <div class="elevated-card p-8 sm:p-10">
+                <!-- Branding Header -->
+                <div class="flex flex-col items-center mb-6">
+                    <img src="/static/logo.png" alt="BeeHive Logo" class="h-10 w-10 object-contain rounded-full mb-3" />
+                    <h1 class="text-2xl font-bold tracking-tight text-[#111111] text-center">BeeHive Client's Portal
+                    </h1>
+                    <p class="mt-2 text-sm text-zinc-500 text-center max-w-sm">Welcome to BeeHive. Access your projects,
+                        track progress, and communicate with our team all in one place.</p>
+                </div>
+
+                <div class="form-tabs">
+                    <div class="form-tab active" id="loginTab">Login</div>
+                    <div class="form-tab" id="signupTab">Sign Up</div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div class="alert alert-error" id="errorAlert"></div>
+                <div class="alert alert-success" id="successAlert"></div>
+                <div class="alert alert-info" id="infoAlert"></div>
+
+                <!-- Login Form -->
+                <div class="form-content active" id="loginForm">
+                    <h2>Client Login</h2>
+                    <form id="loginFormData">
+                        <div class="form-group">
+                            <label for="loginEmail">Email Address</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <div class="relative">
+                                <input type="password" id="loginPassword" class="form-control pr-10"
+                                    placeholder="Enter your password" required>
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-700"
+                                    onclick="togglePasswordVisibility('loginPassword', this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-eye h-5 w-5">
+                                        <path
+                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="auth-links">
+                                <a href="#" id="forgotPassword">Forgot Password?</a>
+                            </div>
+                        </div>
+                        <button type="submit" class="auth-btn" id="loginBtn">Login</button>
+                    </form>
+                </div>
+
+                <!-- Signup Form -->
+                <div class="form-content" id="signupForm">
+                    <h2>Create Account</h2>
+                    <form id="signupFormData">
+                        <div class="form-group">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" class="form-control" placeholder="Enter your full name"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email Address</label>
+                            <div class="email-input-group">
+                                <input type="email" id="signupEmail" class="form-control" placeholder="Enter your email"
+                                    required>
+                                <button type="button" class="send-otp-btn" id="sendOtpBtn">Send OTP</button>
+                            </div>
+                        </div>
+                        <div class="form-group otp-section" id="otpSection">
+                            <label for="otp">OTP</label>
+                            <input type="text" id="otp" class="form-control" placeholder="Enter OTP" maxlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" class="form-control" placeholder="Enter your phone number"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select id="role" class="form-control" required>
+                                <option value="">Select your role</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Employee">Employee</option>
+                                <option value="Intern">Intern</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="team">Team</label>
+                            <select id="team" class="form-control" required>
+                                <option value="">Select your team</option>
+                                <option value="Dev">Dev</option>
+                                <option value="Design">Design</option>
+                                <option value="Marketing">Marketing</option>
+                            </select>
+                        </div>
+
+                        <!-- Additional fields for skills and tools -->
+                        <div class="additional-fields" id="additionalFields">
+                            <div class="form-group">
+                                <label for="skills">Skills</label>
+                                <div class="tag-input-container" id="skillsContainer">
+                                    <input type="text" class="tag-input" id="skillsInput"
+                                        placeholder="Type a skill and press Enter">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="tools">Tools & Platforms</label>
+                                <div class="tag-input-container" id="toolsContainer">
+                                    <input type="text" class="tag-input" id="toolsInput"
+                                        placeholder="Type a tool/platform and press Enter">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <div class="relative">
+                                <input type="password" id="signupPassword" class="form-control pr-10"
+                                    placeholder="Create a password" required>
+                                <button type="button"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-700"
+                                    onclick="togglePasswordVisibility('signupPassword', this)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="lucide lucide-eye h-5 w-5">
+                                        <path
+                                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group terms-container">
+                            <input type="checkbox" id="terms" required>
+                            <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy
+                                    Policy</a></label>
+                        </div>
+                        <button type="submit" class="auth-btn" id="createAccountBtn">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Toggle password visibility
+            function togglePasswordVisibility(inputId, btn) {
+                const input = document.getElementById(inputId);
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off h-5 w-5"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/><path d="M14.084 8.644A3 3 0 0 1 15.35 12"/><path d="M8.544 8.544a3 3 0 0 0 4.212 4.212"/><path d="M2.062 11.652a10.747 10.747 0 0 0 9.07 7.273"/><path d="M2 2l20 20"/><path d="M4.118 7.37A10.744 10.744 0 0 0 2.06 12.348a1 1 0 0 0 0 .696 10.747 10.747 0 0 0 3.743 4.549"/></svg>`;
+                } else {
+                    input.type = 'password';
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye h-5 w-5"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/><circle cx="12" cy="12" r="3"/></svg>`;
+                }
             }
-        }
-        
-        // Hide all alerts
-        function hideAlerts() {
-            document.getElementById('errorAlert').style.display = 'none';
-            document.getElementById('successAlert').style.display = 'none';
-            document.getElementById('infoAlert').style.display = 'none';
-        }
-        
-        // Show loading animation
-        function showLoading() {
-            document.getElementById('loadingOverlay').style.display = 'flex';
-        }
-        
-        // Hide loading animation
-        function hideLoading() {
-            document.getElementById('loadingOverlay').style.display = 'none';
-        }
-        
-        // Forgot Password functionality
-        document.getElementById('forgotPassword').addEventListener('click', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            
-            // Check if email is provided
-            if (!email) {
-                showAlert('Please enter your email address first', 'error');
-                return;
+
+            // Tab switching functionality
+            document.getElementById('loginTab').addEventListener('click', function () {
+                document.getElementById('loginTab').classList.add('active');
+                document.getElementById('signupTab').classList.remove('active');
+                document.getElementById('loginForm').classList.add('active');
+                document.getElementById('signupForm').classList.remove('active');
+                hideAlerts();
+            });
+
+            document.getElementById('signupTab').addEventListener('click', function () {
+                document.getElementById('signupTab').classList.add('active');
+                document.getElementById('loginTab').classList.remove('active');
+                document.getElementById('signupForm').classList.add('active');
+                document.getElementById('loginForm').classList.remove('active');
+                hideAlerts();
+            });
+
+            // Show alert message
+            function showAlert(message, type) {
+                hideAlerts();
+                if (type === 'error') {
+                    const alert = document.getElementById('errorAlert');
+                    alert.textContent = message;
+                    alert.style.display = 'block';
+                } else if (type === 'success') {
+                    const alert = document.getElementById('successAlert');
+                    alert.textContent = message;
+                    alert.style.display = 'block';
+                } else if (type === 'info') {
+                    const alert = document.getElementById('infoAlert');
+                    alert.textContent = message;
+                    alert.style.display = 'block';
+                }
             }
-            
+
+            // Hide all alerts
+            function hideAlerts() {
+                document.getElementById('errorAlert').style.display = 'none';
+                document.getElementById('successAlert').style.display = 'none';
+                document.getElementById('infoAlert').style.display = 'none';
+            }
+
             // Show loading animation
-            showLoading();
-            
-            try {
-                // Send POST request to /forget-password endpoint
-                const response = await fetch('/client/entry/forget-password', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: email })
-                });
-                
-                const result = await response.json();
-                
-                // Handle different response codes
-                if (result === 0) {
-                    showAlert('Email not found, please sign up', 'error');
-                } else if (result === 1) {
-                    showAlert('Password reset link has been sent to your email.', 'success');
-                } else if (result === 2) {
-                    showAlert('Error Sending OTP. Try again later.', 'error');
-                } else {
-                    showAlert('An unexpected error occurred. Please try again.', 'error');
+            function showLoading() {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+
+            // Hide loading animation
+            function hideLoading() {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+
+            // Forgot Password functionality
+            document.getElementById('forgotPassword').addEventListener('click', async function (e) {
+                e.preventDefault();
+
+                const email = document.getElementById('loginEmail').value;
+
+                // Check if email is provided
+                if (!email) {
+                    showAlert('Please enter your email address first', 'error');
+                    return;
                 }
-            } catch (error) {
-                console.error('Error during forgot password request:', error);
-                showAlert('Failed to process your request. Please try again.', 'error');
-            } finally {
-                // Hide loading animation
-                hideLoading();
-            }
-        });
-        
-        // Send OTP functionality
-        document.getElementById('sendOtpBtn').addEventListener('click', async function() {
-            const email = document.getElementById('signupEmail').value;
-            const sendOtpBtn = document.getElementById('sendOtpBtn');
-            
-            if (!email) {
-                showAlert('Please enter your email address', 'error');
-                return;
-            }
-            
-            // Disable button and show loading state
-            sendOtpBtn.disabled = true;
-            sendOtpBtn.textContent = 'Sending...';
-            
-            try {
-                // Send POST request to /send-otp endpoint
-                const response = await fetch('/client/entry/send-otp', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: email })
-                });
-                
-                const result = await response.json();
-                
-                if (result === 1) {
-                    // Show OTP input field
-                    document.getElementById('otpSection').classList.add('active');
-                    showAlert('OTP sent successfully to your email', 'success');
-                } else {
+
+                // Show loading animation
+                showLoading();
+
+                try {
+                    // Send POST request to /forget-password endpoint
+                    const response = await fetch('/client/entry/forget-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+
+                    const result = await response.json();
+
+                    // Handle different response codes
+                    if (result === 0) {
+                        showAlert('Email not found, please sign up', 'error');
+                    } else if (result === 1) {
+                        showAlert('Password reset link has been sent to your email.', 'success');
+                    } else if (result === 2) {
+                        showAlert('Error Sending OTP. Try again later.', 'error');
+                    } else {
+                        showAlert('An unexpected error occurred. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error during forgot password request:', error);
+                    showAlert('Failed to process your request. Please try again.', 'error');
+                } finally {
+                    // Hide loading animation
+                    hideLoading();
+                }
+            });
+
+            // Send OTP functionality
+            document.getElementById('sendOtpBtn').addEventListener('click', async function () {
+                const email = document.getElementById('signupEmail').value;
+                const sendOtpBtn = document.getElementById('sendOtpBtn');
+
+                if (!email) {
+                    showAlert('Please enter your email address', 'error');
+                    return;
+                }
+
+                // Disable button and show loading state
+                sendOtpBtn.disabled = true;
+                sendOtpBtn.textContent = 'Sending...';
+
+                try {
+                    // Send POST request to /send-otp endpoint
+                    const response = await fetch('/client/entry/send-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+
+                    const result = await response.json();
+
+                    if (result === 1) {
+                        // Show OTP input field
+                        document.getElementById('otpSection').classList.add('active');
+                        showAlert('OTP sent successfully to your email', 'success');
+                    } else {
+                        showAlert('Failed to send OTP. Please try again.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error sending OTP:', error);
                     showAlert('Failed to send OTP. Please try again.', 'error');
+                } finally {
+                    // Re-enable button after 30 seconds
+                    setTimeout(() => {
+                        sendOtpBtn.disabled = false;
+                        sendOtpBtn.textContent = 'Send OTP';
+                    }, 1000);
                 }
-            } catch (error) {
-                console.error('Error sending OTP:', error);
-                showAlert('Failed to send OTP. Please try again.', 'error');
-            } finally {
-                // Re-enable button after 30 seconds
-                setTimeout(() => {
-                    sendOtpBtn.disabled = false;
-                    sendOtpBtn.textContent = 'Send OTP';
-                }, 1000);
-            }
-        });
-        
-        // Login functionality
-        document.getElementById('loginFormData').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const loginBtn = document.getElementById('loginBtn');
-            
-            if (!email || !password) {
-                showAlert('Please enter both email and password', 'error');
-                return;
-            }
-            
-            // Disable button and show loading state
-            loginBtn.disabled = true;
-            loginBtn.textContent = 'Logging in...';
-            
-            try {
-                const response = await fetch('/client/entry/make-login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        email: email, 
-                        password: password 
-                    })
+            });
+
+            // Login functionality
+            document.getElementById('loginFormData').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                const loginBtn = document.getElementById('loginBtn');
+
+                if (!email || !password) {
+                    showAlert('Please enter both email and password', 'error');
+                    return;
+                }
+
+                // Disable button and show loading state
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+
+                try {
+                    const response = await fetch('/client/entry/make-login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password
+                        })
+                    });
+
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        const result = await response.json();
+
+                        if (result === 0) {
+                            showAlert('Email does not exist', 'error');
+                        } else if (result === 1) {
+                            showAlert('Invalid password', 'error');
+                        }
+                    } else if (response.redirected) {
+                        // Server responded with a redirect
+                        window.location.href = response.url;
+                    }
+                } catch (error) {
+                    console.error('Error during login:', error);
+                    showAlert('Login failed. Please try again.', 'error');
+                } finally {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Login';
+                }
+
+            });
+
+            // Signup functionality
+            document.getElementById('signupFormData').addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const fullName = document.getElementById('fullName').value;
+                const email = document.getElementById('signupEmail').value;
+                const otp = document.getElementById('otp').value;
+                const phone = document.getElementById('phone').value;
+                const role = document.getElementById('role').value;
+                const team = document.getElementById('team').value;
+                const password = document.getElementById('signupPassword').value;
+                const terms = document.getElementById('terms').checked;
+                const createAccountBtn = document.getElementById('createAccountBtn');
+
+                // Get skills and tools as arrays
+                const skills = Array.from(document.querySelectorAll('#skillsContainer .tag'))
+                    .map(tag => tag.querySelector('.tag-text').textContent);
+                const tnp = Array.from(document.querySelectorAll('#toolsContainer .tag'))
+                    .map(tag => tag.querySelector('.tag-text').textContent);
+
+                // Simple validation
+                if (!fullName || !email || !phone || !role || !team || !password) {
+                    showAlert('Please fill in all fields', 'error');
+                    return;
+                }
+
+                if (!terms) {
+                    showAlert('Please agree to the Terms of Service and Privacy Policy', 'error');
+                    return;
+                }
+
+                // Disable button and show loading state
+                createAccountBtn.disabled = true;
+                createAccountBtn.textContent = 'Creating Account...';
+
+                try {
+                    const response = await fetch('/client/entry/create-acc', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            fullName: fullName,
+                            email: email,
+                            otp: otp,
+                            phone: phone,
+                            role: role,
+                            team: team,
+                            password: password,
+                            skills: skills,
+                            tnp: tnp
+                        })
+                    });
+
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        const result = await response.json();
+
+                        if (result === 0) {
+                            showAlert('Email already exists', 'error');
+                        } else if (result === 1) {
+                            showAlert('Invalid OTP', 'error');
+                        }
+                    } else if (response.redirected) {
+                        // Server responded with a redirect
+                        window.location.href = response.url;
+                    }
+                } catch (error) {
+                    console.error('Error during signup:', error);
+                    showAlert('Account creation failed. Please try again.', 'error');
+                } finally {
+                    createAccountBtn.disabled = false;
+                    createAccountBtn.textContent = 'Create Account';
+                }
+            });
+
+            // Tag functionality
+            function initTagInput(containerId, inputId) {
+                const container = document.getElementById(containerId);
+                const input = document.getElementById(inputId);
+
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = input.value.trim();
+                        if (value) {
+                            addTag(container, value);
+                            input.value = '';
+                        }
+                    }
                 });
 
-                const contentType = response.headers.get('content-type');
-
-                if (contentType && contentType.includes('application/json')) {
-                    const result = await response.json();
-
-                    if (result === 0) {
-                        showAlert('Email does not exist', 'error');
-                    } else if (result === 1) {
-                        showAlert('Invalid password', 'error');
-                    }
-                } else if (response.redirected) {
-                    // Server responded with a redirect
-                    window.location.href = response.url;
-                }
-            } catch (error) {
-                console.error('Error during login:', error);
-                showAlert('Login failed. Please try again.', 'error');
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.textContent = 'Login';
-            }
-
-        });
-        
-        // Signup functionality
-        document.getElementById('signupFormData').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const fullName = document.getElementById('fullName').value;
-            const email = document.getElementById('signupEmail').value;
-            const otp = document.getElementById('otp').value;
-            const phone = document.getElementById('phone').value;
-            const role = document.getElementById('role').value;
-            const team = document.getElementById('team').value;
-            const password = document.getElementById('signupPassword').value;
-            const terms = document.getElementById('terms').checked;
-            const createAccountBtn = document.getElementById('createAccountBtn');
-            
-            // Get skills and tools as arrays
-            const skills = Array.from(document.querySelectorAll('#skillsContainer .tag'))
-                .map(tag => tag.querySelector('.tag-text').textContent);
-            const tnp = Array.from(document.querySelectorAll('#toolsContainer .tag'))
-                .map(tag => tag.querySelector('.tag-text').textContent);
-            
-            // Simple validation
-            if (!fullName || !email || !phone || !role || !team || !password) {
-                showAlert('Please fill in all fields', 'error');
-                return;
-            }
-            
-            if (!terms) {
-                showAlert('Please agree to the Terms of Service and Privacy Policy', 'error');
-                return;
-            }
-            
-            // Disable button and show loading state
-            createAccountBtn.disabled = true;
-            createAccountBtn.textContent = 'Creating Account...';
-            
-            try {
-                const response = await fetch('/client/entry/create-acc', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        fullName: fullName,
-                        email: email,
-                        otp: otp,
-                        phone: phone,
-                        role: role,
-                        team: team,
-                        password: password,
-                        skills: skills,
-                        tnp: tnp
-                    })
-                });
-
-                const contentType = response.headers.get('content-type');
-                
-                if (contentType && contentType.includes('application/json')) {
-                    const result = await response.json();
-                    
-                    if (result === 0) {
-                        showAlert('Email already exists', 'error');
-                    } else if (result === 1) {
-                        showAlert('Invalid OTP', 'error');
-                    }
-                } else if (response.redirected) {
-                    // Server responded with a redirect
-                    window.location.href = response.url;
-                }
-            } catch (error) {
-                console.error('Error during signup:', error);
-                showAlert('Account creation failed. Please try again.', 'error');
-            } finally {
-                createAccountBtn.disabled = false;
-                createAccountBtn.textContent = 'Create Account';
-            }
-        });
-        
-        // Tag functionality
-        function initTagInput(containerId, inputId) {
-            const container = document.getElementById(containerId);
-            const input = document.getElementById(inputId);
-            
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
+                // Add tag when input loses focus if there's content
+                input.addEventListener('blur', function () {
                     const value = input.value.trim();
                     if (value) {
                         addTag(container, value);
                         input.value = '';
                     }
-                }
-            });
-            
-            // Add tag when input loses focus if there's content
-            input.addEventListener('blur', function() {
-                const value = input.value.trim();
-                if (value) {
-                    addTag(container, value);
-                    input.value = '';
-                }
-            });
-        }
-        
-        function addTag(container, value) {
-            // Check if tag already exists
-            const existingTags = Array.from(container.querySelectorAll('.tag-text'))
-                .map(el => el.textContent);
-                
-            if (existingTags.includes(value)) {
-                return; // Don't add duplicate tags
+                });
             }
-            
-            const tag = document.createElement('div');
-            tag.className = 'tag';
-            tag.innerHTML = `
+
+            function addTag(container, value) {
+                // Check if tag already exists
+                const existingTags = Array.from(container.querySelectorAll('.tag-text'))
+                    .map(el => el.textContent);
+
+                if (existingTags.includes(value)) {
+                    return; // Don't add duplicate tags
+                }
+
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `
                 <span class="tag-text">${value}</span>
                 <span class="tag-remove">&times;</span>
             `;
-            
-            // Insert before the input
-            container.insertBefore(tag, container.lastElementChild);
-            
-            // Add remove functionality
-            tag.querySelector('.tag-remove').addEventListener('click', function() {
-                container.removeChild(tag);
-            });
-        }
-        
-        // Initialize tag inputs
-        initTagInput('skillsContainer', 'skillsInput');
-        initTagInput('toolsContainer', 'toolsInput');
-        
-        // Show additional fields when team is selected
-        document.getElementById('team').addEventListener('change', function() {
-            const team = this.value;
-            const additionalFields = document.getElementById('additionalFields');
-            
-            if (team) {
-                additionalFields.classList.add('active');
-            } else {
-                additionalFields.classList.remove('active');
+
+                // Insert before the input
+                container.insertBefore(tag, container.lastElementChild);
+
+                // Add remove functionality
+                tag.querySelector('.tag-remove').addEventListener('click', function () {
+                    container.removeChild(tag);
+                });
             }
-        });
-    </script>
-    <script>
-        !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.crossOrigin = "anonymous", p.async = !0, p.src = s.api_host.replace(".i.posthog.com", "-assets.i.posthog.com") + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
-        posthog.init('phc_t9tkQZJiyi2ps9zUYm8TDsL6qXo4YmZx0Ot5rBlAlEd', {
-            api_host: 'https://us.i.posthog.com',
-            autocapture: false,
-            capture_pageview: false,
-            capture_pageleave: false,
-            capture_performance: {
-                web_vitals: false,
-            },
-            rageclick: false,
-        })
-        window.shareKey = 'rY3DRWD-rrQU59xaKzsn_A';
-        window.host = 'readdy.ai';
-    </script>
+
+            // Initialize tag inputs
+            initTagInput('skillsContainer', 'skillsInput');
+            initTagInput('toolsContainer', 'toolsInput');
+
+            // Show additional fields when team is selected
+            document.getElementById('team').addEventListener('change', function () {
+                const team = this.value;
+                const additionalFields = document.getElementById('additionalFields');
+
+                if (team) {
+                    additionalFields.classList.add('active');
+                } else {
+                    additionalFields.classList.remove('active');
+                }
+            });
+        </script>
+        <script>
+            !function (t, e) { var o, n, p, r; e.__SV || (window.posthog = e, e._i = [], e.init = function (i, s, a) { function g(t, e) { var o = e.split("."); 2 == o.length && (t = t[o[0]], e = o[1]), t[e] = function () { t.push([e].concat(Array.prototype.slice.call(arguments, 0))) } } (p = t.createElement("script")).type = "text/javascript", p.crossOrigin = "anonymous", p.async = !0, p.src = s.api_host.replace(".i.posthog.com", "-assets.i.posthog.com") + "/static/array.js", (r = t.getElementsByTagName("script")[0]).parentNode.insertBefore(p, r); var u = e; for (void 0 !== a ? u = e[a] = [] : a = "posthog", u.people = u.people || [], u.toString = function (t) { var e = "posthog"; return "posthog" !== a && (e += "." + a), t || (e += " (stub)"), e }, u.people.toString = function () { return u.toString(1) + ".people (stub)" }, o = "init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "), n = 0; n < o.length; n++)g(u, o[n]); e._i.push([i, s, a]) }, e.__SV = 1) }(document, window.posthog || []);
+            posthog.init('phc_t9tkQZJiyi2ps9zUYm8TDsL6qXo4YmZx0Ot5rBlAlEd', {
+                api_host: 'https://us.i.posthog.com',
+                autocapture: false,
+                capture_pageview: false,
+                capture_pageleave: false,
+                capture_performance: {
+                    web_vitals: false,
+                },
+                rageclick: false,
+            })
+            window.shareKey = 'rY3DRWD-rrQU59xaKzsn_A';
+            window.host = 'readdy.ai';
+        </script>
 </body>
+
 </html>
