@@ -5,12 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard | Client Portal</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='favicon.ico') }}">
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=9">
+    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=17">
     <!-- Emoji Mart -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/css/emoji-mart.css">
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
@@ -20,8 +21,9 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#ff4655',
-                        secondary: '#00ffff'
+                        primary: '#8b5cf6',
+                        secondary: '#2b7fff',
+                        foreground: '#111111'
                     },
                     borderRadius: {
                         'none': '0px',
@@ -36,7 +38,7 @@
                         'button': '8px'
                     },
                     fontFamily: {
-                        'rajdhani': ['Rajdhani', 'sans-serif']
+                        sans: ['Inter', 'sans-serif']
                     }
                 }
             }
@@ -44,12 +46,49 @@
     </script>
 </head>
 
-<body class="valorant-bg text-white font-rajdhani min-h-screen">
+<body class="bg-white text-foreground font-sans min-h-screen relative overflow-x-hidden">
+    <!-- Particle Background -->
+    <div aria-hidden class="pointer-events-none fixed inset-0 overflow-hidden">
+        <!-- soft gradient blobs -->
+        <div class="absolute -top-40 -left-32 h-[520px] w-[520px] rounded-full opacity-75 blur-3xl animate-drift">
+            <div class="h-full w-full rounded-full"
+                style="background: radial-gradient(closest-side, rgba(43,127,255,0.38), transparent 70%);"></div>
+        </div>
+        <div class="absolute top-10 -right-32 h-[560px] w-[560px] rounded-full opacity-75 blur-3xl animate-drift"
+            style="animation-delay: -4s;">
+            <div class="h-full w-full rounded-full"
+                style="background: radial-gradient(closest-side, rgba(139,92,246,0.34), transparent 70%);"></div>
+        </div>
+        <div class="absolute -bottom-40 left-1/3 h-[600px] w-[600px] rounded-full opacity-65 blur-3xl animate-drift">
+            <div class="h-full w-full rounded-full"
+                style="background: radial-gradient(closest-side, rgba(239,68,68,0.28), transparent 70%);"></div>
+        </div>
+
+        <!-- floating particles -->
+        <div class="absolute rounded-full animate-floaty"
+            style="left: 10%; top: 20%; width: 6px; height: 6px; background: #2b7fff; opacity: 0.35; animation-duration: 8s; box-shadow: 0 0 12px rgba(43,127,255,0.35);">
+        </div>
+        <div class="absolute rounded-full animate-floaty"
+            style="right: 15%; top: 35%; width: 4px; height: 4px; background: #8b5cf6; opacity: 0.3; animation-duration: 10s; box-shadow: 0 0 8px rgba(139,92,246,0.35);">
+        </div>
+        <div class="absolute rounded-full animate-floaty"
+            style="left: 45%; bottom: 15%; width: 5px; height: 5px; background: #ef4444; opacity: 0.25; animation-duration: 12s; box-shadow: 0 0 10px rgba(239,68,68,0.35);">
+        </div>
+
+        <!-- 56px grid pattern overlay -->
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(17,17,17,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(17,17,17,0.03)_1px,transparent_1px)] bg-[size:56px_56px]"
+            style="mask-image: radial-gradient(ellipse at center, black, transparent 80%); -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 80%);">
+        </div>
+    </div>
+
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>Trendy</h2>
+                <div class="flex items-center justify-center gap-2 mb-2">
+                    <img src="/static/logo.png" alt="BeeHive Logo" class="h-10 w-10 object-contain rounded-full" />
+                    <h2>BeeHive</h2>
+                </div>
                 <p id="welcomeMessage">Welcome, {{ fullname if fullname else 'User' }}</p>
                 <p id="user_id_for_socket">{{emailUser}}</p>
                 <div class="websocket-status" id="websocketStatus">
@@ -77,7 +116,7 @@
                             <span>Tasks</span>
                         </a>
                     </li>
-                    <li>
+                    <li id="documentsBtn">
                         <a href="#">
                             <i class="fas fa-file-alt"></i>
                             <span>Documents</span>
@@ -89,7 +128,7 @@
                             <span>Community</span>
                         </a>
                     </li>
-                    <li>
+                    <li id="settingsBtn">
                         <a href="#">
                             <i class="fas fa-cog"></i>
                             <span>Settings</span>
@@ -278,11 +317,33 @@
                             </div>
                         </div>
 
-                        <div class="message-input-container">
+                        <div class="message-input-container" id="messageInputContainer">
                             <input type="text" id="messageInput" placeholder="Type your message here..."
                                 class="message-input">
                             <button class="btn valorant-button" id="sendMessageBtn">Send</button>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Documents Section -->
+                <div id="documentsSection" style="display: none;">
+                    <div class="flex flex-col items-center justify-center min-h-[50vh] text-center p-8">
+                        <div class="w-16 h-16 rounded-full bg-violet-50 flex items-center justify-center text-violet-500 mb-4 border border-violet-100 shadow-sm">
+                            <i class="fas fa-file-alt text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-zinc-900 mb-2">Documents Feature</h2>
+                        <p class="text-zinc-500 max-w-md">This feature is under development. It will be available soon.</p>
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div id="settingsSection" style="display: none;">
+                    <div class="flex flex-col items-center justify-center min-h-[50vh] text-center p-8">
+                        <div class="w-16 h-16 rounded-full bg-violet-50 flex items-center justify-center text-violet-500 mb-4 border border-violet-100 shadow-sm">
+                            <i class="fas fa-cog text-2xl"></i>
+                        </div>
+                        <h2 class="text-xl font-semibold text-zinc-900 mb-2">Settings Feature</h2>
+                        <p class="text-zinc-500 max-w-md">This feature is under development. It will be available soon.</p>
                     </div>
                 </div>
             </div>
@@ -397,7 +458,7 @@
         window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent || '{}');
         window.fullname = "{{ fullname if fullname else 'User' }}";
     </script>
-    <script src="{{ url_for('static', path='client/js/index.js') }}?v=9"></script>
+    <script src="{{ url_for('static', path='client/js/index.js') }}?v=17"></script>
 </body>
 
 </html>

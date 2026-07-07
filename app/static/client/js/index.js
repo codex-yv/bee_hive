@@ -295,7 +295,7 @@ function addNewInput(section) {
 
 function showSection(sectionId, title) {
     // Hide all sections
-    const sections = ["dashboardContent", "projectsSection", "tasksSection", "communitySection"];
+    const sections = ["dashboardContent", "projectsSection", "tasksSection", "communitySection", "documentsSection", "settingsSection"];
     sections.forEach(id => {
         const section = document.getElementById(id);
         if (section) section.style.display = "none";
@@ -318,7 +318,9 @@ function showSection(sectionId, title) {
         "dashboardContent": "dashboardBtn",
         "projectsSection": "projectsBtn",
         "tasksSection": "tasksBtn",
-        "communitySection": "communityBtn"
+        "communitySection": "communityBtn",
+        "documentsSection": "documentsBtn",
+        "settingsSection": "settingsBtn"
     };
 
     const activeButtonId = buttonMap[sectionId];
@@ -1131,7 +1133,7 @@ function renderChatMessages(chats) {
 
         const isDeleted = chat.is_deleted === 'DFE';
         const displayMessage = isDeleted
-            ? `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${chat.del_message || 'This message was deleted'}</em>`
+            ? `<em style="color:#ef4444; font-style:italic; font-weight:500;">${chat.del_message || 'This message was deleted'}</em>`
             : actualMessage;
 
         // Build reaction summary bar from persisted data
@@ -1226,7 +1228,7 @@ function initializeCommunityWebSocket() {
                     if (dropdown) dropdown.style.display = 'none';
                     const contentEl = msgEl.querySelector('.message-content');
                     if (contentEl) {
-                        contentEl.innerHTML = `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${data.del_message || 'This message was deleted'}</em>`;
+                        contentEl.innerHTML = `<em style="color:#ef4444; font-style:italic; font-weight:500;">${data.del_message || 'This message was deleted'}</em>`;
                     }
                 }
             } else if (data.type === 'reaction_added') {
@@ -1441,6 +1443,22 @@ function initializeEventListeners() {
         });
     }
 
+    const documentsBtn = document.getElementById('documentsBtn');
+    if (documentsBtn) {
+        documentsBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showSection('documentsSection', 'Documents');
+        });
+    }
+
+    const settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showSection('settingsSection', 'Settings');
+        });
+    }
+
     // Refresh buttons
     const refreshProjects = document.getElementById('refreshProjects');
     if (refreshProjects) {
@@ -1478,6 +1496,40 @@ function initializeEventListeners() {
             if (e.key === 'Enter') {
                 sendMessage();
             }
+        });
+    }
+
+    const chatArea = document.getElementById('chatArea');
+    if (chatArea) {
+        let lastScrollTop = 0;
+        chatArea.addEventListener('scroll', function () {
+            const inputContainer = document.getElementById('messageInputContainer');
+            const replyPreview = document.getElementById('replyPreviewContainer');
+            if (!inputContainer) return;
+
+            let scrollTop = chatArea.scrollTop;
+            
+            // Show typing area when scrolled close to the bottom
+            if (scrollTop + chatArea.clientHeight >= chatArea.scrollHeight - 15) {
+                inputContainer.classList.remove('typing-area-hidden');
+                if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+                lastScrollTop = scrollTop;
+                return;
+            }
+
+            // Scroll change threshold to prevent jitter
+            if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
+
+            if (scrollTop > lastScrollTop) {
+                // Scrolling down -> Show typing area
+                inputContainer.classList.remove('typing-area-hidden');
+                if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+            } else {
+                // Scrolling up -> Hide typing area
+                inputContainer.classList.add('typing-area-hidden');
+                if (replyPreview) replyPreview.classList.add('typing-area-hidden');
+            }
+            lastScrollTop = scrollTop;
         });
     }
 
@@ -1614,6 +1666,43 @@ document.addEventListener('mouseover', function (e) {
     }
 });
 
+// ====== Context Menu (Right Click) on Chat Bubbles ======
+document.addEventListener('contextmenu', function (e) {
+    const bubble = e.target.closest('.message-bubble');
+    if (bubble) {
+        const dropdown = bubble.querySelector('.message-menu-dropdown');
+        if (dropdown) {
+            e.preventDefault();
+
+            // Close other dropdowns
+            document.querySelectorAll('.message-menu-dropdown').forEach(d => {
+                if (d !== dropdown) d.classList.remove('active-dropdown');
+            });
+
+            // Toggle active state
+            dropdown.classList.toggle('active-dropdown');
+
+            // Position boundary checks
+            const chatArea = bubble.closest('.chat-area');
+            const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
+            if (e.clientY + 150 > containerBottom) {
+                dropdown.classList.add('show-upwards');
+            } else {
+                dropdown.classList.remove('show-upwards');
+            }
+        }
+    }
+});
+
+// Close dropdown on click outside
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.message-menu-dots') && !e.target.closest('.message-menu-dropdown')) {
+        document.querySelectorAll('.message-menu-dropdown').forEach(d => {
+            d.classList.remove('active-dropdown');
+        });
+    }
+});
+
 // ====== Message Delete Logic ======
 let messageToDelete = null;
 
@@ -1699,7 +1788,7 @@ window.deleteMessageForEveryone = async function () {
                 // Replace message content
                 const contentEl = msgEl.querySelector('.message-content');
                 if (contentEl) {
-                    contentEl.innerHTML = '<em style="color:rgba(255,255,255,0.45); font-style:italic;">This message was deleted</em>';
+                    contentEl.innerHTML = '<em style="color:#ef4444; font-style:italic; font-weight:500;">This message was deleted</em>';
                 }
             }
         } else {
