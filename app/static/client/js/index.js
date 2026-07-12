@@ -1311,10 +1311,20 @@ function showSystemMessage(message) {
     }
 
     const systemElement = document.createElement('div');
-    systemElement.className = 'message-container';
+    systemElement.style.display = 'flex';
     systemElement.style.justifyContent = 'center';
+    systemElement.style.width = '100%';
+    systemElement.style.margin = '12px 0';
+
+    let tagStyle = 'background-color: rgba(17, 17, 17, 0.03); color: #71717a; border: 1.5px solid rgba(17, 17, 17, 0.08);';
+    if (message.includes('joined')) {
+        tagStyle = 'background-color: #d1fae5; color: #065f46; border: 1.5px solid rgba(6, 95, 70, 0.15);';
+    } else if (message.includes('left')) {
+        tagStyle = 'background-color: #fee2e2; color: #991b1b; border: 1.5px solid rgba(153, 27, 27, 0.15);';
+    }
+
     systemElement.innerHTML = `
-        <div style="background-color: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); padding: 5px 15px; border-radius: 15px; font-size: 0.8rem;">
+        <div style="${tagStyle} padding: 5px 14px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; text-align: center; box-shadow: 0 2px 6px rgba(17,17,17,0.02);">
             ${message}
         </div>
     `;

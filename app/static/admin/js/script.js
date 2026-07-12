@@ -356,14 +356,14 @@ function renderNotifications() {
 
         // Determine icon based on read status
         const iconClass = !notification.read ? 'notification-icon-unread' : 'notification-icon-read';
-        const icon = !notification.read ? 'fa-exclamation' : 'fa-check';
+        const icon = !notification.read ? 'fa-times' : 'fa-check';
 
         notificationEl.innerHTML = `
             <div class="notification-icon-container ${iconClass}">
                 <i class="fas ${icon}"></i>
             </div>
             <div class="notification-content">
-                <div class="text-sm text-white">${notification.message}</div>
+                <div class="text-sm text-zinc-800">${notification.message}</div>
             </div>
         `;
 
@@ -464,7 +464,7 @@ function renderMembers() {
     if (filteredMembers.length === 0) {
         list.innerHTML = `
             <tr>
-                <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                <td colspan="5" class="px-4 py-8 text-center text-zinc-500">
                     No members found
                 </td>
             </tr>
@@ -474,43 +474,43 @@ function renderMembers() {
 
     filteredMembers.forEach(member => {
         const row = document.createElement('tr');
-        row.className = 'hover:bg-white/5';
+        row.className = 'hover:bg-zinc-50';
 
         // Determine team display name and color
         let teamDisplay = member.team;
-        let teamColorClass = 'bg-white/10 text-gray-300';
+        let teamColorClass = 'bg-zinc-100 text-zinc-600';
 
         if (member.team === 'Dev') {
             teamDisplay = 'Dev Team';
             teamColorClass = 'bg-primary/20 text-primary';
         } else if (member.team === 'Design') {
             teamDisplay = 'Design Team';
-            teamColorClass = 'bg-purple-500/20 text-purple-400';
+            teamColorClass = 'bg-purple-500/10 text-purple-600';
         } else if (member.team === 'Marketing') {
             teamDisplay = 'Marketing Team';
             teamColorClass = 'bg-secondary/20 text-secondary';
         }
 
         // Determine role color
-        let roleColorClass = 'bg-white/10 text-gray-300';
+        let roleColorClass = 'bg-zinc-100 text-zinc-600';
         if (member.role === 'Manager') {
-            roleColorClass = 'bg-yellow-500/20 text-yellow-400';
+            roleColorClass = 'bg-yellow-500/10 text-yellow-600';
         } else if (member.role === 'Employee') {
             roleColorClass = 'bg-secondary/20 text-secondary';
         } else if (member.role === 'Intern') {
-            roleColorClass = 'bg-white/10 text-gray-300';
+            roleColorClass = 'bg-zinc-100 text-zinc-600';
         }
 
         row.innerHTML = `
             <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="ml-4">
-                        <div class="text-sm font-medium text-white">${member.fullName}</div>
+                        <div class="text-sm font-medium text-zinc-800">${member.fullName}</div>
                     </div>
                 </div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
-                <div class="text-sm text-white">${member.email}</div>
+                <div class="text-sm text-zinc-600">${member.email}</div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${teamColorClass}">
@@ -564,7 +564,7 @@ function openMemberDetailsModal(memberId) {
                 techStackContainer.appendChild(span);
             });
         } else {
-            techStackContainer.innerHTML = '<span class="text-gray-400 text-sm">No tech stack specified</span>';
+            techStackContainer.innerHTML = '<span class="text-zinc-400 text-sm">No tech stack specified</span>';
         }
     }
 
@@ -575,13 +575,13 @@ function openMemberDetailsModal(memberId) {
         if (member.assignedProjects && member.assignedProjects.length > 0) {
             member.assignedProjects.forEach(project => {
                 const li = document.createElement('li');
-                li.className = 'text-sm text-white';
+                li.className = 'text-sm text-zinc-800';
                 li.textContent = project;
                 assignedProjectsList.appendChild(li);
             });
         } else {
             const li = document.createElement('li');
-            li.className = 'text-sm text-gray-400 italic';
+            li.className = 'text-sm text-zinc-500 italic';
             li.textContent = 'No projects assigned';
             assignedProjectsList.appendChild(li);
         }
@@ -594,13 +594,13 @@ function openMemberDetailsModal(memberId) {
         if (member.assignedTasks && member.assignedTasks.length > 0) {
             member.assignedTasks.forEach(task => {
                 const li = document.createElement('li');
-                li.className = 'text-sm text-white';
+                li.className = 'text-sm text-zinc-800';
                 li.textContent = task;
                 assignedTasksList.appendChild(li);
             });
         } else {
             const li = document.createElement('li');
-            li.className = 'text-sm text-gray-400 italic';
+            li.className = 'text-sm text-zinc-500 italic';
             li.textContent = 'No tasks assigned';
             assignedTasksList.appendChild(li);
         }
@@ -613,13 +613,13 @@ function openMemberDetailsModal(memberId) {
         if (member.managerProjects && member.managerProjects.length > 0) {
             member.managerProjects.forEach(project => {
                 const li = document.createElement('li');
-                li.className = 'text-sm text-white';
+                li.className = 'text-sm text-zinc-800';
                 li.textContent = project;
                 managerProjectsList.appendChild(li);
             });
         } else {
             const li = document.createElement('li');
-            li.className = 'text-sm text-gray-400 italic';
+            li.className = 'text-sm text-zinc-500 italic';
             li.textContent = 'No projects managed';
             managerProjectsList.appendChild(li);
         }
@@ -748,18 +748,18 @@ function renderRecentProjects() {
     const recentProjects = templateData.rp || [];
 
     if (recentProjects.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-center py-4">No recent projects</p>';
+        container.innerHTML = '<p class="text-zinc-400 text-center py-4">No recent projects</p>';
         return;
     }
 
     recentProjects.forEach(project => {
         const projectEl = document.createElement('div');
-        projectEl.className = 'flex justify-between items-center p-3 border border-gray-700 rounded-lg';
+        projectEl.className = 'flex justify-between items-center p-3 border border-zinc-200/80 rounded-lg';
 
         projectEl.innerHTML = `
             <div>
-                <h4 class="font-medium text-white">${project.project_name}</h4>
-                <p class="text-sm text-gray-400">${project.team} • Started: ${project.initiated_date}</p>
+                <h4 class="font-medium text-zinc-800">${project.project_name}</h4>
+                <p class="text-sm text-zinc-500">${project.team} • Started: ${project.initiated_date}</p>
             </div>
             <span class="status-tag ${project.Status === 0 ? 'status-ongoing' : 'status-completed'}">
                 ${project.Status === 0 ? 'ongoing' : 'completed'}
@@ -780,18 +780,18 @@ function renderRecentTasks() {
     const recentTasks = templateData.rt || [];
 
     if (recentTasks.length === 0) {
-        container.innerHTML = '<p class="text-gray-400 text-center py-4">No recent tasks</p>';
+        container.innerHTML = '<p class="text-zinc-400 text-center py-4">No recent tasks</p>';
         return;
     }
 
     recentTasks.forEach(task => {
         const taskEl = document.createElement('div');
-        taskEl.className = 'flex justify-between items-center p-3 border border-gray-700 rounded-lg';
+        taskEl.className = 'flex justify-between items-center p-3 border border-zinc-200/80 rounded-lg';
 
         taskEl.innerHTML = `
             <div>
-                <h4 class="font-medium text-white">${task.task_name}</h4>
-                <p class="text-sm text-gray-400">Due: ${task.due_date}</p>
+                <h4 class="font-medium text-zinc-800">${task.task_name}</h4>
+                <p class="text-sm text-zinc-500">Due: ${task.due_date}</p>
             </div>
             <span class="status-tag ${task.Status === 0 ? 'status-ongoing' : 'status-completed'}">
                 ${task.Status === 0 ? 'ongoing' : 'completed'}
@@ -818,7 +818,7 @@ function renderSignUpRequests() {
     if (signUpRequests.length === 0) {
         list.innerHTML = `
             <tr>
-                <td colspan="5" class="px-4 py-8 text-center text-gray-400">
+                <td colspan="5" class="px-4 py-8 text-center text-zinc-500">
                     No sign up requests found
                 </td>
             </tr>
@@ -828,7 +828,7 @@ function renderSignUpRequests() {
 
     signUpRequests.forEach(request => {
         const row = document.createElement('tr');
-        row.className = 'hover:bg-white/5';
+        row.className = 'hover:bg-zinc-50';
 
         // Determine action buttons based on action value
         let actionButtons = '';
@@ -850,19 +850,19 @@ function renderSignUpRequests() {
             <td class="px-4 py-3 whitespace-nowrap">
                 <div class="flex items-center">
                     <div class="ml-4">
-                        <div class="text-sm font-medium text-white">${request.fullname}</div>
+                        <div class="text-sm font-medium text-zinc-800">${request.fullname}</div>
                     </div>
                 </div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
-                <div class="text-sm text-white">${request.email}</div>
+                <div class="text-sm text-zinc-600">${request.email}</div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
-                <div class="text-sm text-white">${request.phone_number}</div>
+                <div class="text-sm text-zinc-600">${request.phone_number}</div>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                    ${request.role === 'manager' ? 'bg-purple-500/20 text-purple-400' :
+                    ${request.role === 'manager' ? 'bg-purple-500/10 text-purple-600' :
                 request.role === 'intern' ? 'bg-secondary/20 text-secondary' :
                     'bg-primary/20 text-primary'}">
                     ${request.role}
@@ -1037,7 +1037,7 @@ function openProjectDetailsModal(projectIndex) {
                     }
                 } catch (error) {
                     // If index error or any other occurs
-                    li.style.color = 'white';
+                    li.style.color = 'var(--foreground)';
                     li.textContent = member[1] || 'Unknown Member';
                     li.title = 'Status unavailable';
                 }
@@ -1053,10 +1053,10 @@ function openProjectDetailsModal(projectIndex) {
         if (project.components && typeof project.components === 'object') {
             Object.entries(project.components).forEach(([heading, details]) => {
                 const componentDiv = document.createElement('div');
-                componentDiv.className = 'border border-gray-700 p-3 rounded';
+                componentDiv.className = 'border border-zinc-200/80 p-3 rounded';
                 componentDiv.innerHTML = `
-                    <h5 class="font-semibold text-white">${heading}</h5>
-                    <p class="text-sm text-gray-400 mt-1">${details}</p>
+                    <h5 class="font-semibold text-zinc-800">${heading}</h5>
+                    <p class="text-sm text-zinc-500 mt-1">${details}</p>
                 `;
                 componentsContainer.appendChild(componentDiv);
             });
@@ -1198,18 +1198,18 @@ function setActiveProjectFilter(filter) {
     ongoingProjectsBtn.classList.remove('bg-primary/20', 'text-primary');
     completedProjectsBtn.classList.remove('bg-primary/20', 'text-primary');
 
-    allProjectsBtn.classList.add('bg-white/10', 'text-gray-300');
-    ongoingProjectsBtn.classList.add('bg-white/10', 'text-gray-300');
-    completedProjectsBtn.classList.add('bg-white/10', 'text-gray-300');
+    allProjectsBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    ongoingProjectsBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    completedProjectsBtn.classList.add('bg-zinc-100', 'text-zinc-600');
 
     if (filter === 'all') {
-        allProjectsBtn.classList.remove('bg-white/10', 'text-gray-300');
+        allProjectsBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         allProjectsBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'ongoing') {
-        ongoingProjectsBtn.classList.remove('bg-white/10', 'text-gray-300');
+        ongoingProjectsBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         ongoingProjectsBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'completed') {
-        completedProjectsBtn.classList.remove('bg-white/10', 'text-gray-300');
+        completedProjectsBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         completedProjectsBtn.classList.add('bg-primary/20', 'text-primary');
     }
 
@@ -1227,18 +1227,18 @@ function setActiveTaskFilter(filter) {
     ongoingTasksBtn.classList.remove('bg-primary/20', 'text-primary');
     completedTasksBtn.classList.remove('bg-primary/20', 'text-primary');
 
-    allTasksBtn.classList.add('bg-white/10', 'text-gray-300');
-    ongoingTasksBtn.classList.add('bg-white/10', 'text-gray-300');
-    completedTasksBtn.classList.add('bg-white/10', 'text-gray-300');
+    allTasksBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    ongoingTasksBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    completedTasksBtn.classList.add('bg-zinc-100', 'text-zinc-600');
 
     if (filter === 'all') {
-        allTasksBtn.classList.remove('bg-white/10', 'text-gray-300');
+        allTasksBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         allTasksBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'ongoing') {
-        ongoingTasksBtn.classList.remove('bg-white/10', 'text-gray-300');
+        ongoingTasksBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         ongoingTasksBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'completed') {
-        completedTasksBtn.classList.remove('bg-white/10', 'text-gray-300');
+        completedTasksBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         completedTasksBtn.classList.add('bg-primary/20', 'text-primary');
     }
 
@@ -1258,22 +1258,22 @@ function setActiveMemberFilter(filter) {
     designTeamBtn.classList.remove('bg-primary/20', 'text-primary');
     marketingTeamBtn.classList.remove('bg-primary/20', 'text-primary');
 
-    allMembersBtn.classList.add('bg-white/10', 'text-gray-300');
-    devTeamBtn.classList.add('bg-white/10', 'text-gray-300');
-    designTeamBtn.classList.add('bg-white/10', 'text-gray-300');
-    marketingTeamBtn.classList.add('bg-white/10', 'text-gray-300');
+    allMembersBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    devTeamBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    designTeamBtn.classList.add('bg-zinc-100', 'text-zinc-600');
+    marketingTeamBtn.classList.add('bg-zinc-100', 'text-zinc-600');
 
     if (filter === 'all') {
-        allMembersBtn.classList.remove('bg-white/10', 'text-gray-300');
+        allMembersBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         allMembersBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'Dev Team') {
-        devTeamBtn.classList.remove('bg-white/10', 'text-gray-300');
+        devTeamBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         devTeamBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'Design Team') {
-        designTeamBtn.classList.remove('bg-white/10', 'text-gray-300');
+        designTeamBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         designTeamBtn.classList.add('bg-primary/20', 'text-primary');
     } else if (filter === 'Marketing Team') {
-        marketingTeamBtn.classList.remove('bg-white/10', 'text-gray-300');
+        marketingTeamBtn.classList.remove('bg-zinc-100', 'text-zinc-600');
         marketingTeamBtn.classList.add('bg-primary/20', 'text-primary');
     }
 
@@ -1345,12 +1345,12 @@ function renderProjectStatus() {
 
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
-                <h3 class="font-bold text-white">${project.project_name}</h3>
+                <h3 class="font-bold text-zinc-800">${project.project_name}</h3>
                 <span class="status-tag ${project.Status === 0 ? 'status-ongoing' : 'status-completed'}">
                     ${project.Status === 0 ? 'ongoing' : 'completed'}
                 </span>
             </div>
-            <div class="text-sm text-gray-300 space-y-1">
+            <div class="text-sm text-zinc-500 space-y-1">
                 <div class="flex justify-between">
                     <span>Initiated Date:</span>
                     <span class="font-medium">${project.initiated_date}</span>
@@ -1402,7 +1402,7 @@ function renderTaskStatus() {
                 const name = member?.[1] || 'Unknown';
                 const status = member?.[2];
 
-                let color = 'text-white';
+                let color = 'text-zinc-600';
                 let tooltip = 'Not updated yet';
 
                 if (status === 0) {
@@ -1414,7 +1414,7 @@ function renderTaskStatus() {
                 }
 
                 return `
-                    <span class="bg-white/10 px-2 py-1 rounded text-sm ${color}" title="${tooltip}">
+                    <span class="bg-zinc-100 px-2 py-1 rounded text-sm ${color}" title="${tooltip}">
                         ${name}
                     </span>
                 `;
@@ -1423,12 +1423,12 @@ function renderTaskStatus() {
 
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
-                <h3 class="font-bold text-white">${task.task_name}</h3>
+                <h3 class="font-bold text-zinc-800">${task.task_name}</h3>
                 <span class="status-tag ${task.Status === 0 ? 'status-ongoing' : 'status-completed'}">
                     ${task.Status === 0 ? 'ongoing' : 'completed'}
                 </span>
             </div>
-            <div class="text-sm text-gray-300 space-y-2 mb-4">
+            <div class="text-sm text-zinc-500 space-y-2 mb-4">
                 <div class="flex justify-between">
                     <span>Initiated Date:</span>
                     <span class="font-medium">${task.initiated_date}</span>
@@ -1439,9 +1439,9 @@ function renderTaskStatus() {
                 </div>
             </div>
             <div>
-                <div class="text-sm text-gray-300 mb-2">Assigned To:</div>
+                <div class="text-sm text-zinc-500 mb-2">Assigned To:</div>
                 <div class="flex flex-wrap gap-2">
-                    ${assignedMembersHTML || '<span class="text-sm text-gray-400">No members assigned</span>'}
+                    ${assignedMembersHTML || '<span class="text-sm text-zinc-400">No members assigned</span>'}
                 </div>
             </div>
             <div class="mt-4 flex justify-between items-center">
@@ -1635,13 +1635,13 @@ function renderComponents() {
 
     components.forEach(c => {
         const div = document.createElement("div");
-        div.className = "border border-gray-700 p-2 rounded";
+        div.className = "border border-zinc-200/80 p-2 rounded";
         div.innerHTML = `
             <div class="flex justify-between">
-                <span class="font-semibold text-white">${c.name}</span>
+                <span class="font-semibold text-zinc-800">${c.name}</span>
                 <button onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')" class="text-secondary">▼</button>
             </div>
-            <div class="hidden mt-2 text-sm text-gray-300">${c.feature}</div>
+            <div class="hidden mt-2 text-sm text-zinc-500">${c.feature}</div>
         `;
         list.appendChild(div);
     });
@@ -1882,7 +1882,7 @@ function renderChatMessages(chats) {
 
         const isDeleted = chat.is_deleted === 'DFE';
         const displayMessage = isDeleted
-            ? `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${chat.del_message || 'This message was deleted'}</em>`
+            ? `<em style="color:#ef4444; font-style:italic; font-weight: 500;">${chat.del_message || 'This message was deleted'}</em>`
             : actualMessage;
 
         // Build reaction summary bar from persisted data
@@ -1981,7 +1981,7 @@ function initializeCommunityWebSocket() {
                     if (dropdown) dropdown.style.display = 'none';
                     const contentEl = msgEl.querySelector('.message-content');
                     if (contentEl) {
-                        contentEl.innerHTML = `<em style="color:rgba(255,255,255,0.45); font-style:italic;">${data.del_message || 'This message was deleted'}</em>`;
+                        contentEl.innerHTML = `<em style="color:#ef4444; font-style:italic; font-weight: 500;">${data.del_message || 'This message was deleted'}</em>`;
                     }
                 }
             } else if (data.type === 'reaction_added') {
@@ -2055,7 +2055,6 @@ function handleNewChatMessage(messageData) {
     scrollToBottom();
 }
 
-// Show system message
 function showSystemMessage(message) {
     const chatArea = document.getElementById('chatArea');
     if (!chatArea) return;
@@ -2067,9 +2066,20 @@ function showSystemMessage(message) {
     }
 
     const systemElement = document.createElement('div');
-    systemElement.className = 'system-message';
+    systemElement.style.display = 'flex';
+    systemElement.style.justifyContent = 'center';
+    systemElement.style.width = '100%';
+    systemElement.style.margin = '12px 0';
+
+    let tagStyle = 'background-color: rgba(17, 17, 17, 0.03); color: #71717a; border: 1.5px solid rgba(17, 17, 17, 0.08);';
+    if (message.includes('joined')) {
+        tagStyle = 'background-color: #d1fae5; color: #065f46; border: 1.5px solid rgba(6, 95, 70, 0.15);';
+    } else if (message.includes('left')) {
+        tagStyle = 'background-color: #fee2e2; color: #991b1b; border: 1.5px solid rgba(153, 27, 27, 0.15);';
+    }
+
     systemElement.innerHTML = `
-        <div class="system-message-content">
+        <div style="${tagStyle} padding: 5px 14px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; text-align: center; box-shadow: 0 2px 6px rgba(17,17,17,0.02);">
             ${message}
         </div>
     `;
@@ -2329,6 +2339,78 @@ function initializeEventListeners() {
             }
         });
     }
+
+    // Scroll dynamic hide/show for typing area
+    const chatArea = document.getElementById('chatArea');
+    if (chatArea) {
+        let lastScrollTop = 0;
+        chatArea.addEventListener('scroll', function () {
+            const inputContainer = document.getElementById('messageInputContainer');
+            const replyPreview = document.getElementById('replyPreviewContainer');
+            if (!inputContainer) return;
+
+            let scrollTop = chatArea.scrollTop;
+
+            // Show typing area when scrolled close to the bottom
+            if (scrollTop + chatArea.clientHeight >= chatArea.scrollHeight - 15) {
+                inputContainer.classList.remove('typing-area-hidden');
+                if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+                lastScrollTop = scrollTop;
+                return;
+            }
+
+            // Scroll change threshold to prevent jitter
+            if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
+
+            if (scrollTop > lastScrollTop) {
+                // Scrolling down -> Show typing area
+                inputContainer.classList.remove('typing-area-hidden');
+                if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+            } else {
+                // Scrolling up -> Hide typing area
+                inputContainer.classList.add('typing-area-hidden');
+                if (replyPreview) replyPreview.classList.add('typing-area-hidden');
+            }
+            lastScrollTop = scrollTop;
+        });
+    }
+
+    // Context Menu (Right Click) on Chat Bubbles
+    document.addEventListener('contextmenu', function (e) {
+        const bubble = e.target.closest('.message-bubble');
+        if (bubble) {
+            const dropdown = bubble.querySelector('.message-menu-dropdown');
+            if (dropdown) {
+                e.preventDefault();
+
+                // Close other dropdowns
+                document.querySelectorAll('.message-menu-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('active-dropdown');
+                });
+
+                // Toggle active state
+                dropdown.classList.toggle('active-dropdown');
+
+                // Position boundary checks
+                const chatArea = bubble.closest('.chat-area');
+                const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
+                if (e.clientY + 150 > containerBottom) {
+                    dropdown.classList.add('show-upwards');
+                } else {
+                    dropdown.classList.remove('show-upwards');
+                }
+            }
+        }
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.message-menu-dots') && !e.target.closest('.message-menu-dropdown')) {
+            document.querySelectorAll('.message-menu-dropdown').forEach(d => {
+                d.classList.remove('active-dropdown');
+            });
+        }
+    });
 
     // Modal close buttons
     const closeButtons = document.querySelectorAll('.modal-close, .cancel-btn');
