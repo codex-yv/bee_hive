@@ -1694,3 +1694,72 @@ tr:hover td {
     --rgb-color: 17, 17, 17;
     height: 435px;
 }
+
+/* Image Attachment Preview and Collage layouts */
+.image-preview-wrapper {
+    position: absolute !important;
+    bottom: 74px !important;
+    right: 4% !important;
+    display: flex !important;
+    gap: 10px !important;
+    z-index: 10 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(8px) !important;
+    padding: 8px !important;
+    border: 1.5px solid rgba(17, 17, 17, 0.12) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 16px rgba(17, 17, 17, 0.06) !important;
+}
+
+.chat-image-collage {
+    display: grid !important;
+    gap: 4px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    margin-bottom: 6px !important;
+    max-width: 320px !important;
+    width: 100% !important;
+}
+
+.chat-image-collage.count-1 {
+    grid-template-columns: 1fr !important;
+}
+
+.chat-image-collage.count-2 {
+    grid-template-columns: 1fr 1fr !important;
+}
+
+.chat-image-collage.count-3 {
+    grid-template-columns: 2fr 1fr !important;
+    grid-template-rows: 1fr 1fr !important;
+}
+
+.chat-image-collage.count-3 img:first-child {
+    grid-row: span 2 !important;
+}
+
+.chat-image-collage.count-4 {
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: 1fr 1fr !important;
+}
+
+.chat-image-item {
+    width: 100% !important;
+    height: 150px !important;
+    object-fit: cover !important;
+    cursor: pointer !important;
+    transition: opacity 0.2s !important;
+}
+
+.chat-image-collage.count-1 .chat-image-item {
+    height: auto !important;
+    max-height: 240px !important;
+}
+
+.chat-image-collage.count-3 .chat-image-item {
+    height: 100% !important;
+}
+
+.chat-image-item:hover {
+    opacity: 0.9 !important;
+}

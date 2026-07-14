@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=17">
+    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=18">
     <!-- Emoji Mart -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/css/emoji-mart.css">
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
@@ -317,9 +317,16 @@
                             </div>
                         </div>
 
+                        <!-- Image Preview Container -->
+                        <div class="image-preview-wrapper" id="imagePreviewWrapper" style="display: none;"></div>
+
                         <div class="message-input-container" id="messageInputContainer">
                             <input type="text" id="messageInput" placeholder="Type your message here..."
                                 class="message-input">
+                            <button type="button" id="attachBtn" class="p-2 text-zinc-500 hover:text-zinc-800 transition-colors flex items-center justify-center" title="Attach Images">
+                                <i class="fas fa-paperclip text-lg"></i>
+                            </button>
+                            <input type="file" id="imageInput" accept=".jpg,.jpeg,.png" multiple style="display: none;">
                             <button class="btn valorant-button" id="sendMessageBtn">Send</button>
                         </div>
                     </div>
@@ -458,7 +465,7 @@
         window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent || '{}');
         window.fullname = "{{ fullname if fullname else 'User' }}";
     </script>
-    <script src="{{ url_for('static', path='client/js/index.js') }}?v=19"></script>
+    <script src="{{ url_for('static', path='client/js/index.js') }}?v=20"></script>
 </body>
 
 </html>

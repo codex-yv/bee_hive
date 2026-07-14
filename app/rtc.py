@@ -155,7 +155,21 @@ class UnifiedCommunityConnectionManager:
             "type": "chat_message",
             "message": message_data
         })
-    
+
+    async def broadcast_image_upload(self, images: dict, alt_text: str, user_id: str = None, username: str = None, user_type: str = None, message_id: str = None, time: str = None):
+        message = {
+            "type": "image_upload",
+            "images": images,
+            "text": alt_text,
+            "user": user_id,
+            "username": username,
+            "user_type": user_type,
+            "message_id": message_id,
+            "time": time
+        }
+
+        await self.broadcast_message(message)
+
     async def broadcast_message_deleted(self, message_id: str, del_message: str):
         await self.broadcast_message({
             "type": "message_deleted",

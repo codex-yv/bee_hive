@@ -41,7 +41,7 @@ async def push_notification_by_client(message:str):
     )
 
 
-async def save_unified_chat_message(chat_data: dict):
+async def save_unified_chat_message(chat_data: dict, msg_type:str):
     """
     Save chat message to database
     Replace this with your actual database implementation
@@ -53,7 +53,9 @@ async def save_unified_chat_message(chat_data: dict):
         'message_id':chat_data['message_id'],
         'user':chat_data['user'],
         'username':chat_data['username'],
+        'msg_type':msg_type,
         'message':chat_data['message'],
+        'images': chat_data['images'],
         "replied":chat_data['replied'],
         "ghost":[],
         "del_message":None,

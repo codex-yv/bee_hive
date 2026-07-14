@@ -237,10 +237,19 @@ async def get_unified_chat_history(user:str, limit: int = 100, ):
     if chats:
         for chat in chats:
             if user not in chat["ghost"]:
+                try:
+                    msg_type = chat["msg_type"]
+                    images = chat["images"]
+                except KeyError:
+                    msg_type = "chat_message"
+                    images = {}
+
                 chat_details = {
                     "message_id":chat["message_id"], 
                     "user": chat["user"], 
+                    "msg_type": msg_type,
                     "message": chat["message"],
+                    "images":images,
                     "replied":chat["replied"],
                     "is_deleted":chat["is_deleted"],
                     "del_message":chat["del_message"],

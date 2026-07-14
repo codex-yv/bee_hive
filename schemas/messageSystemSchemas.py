@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Union
 
 
 class DeleteMessageResponse(BaseModel):
@@ -24,3 +25,15 @@ class AddReactionResponse(BaseModel):
 class AddReactionRequest(BaseModel):
     message_id:str
     reaction:str
+
+class UploadImageRequest(BaseModel):
+    alt_text:str
+    user_id: str
+    user_name: str
+    user_type: str
+    replied: Union[bool, dict]
+
+
+class UploadImageResponse(BaseModel):
+    status: bool
+    message: str

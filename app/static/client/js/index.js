@@ -16,6 +16,65 @@ let userId = document.getElementById('user_id_for_socket')?.textContent.trim();
 // Community WebSocket variables
 let communitySocket = null;
 let currentUserId = document.getElementById('user_id_for_socket')?.textContent.trim();
+let selectedImages = [];
+
+// Helper to build WhatsApp-style collage
+function buildImageCollageHtml(images) {
+    const imageEntries = Object.entries(images || {});
+    const count = imageEntries.length;
+    if (count === 0) return '';
+
+    let collageClass = `chat-image-collage count-${count}`;
+    let imagesHtml = imageEntries.map(([imageId, imageLink]) => {
+        return `<img id="${imageId}" src="${imageLink}" class="chat-image-item" onclick="window.showImageLightbox('${imageLink}')" alt="Shared image">`;
+    }).join('');
+
+    return `<div class="${collageClass}">${imagesHtml}</div>`;
+}
+
+// Lightbox modal popup
+window.showImageLightbox = function(src) {
+    let overlay = document.getElementById('imageLightboxOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'imageLightboxOverlay';
+        overlay.style = 'position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; display: none; align-items: center; justify-content: center; cursor: zoom-out;';
+        overlay.innerHTML = '<img id="lightboxImage" src="" style="max-width: 90%; max-height: 90%; object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">';
+        overlay.onclick = () => overlay.style.display = 'none';
+        document.body.appendChild(overlay);
+    }
+    const img = overlay.querySelector('#lightboxImage');
+    img.src = src;
+    overlay.style.display = 'flex';
+};
+
+// Render selected image previews
+function renderSelectedImagesPreview() {
+    const wrapper = document.getElementById('imagePreviewWrapper');
+    if (!wrapper) return;
+
+    if (selectedImages.length === 0) {
+        wrapper.style.display = 'none';
+        wrapper.innerHTML = '';
+        return;
+    }
+
+    wrapper.style.display = 'flex';
+    wrapper.innerHTML = selectedImages.map((file, index) => {
+        const url = URL.createObjectURL(file);
+        return `
+            <div class="preview-image-container" style="position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(17,17,17,0.12);">
+                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" onclick="window.removeSelectedImage(${index})" class="remove-preview-btn" style="position: absolute; top: 2px; right: 2px; background: rgba(17, 17, 17, 0.7); color: #ffffff; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; border: none;">&times;</button>
+            </div>
+        `;
+    }).join('');
+}
+
+window.removeSelectedImage = function(index) {
+    selectedImages.splice(index, 1);
+    renderSelectedImagesPreview();
+};
 
 // ====== Initialization ======
 
@@ -1132,12 +1191,20 @@ function renderChatMessages(chats) {
         }
 
         const isDeleted = chat.is_deleted === 'DFE';
-        const displayMessage = isDeleted
+        let displayMessage = isDeleted
             ? `<em style="color:#ef4444; font-style:italic; font-weight:500;">${chat.del_message || 'This message was deleted'}</em>`
             : actualMessage;
 
+        if (!isDeleted && chat.msg_type === 'image_upload') {
+            const collageHtml = buildImageCollageHtml(chat.images || {});
+            const captionHtml = chat.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${chat.message}</div>` : '';
+            displayMessage = `<div class="image-upload-content">${collageHtml}${captionHtml}</div>`;
+        }
+
         // Build reaction summary bar from persisted data
         const reactionBarHtml = _buildReactionBarHtml(chat.message_id, chat.react_count || {}, chat.reactions || {});
+
+        const rawMessageForEscaping = (chat.message || '').replace(/'/g, "\\'");
 
         return `
             <div class="message-container ${messageClass}">
@@ -1145,8 +1212,8 @@ function renderChatMessages(chats) {
                     ${isDeleted ? '' : `
                     <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
                     <div class="message-menu-dropdown">
-                        <div class="menu-item" onclick="triggerReply('${chat.message_id}', '${(chat.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
-                        <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
+                        <div class="menu-item" onclick="triggerReply('${chat.message_id}', '${(chat.username || 'Unknown User').replace(/'/g, "\\'")}', '${rawMessageForEscaping}')"><i class="fas fa-reply"></i> Reply</div>
+                        <div class="menu-item" onclick="navigator.clipboard.writeText('${rawMessageForEscaping}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                         <div class="menu-item" onclick="window.triggerEmojiPicker(event, '${chat.message_id}')"><i class="fas fa-smile"></i> Add Reactions</div>
                         <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${chat.message_id}')"><i class="fas fa-trash"></i> Delete</div>
                     </div>`}
@@ -1214,6 +1281,23 @@ function initializeCommunityWebSocket() {
 
             if (data.type === 'chat_message') {
                 handleNewChatMessage(data.message);
+            } else if (data.type === 'image_upload') {
+                const chat = {
+                    message_id: data.message_id || 'temp-' + Date.now(),
+                    user: data.user || 'system',
+                    username: data.username || 'User',
+                    user_type: data.user_type || 'client',
+                    msg_type: 'image_upload',
+                    message: data.text || '',
+                    images: data.images || {},
+                    time: data.time || new Date().toLocaleTimeString(),
+                    replied: {},
+                    is_deleted: '',
+                    del_message: '',
+                    reactions: {},
+                    react_count: {}
+                };
+                handleNewChatMessage(chat);
             } else if (data.type === 'user_joined') {
                 showSystemMessage(`${data.username} joined the chat`);
             } else if (data.type === 'user_left') {
@@ -1278,14 +1362,22 @@ function handleNewChatMessage(messageData) {
         `;
     }
 
+    if (messageData.msg_type === 'image_upload') {
+        const collageHtml = buildImageCollageHtml(messageData.images || {});
+        const captionHtml = messageData.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${messageData.message}</div>` : '';
+        actualMessage = `<div class="image-upload-content">${collageHtml}${captionHtml}</div>`;
+    }
+
+    const rawMessageForEscaping = (messageData.message || '').replace(/'/g, "\\'");
+
     const messageElement = document.createElement('div');
     messageElement.className = `message-container ${messageClass}`;
     messageElement.innerHTML = `
         <div class="message-bubble" id="${messageData.message_id}">
             <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
             <div class="message-menu-dropdown">
-                <div class="menu-item" onclick="triggerReply('${messageData.message_id}', '${(messageData.username || 'Unknown User').replace(/'/g, "\\'")}', '${actualMessage.replace(/'/g, "\\'")}')"><i class="fas fa-reply"></i> Reply</div>
-                <div class="menu-item" onclick="navigator.clipboard.writeText('${actualMessage.replace(/'/g, "\\'")}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
+                <div class="menu-item" onclick="triggerReply('${messageData.message_id}', '${(messageData.username || 'Unknown User').replace(/'/g, "\\'")}', '${rawMessageForEscaping}')"><i class="fas fa-reply"></i> Reply</div>
+                <div class="menu-item" onclick="navigator.clipboard.writeText('${rawMessageForEscaping}'); showToast('Message copied to clipboard', 'success');"><i class="fas fa-copy"></i> Copy Message</div>
                 <div class="menu-item" onclick="window.triggerEmojiPicker(event, '${messageData.message_id}')"><i class="fas fa-smile"></i> Add Reactions</div>
                 <div class="menu-item text-red-500 hover:bg-red-500/20 hover:text-red-400" onclick="window.triggerDeleteMessage(event, '${messageData.message_id}')"><i class="fas fa-trash"></i> Delete</div>
             </div>
@@ -1338,10 +1430,46 @@ async function sendMessage() {
     if (!messageInput) return;
 
     const message = messageInput.value.trim();
-    if (!message) return;
+    if (!message && selectedImages.length === 0) return;
 
     // Get username from template data or use default
     const username = window.fullname || 'User';
+
+    if (selectedImages.length > 0) {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify({
+            alt_text: message,
+            user_id: currentUserId,
+            user_name: username,
+            user_type: 'client',
+            replied: window.currentReply ? window.currentReply : false
+        }));
+
+        selectedImages.forEach(file => {
+            formData.append('images', file);
+        });
+
+        try {
+            const response = await fetch('/websocket/upload-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                messageInput.value = '';
+                selectedImages = [];
+                renderSelectedImagesPreview();
+                if (window.cancelReply) window.cancelReply();
+            } else {
+                const errData = await response.json();
+                alert(errData.detail || 'Error uploading images. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error uploading images:', error);
+            alert('Error uploading images. Please try again.');
+        }
+        return;
+    }
 
     let payload = {
         type: 'chat_message',
@@ -1488,6 +1616,33 @@ function initializeEventListeners() {
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     if (sendMessageBtn) {
         sendMessageBtn.addEventListener('click', sendMessage);
+    }
+
+    const attachBtn = document.getElementById('attachBtn');
+    const imageInput = document.getElementById('imageInput');
+    if (attachBtn && imageInput) {
+        attachBtn.addEventListener('click', function() {
+            imageInput.click();
+        });
+        imageInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const validFiles = files.filter(file => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                return ['jpg', 'jpeg', 'png'].includes(ext);
+            });
+            if (validFiles.length !== files.length) {
+                showToast("Only JPG, JPEG, and PNG images are supported.", "error");
+            }
+            if (selectedImages.length + validFiles.length > 4) {
+                showToast("Maximum 4 images can be selected at a time.", "error");
+                const remaining = 4 - selectedImages.length;
+                selectedImages = selectedImages.concat(validFiles.slice(0, remaining));
+            } else {
+                selectedImages = selectedImages.concat(validFiles);
+            }
+            renderSelectedImagesPreview();
+            imageInput.value = ''; // reset file input
+        });
     }
 
     const messageInput = document.getElementById('messageInput');
