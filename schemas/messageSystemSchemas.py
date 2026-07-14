@@ -26,6 +26,16 @@ class AddReactionRequest(BaseModel):
     message_id:str
     reaction:str
 
+class SendMessageRequest(BaseModel):
+    msg_type: str
+    message: str
+    user_type: str
+    replied: Union[bool, dict]
+
+class SendMessageResponse(BaseModel):
+    success: bool
+    message: str
+
 class UploadImageRequest(BaseModel):
     alt_text:str
     user_id: str

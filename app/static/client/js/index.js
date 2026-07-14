@@ -18,6 +18,19 @@ let communitySocket = null;
 let currentUserId = document.getElementById('user_id_for_socket')?.textContent.trim();
 let selectedImages = [];
 
+function getFormattedDateTime() {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    return `${hours}:${minutes} ${ampm} [${day}/${month}/${year}]`;
+}
+
 // Helper to build WhatsApp-style collage
 function buildImageCollageHtml(images) {
     const imageEntries = Object.entries(images || {});
@@ -1220,7 +1233,12 @@ function renderChatMessages(chats) {
                     <div class="message-header">${chat.username || 'Unknown User'}</div>
                     ${replyHtml}
                     <div class="message-content">${displayMessage}</div>
-                    <div class="message-time">${chat.time}</div>
+                    <div class="message-time">
+                        ${chat.time}
+                        <span class="message-status-icon" id="status-${chat.message_id}">
+                            ${isOwnMessage ? '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>' : ''}
+                        </span>
+                    </div>
                 </div>
                 ${reactionBarHtml}
             </div>
@@ -1280,6 +1298,27 @@ function initializeCommunityWebSocket() {
             const data = JSON.parse(event.data);
 
             if (data.type === 'chat_message') {
+                if (data.message.user === currentUserId) {
+                    const tempBubbles = document.querySelectorAll('.message-bubble[id^="temp-"]');
+                    let found = false;
+                    for (let bubble of tempBubbles) {
+                        const contentEl = bubble.querySelector('.message-content');
+                        if (contentEl && contentEl.textContent.trim() === data.message.message.trim()) {
+                            bubble.id = data.message.message_id;
+                            const menuItems = bubble.querySelectorAll('.menu-item');
+                            menuItems.forEach(item => {
+                                const onclickAttr = item.getAttribute('onclick');
+                                if (onclickAttr) {
+                                    const updatedAttr = onclickAttr.replace(/temp-\d+/g, data.message.message_id);
+                                    item.setAttribute('onclick', updatedAttr);
+                                }
+                            });
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) return;
+                }
                 handleNewChatMessage(data.message);
             } else if (data.type === 'image_upload') {
                 const chat = {
@@ -1290,13 +1329,45 @@ function initializeCommunityWebSocket() {
                     msg_type: 'image_upload',
                     message: data.text || '',
                     images: data.images || {},
-                    time: data.time || new Date().toLocaleTimeString(),
+                    time: data.time || getFormattedDateTime(),
                     replied: {},
                     is_deleted: '',
                     del_message: '',
                     reactions: {},
                     react_count: {}
                 };
+
+                if (chat.user === currentUserId) {
+                    const tempBubbles = document.querySelectorAll('.message-bubble[id^="temp-"]');
+                    let found = false;
+                    for (let bubble of tempBubbles) {
+                        const imgUploadContent = bubble.querySelector('.image-upload-content');
+                        if (imgUploadContent) {
+                            const captionEl = bubble.querySelector('.chat-message-caption');
+                            const captionText = captionEl ? captionEl.textContent.trim() : '';
+                            if (captionText === chat.message.trim()) {
+                                bubble.id = chat.message_id;
+                                const imagesHtml = buildImageCollageHtml(chat.images);
+                                const captionHtml = chat.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${chat.message}</div>` : '';
+                                const contentEl = bubble.querySelector('.message-content');
+                                if (contentEl) {
+                                    contentEl.innerHTML = `<div class="image-upload-content">${imagesHtml}${captionHtml}</div>`;
+                                }
+                                const menuItems = bubble.querySelectorAll('.menu-item');
+                                menuItems.forEach(item => {
+                                    const onclickAttr = item.getAttribute('onclick');
+                                    if (onclickAttr) {
+                                        const updatedAttr = onclickAttr.replace(/temp-\d+/g, chat.message_id);
+                                        item.setAttribute('onclick', updatedAttr);
+                                    }
+                                });
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) return;
+                }
                 handleNewChatMessage(chat);
             } else if (data.type === 'user_joined') {
                 showSystemMessage(`${data.username} joined the chat`);
@@ -1384,7 +1455,16 @@ function handleNewChatMessage(messageData) {
             <div class="message-header">${messageData.username || 'Unknown User'}</div>
             ${replyHtml}
             <div class="message-content">${actualMessage}</div>
-            <div class="message-time">${messageData.time}</div>
+            <div class="message-time">
+                ${messageData.time}
+                <span class="message-status-icon" id="status-${messageData.message_id}">
+                    ${isOwnMessage 
+                        ? (messageData.status === 'pending' 
+                            ? '<i class="far fa-clock" style="margin-left: 5px; color: #a1a1aa;" title="Sending..."></i>' 
+                            : '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>') 
+                        : ''}
+                </span>
+            </div>
         </div>
     `;
 
@@ -1432,20 +1512,48 @@ async function sendMessage() {
     const message = messageInput.value.trim();
     if (!message && selectedImages.length === 0) return;
 
-    // Get username from template data or use default
     const username = window.fullname || 'User';
+    const tempId = 'temp-' + Date.now();
+    const timeStr = getFormattedDateTime();
 
     if (selectedImages.length > 0) {
+        const tempImages = {};
+        selectedImages.forEach((file, index) => {
+            tempImages[`local-${index}`] = URL.createObjectURL(file);
+        });
+
+        const tempChat = {
+            message_id: tempId,
+            user: currentUserId,
+            username: username,
+            user_type: "client",
+            msg_type: 'image_upload',
+            message: message,
+            images: tempImages,
+            time: timeStr,
+            replied: window.currentReply ? window.currentReply : {},
+            status: 'pending'
+        };
+
+        handleNewChatMessage(tempChat);
+
+        const filesToUpload = [...selectedImages];
+
+        messageInput.value = '';
+        selectedImages = [];
+        renderSelectedImagesPreview();
+        if (window.cancelReply) window.cancelReply();
+
         const formData = new FormData();
         formData.append('data', JSON.stringify({
             alt_text: message,
             user_id: currentUserId,
             user_name: username,
             user_type: 'client',
-            replied: window.currentReply ? window.currentReply : false
+            replied: tempChat.replied
         }));
 
-        selectedImages.forEach(file => {
+        filesToUpload.forEach(file => {
             formData.append('images', file);
         });
 
@@ -1455,29 +1563,55 @@ async function sendMessage() {
                 body: formData
             });
 
+            const statusSpan = document.getElementById('status-' + tempId);
             if (response.ok) {
-                messageInput.value = '';
-                selectedImages = [];
-                renderSelectedImagesPreview();
-                if (window.cancelReply) window.cancelReply();
+                const resData = await response.json();
+                if (resData.status === true) {
+                    if (statusSpan) {
+                        statusSpan.innerHTML = '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>';
+                    }
+                } else {
+                    if (statusSpan) {
+                        statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+                    }
+                }
             } else {
-                const errData = await response.json();
-                alert(errData.detail || 'Error uploading images. Please try again.');
+                if (statusSpan) {
+                    statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+                }
             }
         } catch (error) {
             console.error('Error uploading images:', error);
-            alert('Error uploading images. Please try again.');
+            const statusSpan = document.getElementById('status-' + tempId);
+            if (statusSpan) {
+                statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+            }
         }
         return;
     }
 
-    let payload = {
-        type: 'chat_message',
-        message: message,
-        user_id: currentUserId,
+    const tempChat = {
+        message_id: tempId,
+        user: currentUserId,
         username: username,
         user_type: "client",
-        replied: window.currentReply ? window.currentReply : false
+        msg_type: 'chat_message',
+        message: message,
+        time: timeStr,
+        replied: window.currentReply ? window.currentReply : {},
+        status: 'pending'
+    };
+
+    handleNewChatMessage(tempChat);
+
+    messageInput.value = '';
+    if (window.cancelReply) window.cancelReply();
+
+    let payload = {
+        msg_type: 'chat_message',
+        message: message,
+        user_type: "client",
+        replied: tempChat.replied
     };
 
     try {
@@ -1489,15 +1623,29 @@ async function sendMessage() {
             body: JSON.stringify(payload)
         });
 
+        const statusSpan = document.getElementById('status-' + tempId);
         if (response.ok) {
-            messageInput.value = '';
-            if (window.cancelReply) window.cancelReply();
+            const resData = await response.json();
+            if (resData.success === true) {
+                if (statusSpan) {
+                    statusSpan.innerHTML = '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>';
+                }
+            } else {
+                if (statusSpan) {
+                    statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+                }
+            }
         } else {
-            alert('Error sending message. Please try again.');
+            if (statusSpan) {
+                statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+            }
         }
     } catch (error) {
         console.error('Error sending message:', error);
-        alert('Error sending message. Please try again.');
+        const statusSpan = document.getElementById('status-' + tempId);
+        if (statusSpan) {
+            statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+        }
     }
 }
 

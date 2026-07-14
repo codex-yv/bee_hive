@@ -396,9 +396,9 @@ tbody tr:hover {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
-    background-color: rgba(255, 255, 255, 0.15) !important;
-    background-image: linear-gradient(rgba(17, 17, 17, 0.03) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(17, 17, 17, 0.03) 1px, transparent 1px);
+    background: linear-gradient(rgba(17, 17, 17, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(17, 17, 17, 0.03) 1px, transparent 1px),
+                linear-gradient(135deg, rgba(43, 127, 255, 0.08) 0%, rgba(255, 255, 255, 0.25) 50%, rgba(139, 92, 246, 0.08) 100%) !important;
     background-size: 1cm 1cm;
     position: relative;
     scroll-behavior: smooth !important;
@@ -446,7 +446,7 @@ tbody tr:hover {
 .other-message .message-bubble {
     background: #ffffff !important;
     color: var(--foreground) !important;
-    border: 1px solid var(--border-color) !important;
+    border: 1.5px solid rgba(17, 17, 17, 0.18) !important;
     border-bottom-left-radius: 4px !important;
     box-shadow: 0 2px 8px rgba(17, 17, 17, 0.01) !important;
 }
@@ -493,7 +493,7 @@ tbody tr:hover {
     border: 1.5px solid rgba(17, 17, 17, 0.16) !important;
     border-radius: 9999px !important;
     box-shadow: 0 8px 24px rgba(17, 17, 17, 0.05) !important;
-    gap: 12px !important;
+    gap: 6px !important;
     z-index: 10 !important;
     transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease !important;
 }

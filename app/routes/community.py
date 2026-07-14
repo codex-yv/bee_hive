@@ -9,7 +9,9 @@ from utils.clientGets import get_username,get_unified_chat_history
 from utils.messageSystem import delete_message_from_db, add_reaction_to_db
 from utils.IST import ISTTime, ISTdate
 
-from schemas.messageSystemSchemas import DeleteMessageRequest, DeleteMessageResponse, ErrorResponse, AddReactionRequest, AddReactionResponse, UploadImageRequest, UploadImageResponse
+from schemas.messageSystemSchemas import (DeleteMessageRequest, DeleteMessageResponse, ErrorResponse,
+                                          AddReactionRequest, AddReactionResponse, UploadImageRequest,
+                                          UploadImageResponse, SendMessageRequest, SendMessageResponse)
 from datetime import datetime
 
 import json
@@ -18,7 +20,6 @@ from app.rtc import manager, unified_community_manager
 
 import cloudinary.uploader
 import cloudinary.api
-
 import configs.cloudinary_config
 
 router = APIRouter(prefix="/websocket", tags=["Admin Community"])
@@ -88,104 +89,123 @@ async def get_unified_community_chats(request: Request):
     
 
 # HTTP endpoint to send message (works for both clients and admins)
-@router.post("/send-message")
-async def send_unified_chat_message(request: Request):
-    try:
-        print("HELLO WORLD")
-        data = await request.json()
-        message_content = data.get('message', '').strip()
-        print(data)
-        if not message_content:
-            return JSONResponse(status_code=400, content={"error": "Message cannot be empty"})
+@router.post("/send-message",
+             response_model = SendMessageResponse,
+             responses = {code: {"model":ErrorResponse} for code in [500, 401]})
+async def send_unified_chat_message(request: Request, data: SendMessageRequest):
+    auth = request.session.get("email")
+    if auth:
+        try:
+            message_content = data.message.strip()
+            
+            if "@" in auth:
+                username = await get_username(collection_name = request.session.get("email"))
+                user_type = "client"
+            else:
+                username = "Admin"
+                user_type = "admin"
+
+            # Save message to database
+            chat_data = {
+                "message_id": str(uuid.uuid4()),
+                "user": auth,
+                "username": username,
+                "message": message_content,
+                "images": {},
+                "replied": data.replied,
+                "time": ISTTime() +" ["+ ISTdate()+"]",
+                "user_type": user_type
+            }
+            
+            await save_unified_chat_message(chat_data, "chat_message")
+            
+            # Broadcast to ALL connected users (both clients and admins)
+            await unified_community_manager.broadcast_chat_message(chat_data)
+            
+            return SendMessageResponse(
+                success = True,
+                message = "Message Send Successfully."
+            )
+            
+        except Exception as e:
+            print(f"Error sending unified message: {e}")
+            return SendMessageResponse(
+                success = False,
+                message = "Can't send message."
+            )
         
-        # Get user info from session or request
-        # For demo purposes, we'll use placeholders - replace with actual authentication
-        user_id = data.get('user_id', 'unknown_user')
-        # username = data.get('username', 'Unknown User')
-        # user_type = data.get('user_type', 'client')
-        
-        if "@" in user_id:
-            username = await get_username(collection_name= request.session.get("email"))
-            user_type = "client"
-        else:
-            username = "Admin"
-            user_type = "admin"
-        # Save message to database
-        chat_data = {
-            "message_id": str(uuid.uuid4()),
-            "user": user_id,
-            "username": username,
-            "message": message_content,
-            "images": {},
-            "replied": data.get('replied', {}),
-            "time": ISTTime() +" ["+ ISTdate()+"]",
-            "user_type": user_type
-        }
-        
-        await save_unified_chat_message(chat_data, "chat_message")
-        
-        # Broadcast to ALL connected users (both clients and admins)
-        await unified_community_manager.broadcast_chat_message(chat_data)
-        
-        return {"status": "success"}
-        
-    except Exception as e:
-        print(f"Error sending unified message: {e}")
-        return JSONResponse(status_code=500, content={"error": "Failed to send message"})
+    raise HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail = ErrorResponse(
+            success = False,
+            error = f"Unauthorized Request.",
+            message = "Redirecting to login page."
+        ).model_dump(),
+    )
 
 # route to upload file in chat section.
 @router.post("/upload-image",
              response_model= UploadImageResponse,
              responses= {500 : {"model": ErrorResponse}})
 async def upload_image_in_community(request:Request, data:str = Form(...), images: List[UploadFile] = File(...)):
-    try:
-        parsed_data = UploadImageRequest(**json.loads(data))
+    auth = request.session.get("email")
+    if auth:
+        try:
+            parsed_data = UploadImageRequest(**json.loads(data))
 
-        image_info = {}
-        for image in images:
-            img_result = cloudinary.uploader.upload(
-                image.file,
-                folder = "beeHive"
+            image_info = {}
+            for image in images:
+                img_result = cloudinary.uploader.upload(
+                    image.file,
+                    folder = "beeHive"
+                )
+
+                if img_result:
+                    image_info[img_result["public_id"]] = img_result["secure_url"]
+                else:
+                    # del_img_result = cloudinary.api.delete_resources(list(image_info.keys())) if image_info else None
+                    print("Failed to Upload Image.")
+
+            chat_data = {
+                    "message_id": str(uuid.uuid4()),
+                    "user": parsed_data.user_id,
+                    "username": parsed_data.user_name,
+                    "message": parsed_data.alt_text,
+                    "images": image_info,
+                    "replied": parsed_data.replied,
+                    "time": ISTTime() +" ["+ ISTdate()+"]",
+                    "user_type": parsed_data.user_type
+                }
+            
+            await save_unified_chat_message(chat_data=chat_data, msg_type="image_upload")
+            await unified_community_manager.broadcast_image_upload(
+                images = image_info,
+                alt_text = parsed_data.alt_text,
+                user_id = parsed_data.user_id,
+                username = parsed_data.user_name,
+                user_type = parsed_data.user_type,
+                message_id = chat_data["message_id"],
+                time=chat_data["time"]
             )
-
-            if img_result:
-                image_info[img_result["public_id"]] = img_result["secure_url"]
-            else:
-                # del_img_result = cloudinary.api.delete_resources(list(image_info.keys())) if image_info else None
-                print("Failed to Upload Image.")
-
-        chat_data = {
-                "message_id": str(uuid.uuid4()),
-                "user": parsed_data.user_id,
-                "username": parsed_data.user_name,
-                "message": parsed_data.alt_text,
-                "images": image_info,
-                "replied": parsed_data.replied,
-                "time": ISTTime() +" ["+ ISTdate()+"]",
-                "user_type": parsed_data.user_type
-            }
-        
-        await save_unified_chat_message(chat_data=chat_data, msg_type="image_upload")
-        await unified_community_manager.broadcast_image_upload(
-            images=image_info,
-            alt_text=parsed_data.alt_text,
-            user_id=parsed_data.user_id,
-            username=parsed_data.user_name,
-            user_type=parsed_data.user_type,
-            message_id=chat_data["message_id"],
-            time=chat_data["time"]
-        )
-        return UploadImageResponse(
-            status=True,
-            message="Image send successfully."
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Upload failed:{e}")
-        
-
-    
-
-
+            
+            return UploadImageResponse(
+                status=True,
+                message="Image send successfully."
+            )
+        except Exception as e:
+            return UploadImageResponse(
+                status=False,
+                message="Failed to send image."
+            )
+    else:
+        raise HTTPException(
+        status_code = status.HTTP_401_UNAUTHORIZED,
+        detail = ErrorResponse(
+            success = False,
+            error = f"Unauthorized Request.",
+            message = "Redirecting to login page."
+        ).model_dump(),
+    )
 
 @router.post("/delete-message", 
           response_model=DeleteMessageResponse, 

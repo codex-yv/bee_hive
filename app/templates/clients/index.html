@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=18">
+    <link rel="stylesheet" href="{{ url_for('static', path='client/css/index.css') }}?v=21">
     <!-- Emoji Mart -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/css/emoji-mart.css">
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
@@ -465,7 +465,7 @@
         window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent || '{}');
         window.fullname = "{{ fullname if fullname else 'User' }}";
     </script>
-    <script src="{{ url_for('static', path='client/js/index.js') }}?v=20"></script>
+    <script src="{{ url_for('static', path='client/js/index.js') }}?v=22"></script>
 </body>
 
 </html>
