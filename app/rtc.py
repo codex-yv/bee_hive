@@ -163,6 +163,13 @@ class UnifiedCommunityConnectionManager:
             "del_message": del_message
         })
 
+    # async def community_database_error(self, message_id:str, email:str):
+    #     await self.send_personal_message(json.dumps({
+    #         "type": "message_database_error",
+    #         "message_id": message_id,
+    #         "data": "Message could not be saved to the database"
+    #     }), email)
+
     def get_connected_users(self) -> List[str]:
         return list(self.active_connections.keys())
 

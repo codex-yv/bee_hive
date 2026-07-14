@@ -1352,34 +1352,24 @@ async function sendMessage() {
         replied: window.currentReply ? window.currentReply : false
     };
 
-    if (communitySocket && communitySocket.readyState === WebSocket.OPEN) {
-        // Send via WebSocket with user info
-        communitySocket.send(JSON.stringify(payload));
+    try {
+        const response = await fetch('/websocket/send-message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
+        });
 
-        // Clear input
-        messageInput.value = '';
-        if (window.cancelReply) window.cancelReply();
-    } else {
-        // Fallback: Send via HTTP POST with user info
-        try {
-            const response = await fetch('/websocket/send-message', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.ok) {
-                messageInput.value = '';
-                if (window.cancelReply) window.cancelReply();
-            } else {
-                alert('Error sending message. Please try again.');
-            }
-        } catch (error) {
-            console.error('Error sending message:', error);
+        if (response.ok) {
+            messageInput.value = '';
+            if (window.cancelReply) window.cancelReply();
+        } else {
             alert('Error sending message. Please try again.');
         }
+    } catch (error) {
+        console.error('Error sending message:', error);
+        alert('Error sending message. Please try again.');
     }
 }
 

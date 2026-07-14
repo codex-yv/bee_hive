@@ -64,39 +64,6 @@ async def unified_community_websocket_endpoint(websocket: WebSocket, user_id: st
     try:
         while True:
             data = await websocket.receive_text()
-            message_data = json.loads(data)
-            
-            if message_data.get('type') == 'chat_message':
-                # Save message to database
-                message_content = message_data.get('message', '').strip()
-                if message_content:
-                    # Store message in database
-                    if username != "Admin":
-                        chat_data = {
-                            "message_id": str(uuid.uuid4()),
-                            "user": user_id,
-                            "username": await get_username(collection_name=user_id),
-                            "message": message_content,
-                            "replied": message_data.get('replied', {}),
-                            "time": ISTTime() +" ["+ ISTdate()+"]",
-                            "user_type": user_type
-                        }
-                    else:
-                        chat_data = {
-                            "message_id": str(uuid.uuid4()),
-                            "user": user_id,
-                            "username": username,
-                            "message": message_content,
-                            "replied": message_data.get('replied', {}),
-                            "time": ISTTime() +" ["+ ISTdate()+"]",
-                            "user_type": user_type
-                        }
-                    # Save to MongoDB
-                    await save_unified_chat_message(chat_data)
-                    
-                    # Broadcast to ALL users (both clients and admins)
-                    await unified_community_manager.broadcast_chat_message(chat_data)
-                    
     except WebSocketDisconnect:
         unified_community_manager.disconnect(user_id)
     except Exception as e:

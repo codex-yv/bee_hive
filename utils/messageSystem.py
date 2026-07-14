@@ -76,7 +76,7 @@ async def add_reaction_to_db(message_id:str, reaction:str, user:str):
     else:
         username = await get_username(collection_name=user)
 
-    if message_data:
+    if not message_data:
 
         current_reaction = message_data.get("reactions", {})
         # {user:{message_id:str, reaction:str, username:str}}
