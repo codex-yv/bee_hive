@@ -5,6 +5,7 @@ from configs.otp_configs import sender_email, sender_key
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import asyncio
+import string
 
 async def create_message(message:list[str, str]):
     
@@ -353,3 +354,15 @@ async def is_completed_project(members:list[list]):
             return 0
     return 1
     
+
+def create_token():
+    # List of alphabets
+    alphabets = list(string.ascii_lowercase)
+
+    pre = ''.join(random.sample(alphabets, 3))
+    mid = ''.join(random.sample(alphabets, 3))
+    end = ''.join(random.sample(alphabets, 3))
+
+    token = pre+"-"+mid+"-"+end
+
+    return token

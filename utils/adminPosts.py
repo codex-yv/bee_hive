@@ -1,5 +1,6 @@
 from configs.trendyDB import client
 from utils.IST import ISTdate
+from utils.general import create_token
 
 async def insert_project(project:object): # /see project schemas in adminProjectSchemas.py
     db = client['Activity']
@@ -10,14 +11,31 @@ async def insert_project(project:object): # /see project schemas in adminProject
         member.append(0)
         new_assigned_members.append(member)
 
+    links = {}
+    for head, link in project.links.items():
+        links[create_token()] = {"head":head, "link": link}
+    
+    components = {}
+    components["data"] = {}
+    count = 0
+    for key, value in project.components.items():
+        components["data"][create_token()] = {"head":key, "body": value, "status": False, "owner":""}
+        count +=1
+    
+    components["total_comp"] = count
+    components["done_comp"] = 0
+    components["status"] = False
+    
     format_data = {
         "project_name":project.project_name,
+        "project_description": project.project_description,
+        "links":links,
         "initiated_date":date,
         "due_date":project.due_date,
         "team":project.team,
         "assigned_members":new_assigned_members,
         "project_manager":project.project_manager,
-        "components":project.components,
+        "components":components,
         "status":0
     }
 

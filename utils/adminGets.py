@@ -28,7 +28,7 @@ async def get_projects():
     project_list = []
 
     for doc in docs:
-        project = {"project_id":str(doc["_id"]),"project_name":doc['project_name'], "initiated_date":doc['initiated_date'], "due_date":doc['due_date'], 
+        project = {"project_id":str(doc["_id"]),"project_name":doc['project_name'], "project_description":doc['project_description'], "links": doc['links'],"initiated_date":doc['initiated_date'], "due_date":doc['due_date'], 
                 "team":doc['team'], "Status":doc['status'], "assigned_member": doc['assigned_members'], "project_manager":doc['project_manager'], "components":doc['components']}
 
         project_list.append(project)

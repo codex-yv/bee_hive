@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Request, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 
-from schemas.adminProjectSchemas import Project
+from schemas.adminProjectSchemas import AddProjectRequest, AddProjectResponse
 from schemas.adminTasksSchemas import Task
 from schemas.useless import Useless, UselessClient
 
@@ -49,23 +49,40 @@ async def load_admin(request:Request, authenticated: bool = Depends(verify_crede
     await first_admin_login()
     return templates_admin.TemplateResponse("index.html", {"request":request, "tp":total_projects, "pd":pd, "tt":total_tasks, "td":td, "rp":recent_projects, "rt":recent_tasks})
 
-@router.post("/add-project") # FOR ADMIN PAGE.
-async def admin_add_projects(request: Request, project: Project):
+@router.post("/add-project",
+             response_model = AddProjectResponse,
+             responses = {code : {"model":AddProjectResponse} for code in [500, 401]}) # FOR ADMIN PAGE.
+async def admin_add_projects(request: Request, project: AddProjectRequest):
 
-    # print(project)
-    Inserted_id = await insert_project(project=project)
-    await update_assign_member(collecation_name=project.assigned_members, pid=Inserted_id)
-    await update_project_manager(collecation_name=project.project_manager, pid=Inserted_id)
+    auth = request.session.get("email")
+    if auth:
+        Inserted_id = await insert_project(project=project)
+        await update_assign_member(collecation_name=project.assigned_members, pid=Inserted_id)
+        await update_project_manager(collecation_name=project.project_manager, pid=Inserted_id)
 
-    rmessage = await create_message(message=[project.project_name, "p"])
+        rmessage = await create_message(message=[project.project_name, "p"])
 
-    await push_notification_by_admin(collections=project.assigned_members, message=rmessage)
-    notification = [rmessage, 0, "2023-12-07T10:30:00"]
-    to_users = await get_users_list(data = project.assigned_members)
-    await manager.send_notification(notification, to_users)
-    notify_for_project = await settings.projects_notifications_enabled()
-    if notify_for_project:
-        await send_group_email_for_projects(emails = to_users, project_name=project.project_name)
+        await push_notification_by_admin(collections=project.assigned_members, message=rmessage)
+        notification = [rmessage, 0, "2023-12-07T10:30:00"]
+        to_users = await get_users_list(data = project.assigned_members)
+
+        await manager.send_notification(notification, to_users)
+        notify_for_project = await settings.projects_notifications_enabled()
+        if notify_for_project:
+            await send_group_email_for_projects(emails = to_users, project_name=project.project_name)
+        
+        return AddProjectResponse(
+            success = True, 
+            message = "Project added successfully."
+        )
+    else:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = AddProjectResponse(
+                success = False,
+                message = "Redirecting to login page."
+            ).model_dump(),
+        )
 
 
 @router.post("/add-task") # FOR ADMIN PAGE.

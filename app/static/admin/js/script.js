@@ -40,6 +40,7 @@ let currentDeleteType = null;
 let communitySocket = null;
 let currentAdminId = document.getElementById('id_for_admin')?.textContent.trim();
 let selectedImages = [];
+let projectLinks = {};
 
 function getFormattedDateTime() {
     const now = new Date();
@@ -1062,6 +1063,13 @@ async function fetchProjectStatusFromAPI() {
     }
 }
 
+function getProjectStatus(project) {
+    if (project.components && typeof project.components === 'object' && 'status' in project.components) {
+        return project.components.status ? 1 : 0;
+    }
+    return project.Status;
+}
+
 // ====== Project Details Modal ======
 function openProjectDetailsModal(projectIndex) {
     const project = projectStatusData[projectIndex];
@@ -1075,10 +1083,42 @@ function openProjectDetailsModal(projectIndex) {
     document.getElementById('detailDueDate').textContent = project.due_date;
     document.getElementById('detailTeam').textContent = project.team;
 
+    // Add description
+    const descElement = document.getElementById('detailProjectDescription');
+    if (descElement) {
+        descElement.textContent = project.project_description || 'No description provided.';
+    }
+
+    // Add links
+    const linksContainer = document.getElementById('detailLinks');
+    if (linksContainer) {
+        linksContainer.innerHTML = '';
+        if (project.links && typeof project.links === 'object') {
+            Object.entries(project.links).forEach(([linkId, linkObj]) => {
+                const linkDiv = document.createElement('div');
+                linkDiv.id = linkId;
+                linkDiv.className = 'text-sm text-zinc-700 bg-zinc-50 p-2 border border-zinc-200/80 rounded mt-1';
+                
+                const rawLink = linkObj.link || '';
+                const href = rawLink.startsWith('http') ? rawLink : 'https://' + rawLink;
+                const head = linkObj.head || 'Link';
+                
+                linkDiv.innerHTML = `
+                    <strong class="font-semibold">${head}:</strong> 
+                    <a href="${href}" target="_blank" class="text-secondary hover:underline">${rawLink}</a>
+                `;
+                linksContainer.appendChild(linkDiv);
+            });
+        } else {
+            linksContainer.innerHTML = '<span class="text-sm text-zinc-500">No links added.</span>';
+        }
+    }
+
+    const statusVal = getProjectStatus(project);
     const statusElement = document.getElementById('detailStatus');
     if (statusElement) {
-        statusElement.textContent = project.Status === 0 ? 'ongoing' : 'completed';
-        statusElement.className = `status-tag ${project.Status === 0 ? 'status-ongoing' : 'status-completed'}`;
+        statusElement.textContent = statusVal === 1 ? 'completed' : 'ongoing';
+        statusElement.className = `status-tag ${statusVal === 1 ? 'status-completed' : 'status-ongoing'}`;
     }
 
     const projectManagerElement = document.getElementById('detailProjectManager');
@@ -1122,13 +1162,21 @@ function openProjectDetailsModal(projectIndex) {
     const componentsContainer = document.getElementById('detailComponents');
     if (componentsContainer) {
         componentsContainer.innerHTML = '';
-        if (project.components && typeof project.components === 'object') {
-            Object.entries(project.components).forEach(([heading, details]) => {
+        const compData = project.components && project.components.data ? project.components.data : {};
+        if (compData && typeof compData === 'object') {
+            Object.entries(compData).forEach(([compId, compObj]) => {
                 const componentDiv = document.createElement('div');
-                componentDiv.className = 'border border-zinc-200/80 p-3 rounded';
+                componentDiv.id = compId;
+                componentDiv.className = 'flex items-start border border-zinc-200/80 p-3 rounded mt-2';
+                
+                const isChecked = compObj.status === true;
+                
                 componentDiv.innerHTML = `
-                    <h5 class="font-semibold text-zinc-800">${heading}</h5>
-                    <p class="text-sm text-zinc-500 mt-1">${details}</p>
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} disabled class="mr-3 mt-1 rounded border-zinc-300 text-primary focus:ring-primary">
+                    <div>
+                        <h5 class="font-semibold text-zinc-800">${compObj.head || ''}</h5>
+                        <p class="text-sm text-zinc-500 mt-1">${compObj.body || ''}</p>
+                    </div>
                 `;
                 componentsContainer.appendChild(componentDiv);
             });
@@ -1396,7 +1444,6 @@ function showSection(sectionId) {
     }
 }
 
-// ====== Render Project Status ======
 function renderProjectStatus() {
     const list = document.getElementById('projectStatusList');
     if (!list) return;
@@ -1405,9 +1452,9 @@ function renderProjectStatus() {
 
     let filteredProjects = projectStatusData;
     if (window.projectFilter === 'ongoing') {
-        filteredProjects = projectStatusData.filter(p => p.Status === 0);
+        filteredProjects = projectStatusData.filter(p => getProjectStatus(p) === 0);
     } else if (window.projectFilter === 'completed') {
-        filteredProjects = projectStatusData.filter(p => p.Status === 1);
+        filteredProjects = projectStatusData.filter(p => getProjectStatus(p) === 1);
     }
 
     filteredProjects.forEach((project, index) => {
@@ -1415,11 +1462,15 @@ function renderProjectStatus() {
         card.className = 'valorant-card p-5 card-hover';
         card.id = project.project_id;
 
+        const statusVal = getProjectStatus(project);
+        const statusText = statusVal === 1 ? 'completed' : 'ongoing';
+        const statusClass = statusVal === 1 ? 'status-completed' : 'status-ongoing';
+
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-bold text-zinc-800">${project.project_name}</h3>
-                <span class="status-tag ${project.Status === 0 ? 'status-ongoing' : 'status-completed'}">
-                    ${project.Status === 0 ? 'ongoing' : 'completed'}
+                <span class="status-tag ${statusClass}">
+                    ${statusText}
                 </span>
             </div>
             <div class="text-sm text-zinc-500 space-y-1">
@@ -1596,11 +1647,15 @@ async function openProjectModal(editIndex = null) {
         updateAssigned("project");
     } else {
         document.getElementById("projectName").value = "";
+        document.getElementById("projectDescription").value = "";
         document.getElementById("projectDueDate").value = "";
         document.getElementById("projectTeam").value = "";
         document.getElementById("projectManager").value = "";
         assigned.project = [];
         components = [];
+        projectLinks = {};
+        const linksList = document.getElementById("projectLinksList");
+        if (linksList) linksList.innerHTML = "";
         renderComponents();
         updateAssigned("project");
     }
@@ -1608,6 +1663,9 @@ async function openProjectModal(editIndex = null) {
 
 function closeProjectModal() {
     toggleModal("projectModal", false);
+    projectLinks = {};
+    const linksList = document.getElementById("projectLinksList");
+    if (linksList) linksList.innerHTML = "";
 }
 
 // ====== Task Modals ======
@@ -1719,6 +1777,45 @@ function renderComponents() {
     });
 }
 
+function addProjectLink() {
+    const titleInput = document.getElementById("linkTitleInput");
+    const urlInput = document.getElementById("linkUrlInput");
+    if (!titleInput || !urlInput) return;
+
+    const title = titleInput.value.trim();
+    const url = urlInput.value.trim();
+
+    if (!title || !url) {
+        alert("Please fill both Link Title and URL fields!");
+        return;
+    }
+
+    projectLinks[title] = url;
+    titleInput.value = "";
+    urlInput.value = "";
+    renderProjectLinks();
+}
+
+function renderProjectLinks() {
+    const list = document.getElementById("projectLinksList");
+    if (!list) return;
+    list.innerHTML = "";
+    Object.entries(projectLinks).forEach(([title, url]) => {
+        const div = document.createElement("div");
+        div.className = "flex justify-between items-center bg-zinc-50 border border-zinc-200/80 p-2 rounded text-sm mt-1";
+        div.innerHTML = `
+            <span class="font-medium text-zinc-700">${title}: <a href="${url}" target="_blank" class="text-secondary hover:underline">${url}</a></span>
+            <button type="button" onclick="window.removeProjectLink('${title}')" class="text-red-500 hover:text-red-700 font-bold ml-2">×</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function removeProjectLink(title) {
+    delete projectLinks[title];
+    renderProjectLinks();
+}
+
 // ====== API: Add Project ======
 async function addProject() {
     const name = document.getElementById("projectName").value;
@@ -1743,8 +1840,12 @@ async function addProject() {
         [managerEmail, managerUsername]
     ];
 
+    const description = document.getElementById("projectDescription").value;
+
     const payload = {
         project_name: name,
+        project_description: description,
+        links: projectLinks,
         due_date: due,
         team,
         assigned_members: assignedMembersFormatted,
@@ -2835,6 +2936,8 @@ window.closeComponentModal = closeComponentModal;
 window.updateAssigned = updateAssigned;
 window.addComponent = addComponent;
 window.renderComponents = renderComponents;
+window.addProjectLink = addProjectLink;
+window.removeProjectLink = removeProjectLink;
 window.addProject = addProject;
 window.addTask = addTask;
 window.updateProject = updateProject;
