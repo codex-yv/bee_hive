@@ -1466,12 +1466,41 @@ function renderProjectStatus() {
         const statusText = statusVal === 1 ? 'completed' : 'ongoing';
         const statusClass = statusVal === 1 ? 'status-completed' : 'status-ongoing';
 
+        const pct = parseFloat(project.percentage || 0);
+        let ringHtml = '';
+        let ringColor = '#ef4444'; // < 30
+        if (pct >= 70) {
+            ringColor = '#22c55e';
+        } else if (pct >= 30) {
+            ringColor = '#f59e0b';
+        }
+        
+        const radius = 20;
+        const circumference = 2 * Math.PI * radius; // ~125.66
+        const offset = circumference - (circumference * pct) / 100;
+        
+        ringHtml = `
+            <div class="percentage-ring-container flex items-center justify-center relative ml-2" style="width: 48px; height: 48px;" title="${Math.round(pct)}% Completed">
+                <svg style="transform: rotate(-90deg); width: 48px; height: 48px;">
+                    <circle cx="24" cy="24" r="${radius}" stroke="rgba(17,17,17,0.06)" stroke-width="3" fill="transparent" />
+                    <circle cx="24" cy="24" r="${radius}" stroke="${ringColor}" stroke-width="3" fill="transparent" 
+                            stroke-dasharray="${circumference}" 
+                            stroke-dashoffset="${offset}" 
+                            stroke-linecap="round" />
+                </svg>
+                <span style="position: absolute; font-size: 0.8rem; font-weight: 700; color: #111;">${Math.round(pct)}%</span>
+            </div>
+        `;
+
         card.innerHTML = `
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-bold text-zinc-800">${project.project_name}</h3>
-                <span class="status-tag ${statusClass}">
-                    ${statusText}
-                </span>
+                <div class="flex items-center">
+                    <span class="status-tag ${statusClass}">
+                        ${statusText}
+                    </span>
+                    ${ringHtml}
+                </div>
             </div>
             <div class="text-sm text-zinc-500 space-y-1">
                 <div class="flex justify-between">

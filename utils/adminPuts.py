@@ -2,6 +2,7 @@ from configs.trendyDB import client
 from bson import ObjectId
 from utils.adminGets import get_admin_notification
 from utils.general import is_completed_project
+from utils.clientPuts import update_project_status_bid
 
 async def update_user_action(email:str, action:int):
     db = client["Clients"]
@@ -40,7 +41,83 @@ async def update_project_status_act(pid, status:int, username:str):
             {"$set": {"status":project_status,
                       "assigned_members":updated_assigned_members}}
         )
+
+async def update_project_components_status_act(pid, status:int, username:str):
+    db = client["Activity"]
+    collection = db["Projects"]
+    obj_id = ObjectId(pid)
+
+    components = (await collection.find_one(
+        {"_id":obj_id},
+        {"components":1, "_id":0}
+    )).get('components') # /getting components of a given project.
+
+    components['status'] = True if status == 1 else False
+
+    for key, value in components['data'].items():
+        if not value['status'] and status == 1:
+            value['status'] = True
+            value['owner'] = username
+
+        elif value['status'] and status == 0 and username == value['owner']:
+            value['status'] = False
+            value['owner'] = ""
+        
+    count = 0
+    for key, value in components['data'].items():
+        if value['status']:
+            count +=1
+    components['done_comp'] = count
+ 
+    await collection.update_one(
+        {"_id": obj_id},
+        {"$set": {"components":components}}
+    )
+        
+     
+async def update_project_component_status_via_checkbox(pid, status:int, username:str, component_id:str):
+    db = client["Activity"]
+    collection = db["Projects"]
+    obj_id = ObjectId(pid)
+
+    components = (await collection.find_one(
+        {"_id":obj_id},
+        {"components":1, "_id":0}
+    )).get('components') # /getting components of a given project.
+
+    component_head = components['data'][component_id]['head']
+
+    components['data'][component_id]['status'] = True if status == 1 else False
+    components['data'][component_id]['owner'] = username if status == 1 else ""
+
+    components['done_comp'] = components['done_comp'] + 1 if status == 1 else components['done_comp'] - 1
     
+    components['status'] = True if components['done_comp'] == components['total_comp'] else False 
+
+    percentage = str((components['done_comp']/components['total_comp']) * 100)
+
+    await collection.update_one(
+        {"_id": obj_id},
+        {"$set": {"components":components}}
+    )
+    
+    if components['status']:
+        await collection.update_one(
+            {"_id": obj_id},
+            {"$set": {"status":1}}
+        )
+        await update_project_status_bid(pid, status, username)
+    
+    if status == 0:
+        await collection.update_one(
+            {"_id": obj_id},
+            {"$set": {"status":0}}
+        )
+        await update_project_status_bid(pid, status, username)
+        
+    return percentage, components['status'], component_head
+
+
 async def update_task_status_act(pid, status:int, username:str):
     db = client["Activity"]
     collection = db["Tasks"]

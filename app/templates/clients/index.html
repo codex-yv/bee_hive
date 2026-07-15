@@ -412,6 +412,31 @@
         </div>
     </div>
 
+    <!-- Project Details Modal -->
+    <div id="projectDetailsModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(17,17,17,0.15); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(17,17,17,0.08); border-radius: 12px; padding: 24px; box-shadow: 0 20px 50px rgba(17,17,17,0.08); display: block; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid rgba(17,17,17,0.08); padding-bottom: 12px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <h3 id="projectDetailsTitle" style="font-size: 1.25rem; font-weight: 700; color: #111; margin: 0;">Project Details</h3>
+                    <span id="projectDetailsStatus" style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; text-transform: uppercase;"></span>
+                </div>
+                <button onclick="window.closeProjectDetailsModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #71717a;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <h4 style="font-size: 0.95rem; font-weight: 600; color: #71717a; margin-bottom: 4px;">Project Description</h4>
+                <p id="projectDetailsDesc" style="font-size: 0.9rem; color: #111; line-height: 1.5; white-space: pre-wrap; word-break: break-word;"></p>
+            </div>
+            
+            <div>
+                <h4 style="font-size: 0.95rem; font-weight: 600; color: #71717a; margin-bottom: 8px;">Components</h4>
+                <div id="projectDetailsComponents" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Components dynamic data -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification Modal -->
     <div class="notification-modal" id="notificationModal">
         <div class="notification-header">
@@ -465,7 +490,7 @@
         window.dashboardData = JSON.parse(document.getElementById('dashboard-data').textContent || '{}');
         window.fullname = "{{ fullname if fullname else 'User' }}";
     </script>
-    <script src="{{ url_for('static', path='client/js/index.js') }}?v=22"></script>
+    <script src="{{ url_for('static', path='client/js/index.js') }}?v=26"></script>
 </body>
 
 </html>

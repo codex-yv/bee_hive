@@ -17,6 +17,7 @@ let userId = document.getElementById('user_id_for_socket')?.textContent.trim();
 let communitySocket = null;
 let currentUserId = document.getElementById('user_id_for_socket')?.textContent.trim();
 let selectedImages = [];
+let clientProjectsData = [];
 
 function getFormattedDateTime() {
     const now = new Date();
@@ -651,6 +652,13 @@ function toggleComponentDetails(component) {
 
 // ====== Projects Functions ======
 
+function getProjectStatus(project) {
+    if (project.components && typeof project.components === 'object' && 'status' in project.components) {
+        return project.components.status ? 1 : 0;
+    }
+    return project.Status;
+}
+
 async function loadProjects() {
     const projectsContainer = document.getElementById('projectsContainer');
     const loadingSpinner = document.getElementById('projectsLoading');
@@ -687,8 +695,10 @@ async function loadProjects() {
             projectsArray = projects.projects;
         }
 
-        if (projectsArray && projectsArray.length > 0) {
-            projectsContainer.innerHTML = projectsArray.map(project => createProjectCard(project)).join('');
+        clientProjectsData = projectsArray || [];
+
+        if (clientProjectsData.length > 0) {
+            projectsContainer.innerHTML = clientProjectsData.map((project, index) => createProjectCard(project, index)).join('');
         } else {
             projectsContainer.innerHTML = '<p>No projects found.</p>';
         }
@@ -700,10 +710,11 @@ async function loadProjects() {
     }
 }
 
-function createProjectCard(project) {
-    const statusClass = project.Status === 1 ? 'status-completed' : 'status-ongoing';
-    const statusText = project.Status === 1 ? 'Completed' : 'Ongoing';
-    const isChecked = project.Status === 1 ? 'checked' : '';
+function createProjectCard(project, index) {
+    const statusVal = getProjectStatus(project);
+    const statusClass = statusVal === 1 ? 'status-completed' : 'status-ongoing';
+    const statusText = statusVal === 1 ? 'Completed' : 'Ongoing';
+    const isChecked = statusVal === 1 ? 'checked' : '';
 
     // Get assigned members usernames
     const assignedMembers = project.assigned_member ?
@@ -719,34 +730,199 @@ function createProjectCard(project) {
         projectId = projectId.$oid;
     }
 
-    // Create components HTML
-    let componentsHTML = '';
-    if (project.components && Object.keys(project.components).length > 0) {
-        componentsHTML = Object.entries(project.components).map(([heading, details]) => `
-            <div class="phase" onclick="toggleComponentDetails(this)">${heading}</div>
-            <div class="sub-phases">
-                <p>${details}</p>
-            </div>
-        `).join('');
+    // Links HTML rendering
+    let linksHTML = '';
+    if (project.links && typeof project.links === 'object') {
+        const linkEntries = Object.entries(project.links);
+        if (linkEntries.length > 0) {
+            const innerLinks = linkEntries.map(([linkId, linkObj]) => {
+                const rawLink = linkObj.link || '';
+                const href = rawLink.startsWith('http') ? rawLink : 'https://' + rawLink;
+                const head = linkObj.head || 'Link';
+                return `
+                    <div id="${linkId}" style="margin-top: 4px; padding: 8px; background: #fcfcfc; border: 1px solid rgba(17,17,17,0.08); border-radius: 8px; font-size: 0.85rem; color: #111;">
+                        <strong>${head}:</strong> <a href="${href}" target="_blank" style="color: #2b7fff; text-decoration: none; font-weight: 500;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${rawLink}</a>
+                    </div>
+                `;
+            }).join('');
+            linksHTML = `<div style="margin-top: 10px;"><strong>Links:</strong>${innerLinks}</div>`;
+        }
     }
+
+    const pct = parseFloat(project.percentage || 0);
+    let ringHtml = '';
+    let ringColor = '#ef4444'; // < 30
+    if (pct >= 70) {
+        ringColor = '#22c55e';
+    } else if (pct >= 30) {
+        ringColor = '#f59e0b';
+    }
+    
+    const radius = 20;
+    const circumference = 2 * Math.PI * radius; // ~125.66
+    const offset = circumference - (circumference * pct) / 100;
+    
+    ringHtml = `
+        <div class="percentage-ring-container" style="display: inline-flex; align-items: center; justify-content: center; position: relative; width: 48px; height: 48px;" title="${Math.round(pct)}% Completed">
+            <svg style="transform: rotate(-90deg); width: 48px; height: 48px;">
+                <circle cx="24" cy="24" r="${radius}" stroke="rgba(17,17,17,0.06)" stroke-width="3" fill="transparent" />
+                <circle cx="24" cy="24" r="${radius}" stroke="${ringColor}" stroke-width="3" fill="transparent" 
+                        stroke-dasharray="${circumference}" 
+                        stroke-dashoffset="${offset}" 
+                        stroke-linecap="round" />
+            </svg>
+            <span style="position: absolute; font-size: 0.8rem; font-weight: 700; color: #111;">${Math.round(pct)}%</span>
+        </div>
+    `;
 
     return `
         <div class="project-card">
-            <div class="project-header">
+            <div class="project-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <h3>${project.project_name || 'Unnamed Project'}</h3>
-                <span class="status ${statusClass}">${statusText}</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="status ${statusClass}">${statusText}</span>
+                    ${ringHtml}
+                </div>
             </div>
             <div class="project-meta">Initiated: ${project.initiated_date || 'N/A'} | Due: ${project.due_date || 'N/A'} | Team: ${project.team || 'N/A'} | Manager: ${projectManager}</div>
             <div class="project-meta">Assigned Members: ${assignedMembers || 'None'}</div>
-            ${componentsHTML}
-            <div class="checkbox-container project-checkbox">
-                <div class="custom-checkbox project-completion-checkbox ${isChecked}" 
-                     onclick="toggleCheckbox(this)" 
-                     data-project-id="${projectId || ''}"></div>
-                <span class="checkbox-label">Mark project as completed</span>
+            ${linksHTML}
+            <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" onclick="window.openProjectDetailsModal(${index})" style="background: rgba(43,127,255,0.08); border: 1.5px solid rgba(43,127,255,0.18); color: #2b7fff; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(43,127,255,0.15)'" onmouseout="this.style.background='rgba(43,127,255,0.08)'">View Details</button>
+                <div class="checkbox-container project-checkbox">
+                    <div class="custom-checkbox project-completion-checkbox ${isChecked}" 
+                         onclick="toggleCheckbox(this)" 
+                         data-project-id="${projectId || ''}"></div>
+                    <span class="checkbox-label">Mark project as completed</span>
+                </div>
             </div>
         </div>
     `;
+}
+
+function openProjectDetailsModal(idx) {
+    const project = clientProjectsData[idx];
+    if (!project) return;
+    
+    const modal = document.getElementById('projectDetailsModal');
+    if (!modal) return;
+    
+    document.getElementById('projectDetailsTitle').textContent = `Project Details: ${project.project_name || 'Project'}`;
+    document.getElementById('projectDetailsDesc').textContent = project.project_description || 'No description provided.';
+    
+    // Set status tag in modal
+    const modalStatus = document.getElementById('projectDetailsStatus');
+    if (modalStatus) {
+        const statusVal = getProjectStatus(project);
+        modalStatus.textContent = statusVal === 1 ? 'Completed' : 'Ongoing';
+        modalStatus.style.background = statusVal === 1 ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+        modalStatus.style.color = statusVal === 1 ? '#22c55e' : '#f59e0b';
+    }
+
+    const compContainer = document.getElementById('projectDetailsComponents');
+    compContainer.innerHTML = '';
+    
+    const compData = project.components && project.components.data ? project.components.data : {};
+    if (compData && typeof compData === 'object' && Object.keys(compData).length > 0) {
+        Object.entries(compData).forEach(([compId, compObj]) => {
+            const div = document.createElement('div');
+            div.id = compId;
+            div.style.display = 'flex';
+            div.style.alignItems = 'flex-start';
+            div.style.padding = '12px';
+            div.style.border = '1px solid rgba(17,17,17,0.08)';
+            div.style.borderRadius = '8px';
+            div.style.background = '#fcfcfc';
+            
+            const isChecked = compObj.status === true;
+            
+            div.innerHTML = `
+                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.toggleComponentCheckbox(this, ${idx}, '${compId}')" style="width: 22px; height: 22px; margin-right: 12px; margin-top: 4px; cursor: pointer; accent-color: #2b7fff;">
+                <div>
+                    <h5 style="font-weight: 600; font-size: 0.9rem; color: #111; margin-bottom: 2px;">${compObj.head || ''}</h5>
+                    <p style="font-size: 0.85rem; color: #71717a;">${compObj.body || ''}</p>
+                </div>
+            `;
+            compContainer.appendChild(div);
+        });
+    } else {
+        compContainer.innerHTML = '<p style="font-size: 0.85rem; color: #71717a;">No components found.</p>';
+    }
+    
+    modal.style.display = 'flex';
+}
+
+function closeProjectDetailsModal() {
+    const modal = document.getElementById('projectDetailsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function toggleComponentCheckbox(checkbox, projectIndex, componentId) {
+    const project = clientProjectsData[projectIndex];
+    if (!project) return;
+    
+    let projectId = project._id;
+    if (projectId && typeof projectId === 'object' && projectId.$oid) {
+        projectId = projectId.$oid;
+    }
+    
+    const newStatus = checkbox.checked ? 1 : 0;
+    
+    try {
+        checkbox.disabled = true;
+        const response = await fetch('/client/projects/component-checkbox', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                status: newStatus,
+                component_id: componentId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            project.percentage = String(result.percentage);
+            if (project.components) {
+                project.components.status = result.status;
+                project.components.done_comp = newStatus === 1 ? (project.components.done_comp + 1) : (project.components.done_comp - 1);
+                if (project.components.data && project.components.data[componentId]) {
+                    project.components.data[componentId].status = checkbox.checked;
+                }
+            }
+            project.Status = result.status ? 1 : 0;
+            
+            // Update status tag in modal
+            const modalStatus = document.getElementById('projectDetailsStatus');
+            if (modalStatus) {
+                modalStatus.textContent = result.status ? 'Completed' : 'Ongoing';
+                modalStatus.style.background = result.status ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)';
+                modalStatus.style.color = result.status ? '#22c55e' : '#f59e0b';
+            }
+
+            const projectsContainer = document.getElementById('projectsContainer');
+            if (projectsContainer) {
+                projectsContainer.innerHTML = clientProjectsData.map((p, idx) => createProjectCard(p, idx)).join('');
+            }
+        } else {
+            alert('Failed to update component status.');
+            checkbox.checked = !checkbox.checked;
+        }
+    } catch (error) {
+        console.error('Error updating component checkbox:', error);
+        alert('Error updating component checkbox. Please try again.');
+        checkbox.checked = !checkbox.checked;
+    } finally {
+        checkbox.disabled = false;
+    }
 }
 
 // ====== Tasks Functions ======
@@ -1937,6 +2113,9 @@ window.closeProfileModal = closeProfileModal;
 window.showSection = showSection;
 window.loadDashboardData = loadDashboardData;
 window.loadProjects = loadProjects;
+window.openProjectDetailsModal = openProjectDetailsModal;
+window.closeProjectDetailsModal = closeProjectDetailsModal;
+window.toggleComponentCheckbox = toggleComponentCheckbox;
 window.loadTasks = loadTasks;
 window.loadCommunityChat = loadCommunityChat;
 window.refreshCommunity = refreshCommunity;

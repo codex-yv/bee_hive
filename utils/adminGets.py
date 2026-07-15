@@ -29,10 +29,9 @@ async def get_projects():
 
     for doc in docs:
         project = {"project_id":str(doc["_id"]),"project_name":doc['project_name'], "project_description":doc['project_description'], "links": doc['links'],"initiated_date":doc['initiated_date'], "due_date":doc['due_date'], 
-                "team":doc['team'], "Status":doc['status'], "assigned_member": doc['assigned_members'], "project_manager":doc['project_manager'], "components":doc['components']}
-
+                "team":doc['team'], "Status":doc['status'], "assigned_member": doc['assigned_members'], "project_manager":doc['project_manager'], "components":doc['components'], "percentage":str((doc['components']['done_comp']/doc['components']['total_comp']) * 100)}
         project_list.append(project)
-
+ 
         # print(doc['assigned_members']) ---> [['ytgamings802212@gmail.com', 'Abhinav Singh - Design', 1], ['yourajverma960@gmail.com', 'Youraj Verma - Dev', 1]]
     return project_list[::-1]
 

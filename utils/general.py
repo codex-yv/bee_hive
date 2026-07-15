@@ -37,6 +37,11 @@ async def create_message_for_admin(fullname:str, project_taskname:str, status:in
             rMessage = f"{fullname} has MARKED the project '{project_taskname['project_name']}' for completed on {ISTdate()} at {ISTTime()}!"
         else:
             rMessage = f"{fullname} has UNMARKED the project '{project_taskname['project_name']}' for Incomplete on {ISTdate()} at {ISTTime()}!"
+    elif sym == 'c':
+        if status == 1:
+            rMessage = f"{fullname} has MARKED the component '{project_taskname}' as completed on {ISTdate()} at {ISTTime()}!"
+        else:
+            rMessage = f"{fullname} has MARKED the component '{project_taskname}' as Incomplete on {ISTdate()} at {ISTTime()}!"
     else:
         if status == 1:
             rMessage = f"{fullname} has MARKED the task '{project_taskname['task_name']}' for completed on {ISTdate()} at {ISTTime()}!"

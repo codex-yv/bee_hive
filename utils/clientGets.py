@@ -79,13 +79,16 @@ async def get_project_by_id(project_id):
     project = {
         "_id":"",
         "project_name": doc['project_name'],
+        "project_description": doc['project_description'],
+        "links": doc['links'],
         "initiated_date": doc['initiated_date'],
         "due_date": doc['due_date'],
         "team": doc['team'],
         "Status": doc['status'],
         "assigned_member": doc['assigned_members'],
         "project_manager": doc['project_manager'],
-        "components": doc['components']
+        "components": doc['components'],
+        "percentage": str((doc['components']['done_comp']/doc['components']['total_comp']) * 100)
     }
 
     return project
