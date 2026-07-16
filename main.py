@@ -3,6 +3,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.status import HTTP_303_SEE_OTHER
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.openapi.docs import get_swagger_ui_html
@@ -18,6 +19,7 @@ from utils.settings import Settings
 
 from schemas.DevSchemas import DevMessage
 
+from templates_jinja import templates_home
 from app.rtc import manager
 
 from app.routes.clients.dashboard import router as client_dashboard
@@ -84,6 +86,17 @@ def custom_swagger_ui(user: str = Depends(get_current_user)):
 async def welcome_head():
     return {"Message": "Ok"}
 
+@app.get("/")
+async def welcome(request:Request):
+    return templates_home.TemplateResponse("home.html", {"request":request})
+
+@app.get("/home-members")
+async def home_members_login(request:Request):
+    return RedirectResponse("/client/entry/login", status_code=HTTP_303_SEE_OTHER)
+
+@app.get("/home-admins")
+async def home_admins_login(request:Request):
+    return RedirectResponse("/admin/dashboard/admin-dashboard", status_code=HTTP_303_SEE_OTHER)
 
 @app.post("/super-sender")
 async def send_developer_notification_to_all(request:Request, message:DevMessage):
