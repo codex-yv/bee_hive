@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useMotionValue, useScroll, useSpring, useTransform, AnimatePresence } from "motion/react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform, AnimatePresence, useInView } from "motion/react";
 import {
   ArrowRight,
   Github,
@@ -27,6 +27,9 @@ import {
   ListChecks,
   Radio,
   ChevronRight,
+  ChevronLeft,
+  Pause,
+  Play,
   Quote,
   ExternalLink,
 } from "lucide-react";
@@ -196,20 +199,37 @@ const NAV_LINKS = [
 
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 8);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 8);
+
+      if (currentScrollY <= 10) {
+        setVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        setVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setVisible(true);
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
     <motion.header
       initial={{ y: -30, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: easeOut }}
+      animate={{ y: visible || open ? 0 : -100, opacity: visible || open ? 1 : 0 }}
+      transition={{ duration: 0.35, ease: easeOut }}
       className="fixed inset-x-0 top-0 z-50"
     >
       <div className={`transition-all duration-500 ${scrolled ? "py-2" : "py-4"}`}>
@@ -361,7 +381,7 @@ function Hero() {
           </Reveal>
 
           <Reveal delay={0.5}>
-            <div className="mt-16 mx-auto max-w-4xl">
+            <div className="mt-16 mx-auto max-w-6xl xl:max-w-7xl">
               <HeroMockup />
             </div>
           </Reveal>
@@ -371,74 +391,199 @@ function Hero() {
   );
 }
 
+const heroSlides: string[] = (() => {
+  try {
+    const modules = import.meta.glob(
+      '/assets/*.{png,jpg,jpeg,webp,avif,svg,PNG,JPG,JPEG,WEBP,SVG}',
+      {
+        eager: true,
+        query: '?url',
+        import: 'default',
+      }
+    ) as Record<string, string>;
+
+    const entries = Object.entries(modules).map(([path, url]) => {
+      const parts = path.split('/');
+      const fileNameWithExt = parts[parts.length - 1] || '';
+      const filename = fileNameWithExt.substring(0, fileNameWithExt.lastIndexOf('.')) || fileNameWithExt;
+
+      let resolvedUrl = typeof url === 'string' ? url : path;
+      if (resolvedUrl.startsWith('/public/')) {
+        resolvedUrl = resolvedUrl.replace(/^\/public/, '');
+      }
+
+      return { filename, url: resolvedUrl };
+    });
+
+    const uniqueEntriesMap = new Map<string, { filename: string; url: string }>();
+    entries.forEach((e) => {
+      if (!uniqueEntriesMap.has(e.url)) {
+        uniqueEntriesMap.set(e.url, e);
+      }
+    });
+
+    const uniqueEntries = Array.from(uniqueEntriesMap.values());
+
+    if (uniqueEntries.length > 0) {
+      uniqueEntries.sort((a, b) => {
+        const numA = parseInt(a.filename, 10);
+        const numB = parseInt(b.filename, 10);
+        const isNumA = !isNaN(numA) && String(numA) === a.filename;
+        const isNumB = !isNaN(numB) && String(numB) === b.filename;
+
+        if (isNumA && isNumB) {
+          return numA - numB;
+        }
+        if (isNumA) return -1;
+        if (isNumB) return 1;
+        return a.filename.localeCompare(b.filename, undefined, { numeric: true, sensitivity: 'base' });
+      });
+
+      return uniqueEntries.map((e) => e.url);
+    }
+  } catch (e) {
+    console.error('Failed to glob public/assets images:', e);
+  }
+
+  return ['/assets/1.png', '/assets/2.png', '/assets/3.png', '/assets/4.png', '/assets/5.png'];
+})();
+
+const slideVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "100%" : "-100%",
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? "100%" : "-100%",
+    opacity: 0,
+  }),
+};
+
 function HeroMockup() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { amount: 0.2 });
+  const [[page, direction], setPage] = useState<[number, number]>([0, 0]);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const imageCount = heroSlides.length;
+  const currentIndex = ((page % imageCount) + imageCount) % imageCount;
+
+  const paginate = (newDirection: number) => {
+    setPage(([prevPage]) => [prevPage + newDirection, newDirection]);
+  };
+
+  const goToSlide = (slideIndex: number) => {
+    const newDir = slideIndex > currentIndex ? 1 : -1;
+    setPage([slideIndex, newDir]);
+  };
+
+  useEffect(() => {
+    if (!isAutoPlaying || isHovered || imageCount <= 1 || !isInView) return;
+    const timer = setInterval(() => {
+      paginate(1);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [isAutoPlaying, isHovered, imageCount, page, isInView]);
+
   return (
     <motion.div
+      ref={containerRef}
       initial={{ y: 40, opacity: 0, rotateX: 8 }}
       whileInView={{ y: 0, opacity: 1, rotateX: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 1.2, ease: easeOut }}
       style={{ transformPerspective: 1200 }}
-      className="relative"
+      className="relative group"
     >
       <div className="absolute -inset-6 rounded-[32px] opacity-40 blur-2xl" style={{ background: "var(--grad-accent-soft)" }} />
       <div className="relative rounded-2xl hairline bg-white shadow-[0_40px_120px_-40px_rgba(17,17,17,0.25)] overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-hairline px-4 py-3">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-          <span className="mx-auto text-[11px] text-muted-foreground">beehive.local — Team Alpha</span>
+        {/* Window Bar */}
+        <div className="flex items-center justify-between border-b border-hairline px-4 py-3 bg-white/90 backdrop-blur-md relative z-10 select-none">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          </div>
+          <span className="mx-auto text-[11px] text-muted-foreground font-medium">
+            trendy.app — Showcase ({currentIndex + 1} / {imageCount})
+          </span>
+          <button
+            type="button"
+            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            title={isAutoPlaying ? "Pause autoplay" : "Start autoplay"}
+          >
+            {isAutoPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+            <span className="hidden sm:inline">{isAutoPlaying ? "Pause" : "Play"}</span>
+          </button>
         </div>
-        <div className="grid grid-cols-12 gap-0">
-          <aside className="col-span-3 border-r border-hairline p-4 text-xs">
-            <div className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Teams</div>
-            {["Product", "Engineering", "Design", "Growth"].map((t, i) => (
-              <div key={t} className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 ${i === 1 ? "bg-accent text-foreground" : "text-muted-foreground"}`}>
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: ["#2b7fff", "#8b5cf6", "#ef4444", "#111"][i] }} />
-                {t}
-              </div>
-            ))}
-          </aside>
-          <main className="col-span-9 p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sprint 12</div>
-                <div className="text-sm font-semibold">Ship v0.4 · Realtime updates</div>
-              </div>
-              <div className="flex -space-x-2">
-                {[0, 1, 2, 3].map((i) => (
-                  <span key={i} className="h-6 w-6 rounded-full border-2 border-white" style={{ background: ["#2b7fff", "#8b5cf6", "#ef4444", "#111"][i] }} />
-                ))}
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {["Todo", "In Progress", "Done"].map((col, ci) => (
-                <div key={col} className="rounded-lg hairline bg-secondary/40 p-2">
-                  <div className="mb-2 flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {col} <span>{[4, 3, 5][ci]}</span>
-                  </div>
-                  {[0, 1, 2].map((k) => (
-                    <motion.div
-                      key={k}
-                      initial={{ opacity: 0, y: 6 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.4 + (ci * 3 + k) * 0.05, duration: 0.5, ease: easeOut }}
-                      className="mb-2 rounded-md bg-white hairline p-2.5 text-[11px] shadow-sm"
-                    >
-                      <div className="mb-1 flex items-center justify-between">
-                        <span className="rounded px-1.5 py-0.5 text-[9px] font-medium" style={{ background: "var(--grad-accent-soft)" }}>
-                          BH-{100 + ci * 3 + k}
-                        </span>
-                        <span className="h-4 w-4 rounded-full" style={{ background: ["#2b7fff", "#8b5cf6", "#ef4444"][k % 3] }} />
-                      </div>
-                      <div className="font-medium leading-tight">{["Wire realtime channel", "Role RBAC review", "Redesign nav", "Realtime presence", "Refactor auth", "Hive theming", "Task filters", "SSE fallback", "Docs pass"][ci * 3 + k]}</div>
-                    </motion.div>
-                  ))}
-                </div>
+
+        {/* Slideshow Content */}
+        <div
+          className="relative w-full bg-secondary/30 overflow-hidden flex items-center justify-center min-h-[350px] sm:min-h-[480px] md:min-h-[560px] lg:min-h-[640px]"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.img
+              key={page}
+              src={heroSlides[currentIndex]}
+              alt={`Slide ${currentIndex + 1}`}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.35 }
+              }}
+              className="w-full h-full object-contain max-h-[720px] rounded-b-2xl select-none"
+            />
+          </AnimatePresence>
+
+          {/* Navigation Controls */}
+          {imageCount > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => paginate(-1)}
+                aria-label="Previous slide"
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-105 active:scale-95 shadow-md z-20"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => paginate(1)}
+                aria-label="Next slide"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 hover:scale-105 active:scale-95 shadow-md z-20"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          )}
+
+          {/* Pagination Indicators */}
+          {imageCount > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md shadow-lg z-20">
+              {heroSlides.map((_, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => goToSlide(idx)}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
+                    }`}
+                />
               ))}
             </div>
-          </main>
+          )}
         </div>
       </div>
     </motion.div>
