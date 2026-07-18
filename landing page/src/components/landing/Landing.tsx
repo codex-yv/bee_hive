@@ -782,12 +782,6 @@ function Solution() {
 
 const SHOWCASE = [
   {
-    tag: "Leadership",
-    title: "Leadership Management",
-    body: "Give team leads a bird's-eye view of ownership, blockers, and momentum — without micromanaging.",
-    Visual: LeadershipVisual,
-  },
-  {
     tag: "Tasks",
     title: "Task Tracking",
     body: "Assign the task to team members and track the current status of the assigned tasks. Members will automatically be notified via email.",
@@ -810,6 +804,7 @@ const SHOWCASE = [
     title: "Real-Time Progress",
     body: "Get the visual updates of the on going taks and projects on the dashboard. Get real-time notification for every update.",
     Visual: RealtimeVisual,
+    frameClassName: "max-w-md mx-auto",
   },
   {
     tag: "Deploy",
@@ -830,7 +825,7 @@ function FeatureShowcase() {
           </h2>
         </Reveal>
         <div className="space-y-20 md:space-y-28">
-          {SHOWCASE.map(({ tag, title, body, Visual }, i) => {
+          {SHOWCASE.map(({ tag, title, body, Visual, frameClassName }, i) => {
             const flip = i % 2 === 1;
             return (
               <div key={title} className="grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
@@ -846,7 +841,7 @@ function FeatureShowcase() {
                 </div>
                 <div className={`lg:col-span-7 ${flip ? "lg:order-1" : ""}`}>
                   <Reveal delay={0.1}>
-                    <ShowcaseFrame>
+                    <ShowcaseFrame className={frameClassName}>
                       <Visual />
                     </ShowcaseFrame>
                   </Reveal>
@@ -860,9 +855,9 @@ function FeatureShowcase() {
   );
 }
 
-function ShowcaseFrame({ children }: { children: ReactNode }) {
+function ShowcaseFrame({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className="relative">
+    <div className={`relative ${className}`}>
       <div className="absolute -inset-4 rounded-[28px] opacity-40 blur-2xl" style={{ background: "var(--grad-accent-soft)" }} />
       <div className="relative rounded-2xl hairline bg-white p-5 md:p-6 shadow-[0_40px_100px_-40px_rgba(17,17,17,0.18)]">
         {children}
@@ -871,113 +866,26 @@ function ShowcaseFrame({ children }: { children: ReactNode }) {
   );
 }
 
-function LeadershipVisual() {
-  const rows = [
-    { name: "Ava Chen", role: "Product Lead", load: 78, color: "#2b7fff" },
-    { name: "Noah Park", role: "Eng Lead", load: 62, color: "#8b5cf6" },
-    { name: "Mia Rossi", role: "Design Lead", load: 44, color: "#ef4444" },
-    { name: "Kai Tanaka", role: "Growth Lead", load: 91, color: "#111" },
-  ];
-  return (
-    <div className="space-y-3">
-      {rows.map((r, i) => (
-        <motion.div
-          key={r.name}
-          initial={{ opacity: 0, x: -10 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.08, duration: 0.6, ease: easeOut }}
-          className="flex items-center gap-4 rounded-xl hairline p-3"
-        >
-          <div className="h-9 w-9 rounded-full" style={{ background: r.color }} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{r.name}</span>
-              <span className="text-muted-foreground">{r.load}%</span>
-            </div>
-            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: `${r.load}%` }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 + i * 0.08, duration: 0.9, ease: easeOut }}
-                className="h-full"
-                style={{ background: r.color }}
-              />
-            </div>
-            <div className="mt-1 text-[11px] text-muted-foreground">{r.role}</div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
 function TaskVisual() {
-  const tasks = [
-    { t: "Implement realtime presence", s: "In Progress", c: "#2b7fff" },
-    { t: "Redesign onboarding flow", s: "Review", c: "#8b5cf6" },
-    { t: "RBAC edge cases", s: "Todo", c: "#111" },
-    { t: "Docs: self-hosting on VPS", s: "Done", c: "#22c55e" },
-    { t: "Notification batching", s: "In Progress", c: "#2b7fff" },
-  ];
   return (
-    <div className="space-y-2">
-      {tasks.map((t, i) => (
-        <motion.div
-          key={t.t}
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.06, duration: 0.5, ease: easeOut }}
-          className="flex items-center justify-between rounded-lg hairline px-3 py-2.5"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="h-2 w-2 rounded-full" style={{ background: t.c }} />
-            <span className="text-sm truncate">{t.t}</span>
-          </div>
-          <span className="text-[11px] px-2 py-0.5 rounded-full hairline text-muted-foreground">{t.s}</span>
-        </motion.div>
-      ))}
+    <div className="overflow-hidden rounded-xl">
+      <img
+        src="/features/tasks.png"
+        alt="Tasks Feature"
+        className="w-full h-auto object-cover rounded-xl"
+      />
     </div>
   );
 }
 
 function ProjectVisual() {
-  const projects = [
-    { name: "Realtime v0.4", pct: 72, color: "#2b7fff" },
-    { name: "Design System", pct: 45, color: "#8b5cf6" },
-    { name: "Docs Rewrite", pct: 88, color: "#ef4444" },
-  ];
   return (
-    <div className="grid sm:grid-cols-3 gap-3">
-      {projects.map((p, i) => (
-        <motion.div
-          key={p.name}
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.08, duration: 0.6, ease: easeOut }}
-          className="rounded-xl hairline p-4"
-        >
-          <div className="text-xs text-muted-foreground">Project</div>
-          <div className="font-medium mt-0.5">{p.name}</div>
-          <div className="mt-4 relative h-16 w-16">
-            <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
-              <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
-              <motion.circle
-                cx="18" cy="18" r="15" fill="none" stroke={p.color} strokeWidth="3" strokeLinecap="round"
-                strokeDasharray={2 * Math.PI * 15}
-                initial={{ strokeDashoffset: 2 * Math.PI * 15 }}
-                whileInView={{ strokeDashoffset: 2 * Math.PI * 15 * (1 - p.pct / 100) }}
-                viewport={{ once: true }}
-                transition={{ duration: 1, ease: easeOut, delay: 0.2 + i * 0.08 }}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold">{p.pct}%</div>
-          </div>
-        </motion.div>
-      ))}
+    <div className="overflow-hidden rounded-xl">
+      <img
+        src="/features/projects.png"
+        alt="Projects Feature"
+        className="w-full h-auto object-cover rounded-xl"
+      />
     </div>
   );
 }
@@ -1012,31 +920,12 @@ function ChatVisual() {
 
 function RealtimeVisual() {
   return (
-    <div className="relative h-48 overflow-hidden rounded-xl hairline">
-      <div className="absolute inset-0" style={{ background: "var(--grad-accent-soft)" }} />
-      <svg viewBox="0 0 400 160" className="absolute inset-0 h-full w-full">
-        <motion.path
-          d="M0,120 C60,80 100,140 160,90 C220,40 260,120 320,70 C360,40 380,80 400,60"
-          fill="none"
-          stroke="url(#g1)"
-          strokeWidth="3"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.6, ease: easeOut }}
-        />
-        <defs>
-          <linearGradient id="g1" x1="0" x2="1">
-            <stop offset="0%" stopColor="#2b7fff" />
-            <stop offset="50%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#ef4444" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute bottom-3 left-3 rounded-full glass px-3 py-1 text-[11px]">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse" />
-        Live · 12 members online
-      </div>
+    <div className="overflow-hidden rounded-xl">
+      <img
+        src="/features/real-time.png"
+        alt="Real-Time Feature"
+        className="w-full h-auto object-cover rounded-xl"
+      />
     </div>
   );
 }
@@ -1203,43 +1092,43 @@ function Stat({ n, l }: { n: string; l: string }) {
 /* Target Users grid                                  */
 /* -------------------------------------------------- */
 
-const TARGETS = [
-  { t: "Startups", d: "Move fast without losing structure.", grad: "linear-gradient(135deg,#2b7fff,#8b5cf6)" },
-  { t: "Freelancers", d: "Manage clients and deliverables in one place.", grad: "linear-gradient(135deg,#8b5cf6,#ef4444)" },
-  { t: "Hackathon Teams", d: "Ship in 48 hours without dropping the ball.", grad: "linear-gradient(135deg,#ef4444,#f59e0b)" },
-  { t: "Coding Communities", d: "Coordinate contributors across timezones.", grad: "linear-gradient(135deg,#111,#2b7fff)" },
-  { t: "Student Groups", d: "Learn to collaborate the way real teams do.", grad: "linear-gradient(135deg,#22c55e,#2b7fff)" },
-];
+// const TARGETS = [
+//   { t: "Startups", d: "Move fast without losing structure.", grad: "linear-gradient(135deg,#2b7fff,#8b5cf6)" },
+//   { t: "Freelancers", d: "Manage clients and deliverables in one place.", grad: "linear-gradient(135deg,#8b5cf6,#ef4444)" },
+//   { t: "Hackathon Teams", d: "Ship in 48 hours without dropping the ball.", grad: "linear-gradient(135deg,#ef4444,#f59e0b)" },
+//   { t: "Coding Communities", d: "Coordinate contributors across timezones.", grad: "linear-gradient(135deg,#111,#2b7fff)" },
+//   { t: "Student Groups", d: "Learn to collaborate the way real teams do.", grad: "linear-gradient(135deg,#22c55e,#2b7fff)" },
+// ];
 
-function TargetUsers() {
-  return (
-    <section id="community" className="py-24 md:py-32">
-      <Container>
-        <Reveal className="mb-14 max-w-2xl">
-          <SectionLabel>Who It's For</SectionLabel>
-          <h2 className="mt-4 text-3xl md:text-5xl font-semibold tracking-[-0.02em]">Teams of every shape.</h2>
-        </Reveal>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {TARGETS.map((t, i) => (
-            <Reveal key={t.t} delay={i * 0.05}>
-              <motion.div whileHover={{ y: -4 }} className="group relative aspect-[4/3] rounded-2xl hairline bg-white overflow-hidden">
-                <div className="absolute inset-0 opacity-90 transition-transform duration-700 group-hover:scale-110" style={{ background: t.grad }} />
-                <div className="absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% 100%, rgba(255,255,255,0.85), transparent 60%)" }} />
-                {/* abstract shapes */}
-                <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/30 blur-2xl animate-floaty" />
-                <div className="absolute top-1/2 left-6 h-16 w-16 rounded-2xl bg-white/40 animate-floaty" style={{ animationDelay: "-3s" }} />
-                <div className="absolute inset-0 flex flex-col justify-end p-6">
-                  <div className="text-xl font-semibold tracking-tight text-foreground">{t.t}</div>
-                  <div className="mt-1 text-sm text-foreground/70">{t.d}</div>
-                </div>
-              </motion.div>
-            </Reveal>
-          ))}
-        </div>
-      </Container>
-    </section>
-  );
-}
+// function TargetUsers() {
+//   return (
+//     <section id="community" className="py-24 md:py-32">
+//       <Container>
+//         <Reveal className="mb-14 max-w-2xl">
+//           <SectionLabel>Who It's For</SectionLabel>
+//           <h2 className="mt-4 text-3xl md:text-5xl font-semibold tracking-[-0.02em]">Teams of every shape.</h2>
+//         </Reveal>
+//         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+//           {TARGETS.map((t, i) => (
+//             <Reveal key={t.t} delay={i * 0.05}>
+//               <motion.div whileHover={{ y: -4 }} className="group relative aspect-[4/3] rounded-2xl hairline bg-white overflow-hidden">
+//                 <div className="absolute inset-0 opacity-90 transition-transform duration-700 group-hover:scale-110" style={{ background: t.grad }} />
+//                 <div className="absolute inset-0" style={{ background: "radial-gradient(120% 80% at 50% 100%, rgba(255,255,255,0.85), transparent 60%)" }} />
+//                 {/* abstract shapes */}
+//                 <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/30 blur-2xl animate-floaty" />
+//                 <div className="absolute top-1/2 left-6 h-16 w-16 rounded-2xl bg-white/40 animate-floaty" style={{ animationDelay: "-3s" }} />
+//                 <div className="absolute inset-0 flex flex-col justify-end p-6">
+//                   <div className="text-xl font-semibold tracking-tight text-foreground">{t.t}</div>
+//                   <div className="mt-1 text-sm text-foreground/70">{t.d}</div>
+//                 </div>
+//               </motion.div>
+//             </Reveal>
+//           ))}
+//         </div>
+//       </Container>
+//     </section>
+//   );
+// }
 
 /* -------------------------------------------------- */
 /* Comparison                                         */
@@ -1548,7 +1437,7 @@ export function Landing() {
         <FeatureShowcase />
         <HowItWorks />
         <OpenSource />
-        <TargetUsers />
+        {/* <TargetUsers /> */}
         <Comparison />
         {/* <Testimonials /> */}
         <FAQ />
