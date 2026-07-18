@@ -641,9 +641,9 @@ function PerfectFor() {
 /* -------------------------------------------------- */
 
 const PROBLEMS = [
-  { icon: Layers, title: "Scattered task tracking", body: "Sticky notes, spreadsheets, and DMs — nothing lives in one place." },
-  { icon: MessageSquare, title: "Disconnected communication", body: "Conversations trapped in tools that don't talk to your work." },
-  { icon: ShieldCheck, title: "No leadership visibility", body: "Leads can't see what's blocked, what's shipping, or who's stuck." },
+  { icon: Users, title: "Team Awareness", body: "Limited visibility into team members' skills, contributions, and ongoing work." },
+  { icon: ListChecks, title: "Project & Task Management", body: "Difficulty tracking project health, task progress, and team responsibilities." },
+  { icon: MessageSquare, title: "Community Collaboration", body: "Lack of a centralized, project-focused space for communication and collaboration" },
   { icon: Radio, title: "Poor remote collaboration", body: "Timezones and tools drift teams apart when they should sync." },
   { icon: Settings2, title: "Too many disconnected tools", body: "Every subscription adds friction, cost, and context switching." },
 ];
@@ -731,12 +731,12 @@ function Problem() {
 /* -------------------------------------------------- */
 
 const SOLUTIONS = [
-  { icon: Users, title: "Team & Leadership Management", body: "Structure your org, assign leads, and give every team clear ownership." },
-  { icon: ListChecks, title: "Task & Project Assignment", body: "Break down projects into tasks and route them to the right people fast." },
-  { icon: MessageSquare, title: "Community Chat", body: "Threaded conversations tied directly to the work they belong to." },
-  { icon: ShieldCheck, title: "Role Management", body: "Granular roles and permissions that scale from 3 to 300 members." },
-  { icon: Bell, title: "Real-Time Notifications", body: "Instant updates on progress, mentions, and status changes — no polling." },
-  { icon: Server, title: "Self-Hostable Architecture", body: "Run it on your own infrastructure. Your data, your servers, your rules." },
+  { icon: Users, title: "Team Awareness & Management", body: "Know your team members' skills, contributions, and ongoing work." },
+  { icon: ListChecks, title: "Task & Project Assignment", body: "Break down projects and tasks and route them to the right people fast." },
+  { icon: MessageSquare, title: "Community Chat", body: "Chat with your members. Reply, react and share images and files." },
+  { icon: ShieldCheck, title: "Limited Access", body: "Stay informed about every sign-up request and easily approve, reject or manage member permissions." },
+  { icon: Bell, title: "Real-Time Notifications", body: "Instant updates on progress, sign-up requests, and profile changes — no polling." },
+  { icon: Server, title: "Self-Hostable Architecture", body: "Run it on your own infrastructure (Render, Vercel, AWS, etc). Your data, your servers, your rules." },
   { icon: GitBranch, title: "Open Source", body: "Auditable, extensible, and free forever. Fork it, ship it, own it." },
 ];
 
@@ -796,7 +796,7 @@ const SHOWCASE = [
   {
     tag: "Chat",
     title: "Community Chat",
-    body: "Discuss the work where the work lives. Threads stay attached to tasks and projects.",
+    body: "Discuss the work where the work lives. Reply, react and share images and files.",
     Visual: ChatVisual,
   },
   {
@@ -816,7 +816,7 @@ const SHOWCASE = [
 
 function FeatureShowcase() {
   return (
-    <section className="py-24 md:py-32 bg-secondary/40">
+    <section id="features" className="py-24 md:py-32 bg-secondary/40">
       <Container>
         <Reveal className="mb-16 max-w-2xl">
           <SectionLabel>Feature Showcase</SectionLabel>
@@ -967,12 +967,12 @@ function DeployVisual() {
 /* -------------------------------------------------- */
 
 const STEPS = [
-  { n: "01", t: "Setup BeeHive", d: "One command to deploy on your infrastructure." },
-  { n: "02", t: "Create Teams", d: "Organize members into focused, purposeful groups." },
-  { n: "03", t: "Assign Roles", d: "Grant permissions with fine-grained access control." },
-  { n: "04", t: "Create Tasks", d: "Break projects into clear, ownable work items." },
+  { n: "01", t: "Fork & Deploy BeeHive", d: "Fork the GitHub repository and deploy BeeHive on your own infrastructure." },
+  { n: "02", t: "Create Teams", d: "Set up teams and invite members to collaborate." },
+  { n: "03", t: "Create Projects & Tasks", d: "Organize your work by creating projects, tasks, and milestones." },
+  { n: "04", t: "Assign Members & Team Lead", d: "Assign team members and designate project leads with clear responsibilities." },
   { n: "05", t: "Collaborate", d: "Chat, comment, and iterate in real time." },
-  { n: "06", t: "Ship Faster", d: "Deliver work with clarity and momentum." },
+  { n: "06", t: "Ship Faster", d: "Deliver projects with greater clarity, accountability, and momentum." },
 ];
 
 function HowItWorks() {
@@ -1014,7 +1014,7 @@ function HowItWorks() {
 
 const OS_CARDS = [
   { icon: GitBranch, t: "100% Open Source", d: "MIT licensed. Read, fork, and modify freely." },
-  { icon: Server, t: "Self Host Anywhere", d: "Docker, Kubernetes, or bare metal — you choose." },
+  { icon: Server, t: "Self Host Anywhere", d: "Vercel, Render, AWS or bare metal — you choose." },
   { icon: Settings2, t: "Customize Freely", d: "Every module is composable and replaceable." },
   { icon: Heart, t: "Community Driven", d: "Roadmap shaped by contributors, not committees." },
   { icon: ShieldCheck, t: "No Vendor Lock-In", d: "Your data, your servers, your rules — always." },
@@ -1036,7 +1036,7 @@ function OpenSource() {
           <Reveal delay={0.1}>
             <p className="text-muted-foreground leading-relaxed max-w-md">
               No hidden telemetry. No paywalled features. No servers you don't control. BeeHive is
-              yours to run, extend, and improve — forever.
+              yours to run, extend, and improve.
             </p>
           </Reveal>
         </div>
@@ -1137,7 +1137,7 @@ function Stat({ n, l }: { n: string; l: string }) {
 const COMPARISON = [
   { row: "Task Management", trad: "Spread across 3 tools", bee: true },
   { row: "Communication", trad: "In a separate chat app", bee: true },
-  { row: "Leadership Visibility", trad: "Manual status updates", bee: true },
+  // { row: "Leadership Visibility", trad: "Manual status updates", bee: true },
   { row: "Project Tracking", trad: "Spreadsheets & PDFs", bee: true },
   { row: "Open Source", trad: "Closed & proprietary", bee: true },
   { row: "Self Hosting", trad: "Vendor-controlled cloud", bee: true },
@@ -1146,7 +1146,7 @@ const COMPARISON = [
 
 function Comparison() {
   return (
-    <section className="py-24 md:py-32 bg-secondary/40">
+    <section id="comparison" className="py-24 md:py-32 bg-secondary/40">
       <Container>
         <Reveal className="mb-14 text-center">
           <SectionLabel>Comparison</SectionLabel>
@@ -1239,8 +1239,8 @@ function Comparison() {
 
 const FAQS = [
   { q: "Is BeeHive really free and open source?", a: "Yes. BeeHive is MIT licensed. You can read, fork, modify, and self-host it forever, at no cost." },
-  { q: "Where does my data live?", a: "Wherever you deploy it. BeeHive runs on your own infrastructure — VPS, Kubernetes, or your laptop." },
-  { q: "Do I need to be a developer to run it?", a: "One-command Docker Compose gets you started. Basic terminal familiarity is enough." },
+  { q: "Where does my data live?", a: "Wherever you deploy it. BeeHive runs on your own infrastructure or Render, Vercel, AWS etc." },
+  { q: "Do I need to be a developer to run it?", a: "No. You don't need to be a developer, simply follow the setup instructions to get started." },
   { q: "Does BeeHive support real-time updates?", a: "Yes. Presence, task updates, and chat are all real-time out of the box." },
   { q: "Can I customize or extend BeeHive?", a: "Absolutely. The codebase is modular. Replace, extend, or theme any part of it." },
   { q: "How does it compare to hosted tools?", a: "You get similar functionality without vendor lock-in, subscription fees, or data risk." },
@@ -1360,10 +1360,41 @@ function CTA() {
 /* -------------------------------------------------- */
 
 const FOOTER_COLS = [
-  { h: "Product", links: ["Features", "How It Works", "Comparison", "FAQ"] },
-  { h: "Open Source", links: ["GitHub", "License", "Contributing", "Roadmap"] },
-  { h: "Community", links: ["Discussions", "Discord", "Twitter", "Blog"] },
-  { h: "Resources", links: ["Documentation", "Self-Hosting Guide", "Changelog", "Support"] },
+  {
+    h: "Product",
+    links: [
+      { label: "Features", href: "#features" },
+      { label: "How It Works", href: "#how" },
+      { label: "Comparison", href: "#comparison" },
+      { label: "FAQ", href: "#faq" },
+    ],
+  },
+  {
+    h: "Open Source",
+    links: [
+      { label: "GitHub", href: "https://github.com/codex-yv/bee_hive" },
+      { label: "License", href: "https://github.com/codex-yv/bee_hive/blob/main/LICENSE" },
+      { label: "Contributing", href: "https://github.com/codex-yv/bee_hive" },
+      { label: "Roadmap", href: "https://github.com/codex-yv/bee_hive" },
+    ],
+  },
+  {
+    h: "Community",
+    links: [
+      { label: "Discord", href: "https://github.com/codex-yv/bee_hive" },
+      { label: "Twitter", href: "https://github.com/codex-yv/bee_hive" },
+      { label: "Instagram", href: "https://github.com/codex-yv/bee_hive" },
+    ],
+  },
+  {
+    h: "Resources",
+    links: [
+      { label: "Documentation", href: "https://github.com/codex-yv/bee_hive#readme" },
+      { label: "Self-Hosting Guide", href: "#open-source" },
+      { label: "Changelog", href: "https://github.com/codex-yv/bee_hive/releases" },
+      { label: "Support", href: "https://github.com/codex-yv/bee_hive/issues" },
+    ],
+  },
 ];
 
 function Footer() {
@@ -1380,13 +1411,31 @@ function Footer() {
               The open-source collaboration platform built for modern teams.
             </p>
             <div className="mt-6 flex items-center gap-3">
-              <a href="#" aria-label="GitHub" className="flex h-9 w-9 items-center justify-center rounded-full hairline hover:bg-accent">
+              <a
+                href="https://github.com/codex-yv/bee_hive"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                className="flex h-9 w-9 items-center justify-center rounded-full hairline hover:bg-accent"
+              >
                 <Github className="h-4 w-4" />
               </a>
-              <a href="#" aria-label="Workflow" className="flex h-9 w-9 items-center justify-center rounded-full hairline hover:bg-accent">
+              <a
+                href="https://github.com/codex-yv/bee_hive"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Workflow"
+                className="flex h-9 w-9 items-center justify-center rounded-full hairline hover:bg-accent"
+              >
                 <Workflow className="h-4 w-4" />
               </a>
-              <a href="#" aria-label="Community" className="flex h-9 w-9 items-center justify-center rounded-full hairline hover:bg-accent">
+              <a
+                href="https://github.com/codex-yv/bee_hive/discussions"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Community"
+                className="flex h-9 w-9 items-center justify-center rounded-full hairline hover:bg-accent"
+              >
                 <MessageSquare className="h-4 w-4" />
               </a>
             </div>
@@ -1397,9 +1446,14 @@ function Footer() {
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{c.h}</div>
                 <ul className="mt-4 space-y-2.5 text-sm">
                   {c.links.map((l) => (
-                    <li key={l}>
-                      <a href="#" className="text-foreground/80 hover:text-foreground transition-colors">
-                        {l}
+                    <li key={l.label}>
+                      <a
+                        href={l.href}
+                        target={l.href.startsWith("http") ? "_blank" : undefined}
+                        rel={l.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                        className="text-foreground/80 hover:text-foreground transition-colors"
+                      >
+                        {l.label}
                       </a>
                     </li>
                   ))}
@@ -1411,9 +1465,9 @@ function Footer() {
         <div className="mt-14 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 border-t border-hairline pt-6 text-xs text-muted-foreground">
           <div>© {new Date().getFullYear()} BeeHive. MIT Licensed.</div>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">Terms</a>
-            <a href="#" className="hover:text-foreground">Security</a>
+            <a href="https://github.com/codex-yv/bee_hive" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Privacy</a>
+            <a href="https://github.com/codex-yv/bee_hive" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Terms</a>
+            <a href="https://github.com/codex-yv/bee_hive" target="_blank" rel="noopener noreferrer" className="hover:text-foreground">Security</a>
           </div>
         </div>
       </Container>
