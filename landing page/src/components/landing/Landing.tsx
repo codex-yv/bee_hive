@@ -257,10 +257,10 @@ function Nav() {
 
             <div className="flex items-center gap-2">
               <a
-                href="#cta"
+                href="/docs"
                 className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 transition-opacity"
               >
-                Explore Setup <ArrowRight className="h-3.5 w-3.5" />
+                Explore Docs <ArrowRight className="h-3.5 w-3.5" />
               </a>
               <button
                 aria-label="Menu"
@@ -510,7 +510,7 @@ function HeroMockup() {
             <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
           </div>
           <span className="mx-auto text-[11px] text-muted-foreground font-medium">
-            trendy.app — Showcase ({currentIndex + 1} / {imageCount})
+            BeeHive — Showcase ({currentIndex + 1} / {imageCount})
           </span>
           <button
             type="button"
