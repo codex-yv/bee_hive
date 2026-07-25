@@ -19,7 +19,7 @@ export const docsConfig = {
       title: "Getting Started",
       href: "#getting-started",
       items: [
-        { title: "Installation", href: "#installation" }
+        { title: "Installation", href: "/setup" }
       ],
     },
     {

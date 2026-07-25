@@ -362,7 +362,7 @@ function Hero() {
           <Reveal delay={0.3}>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <a
-                href="#cta"
+                href="/setup"
                 className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-all hover:translate-y-[-1px] hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.4)]"
               >
                 Explore Setup
@@ -1331,7 +1331,7 @@ function CTA() {
             <Reveal delay={0.2}>
               <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                 <a
-                  href="#"
+                  href="/setup"
                   className="group inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-all hover:translate-y-[-1px] hover:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.4)]"
                 >
                   Explore Setup

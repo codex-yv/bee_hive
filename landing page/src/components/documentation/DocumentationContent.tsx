@@ -181,7 +181,7 @@ export function DocumentationContent() {
 
         <div className="mt-8">
           <a
-            href="/installation"
+            href="/setup"
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors group"
           >
             Go to Installation
@@ -491,7 +491,9 @@ ADMIN_PASSWORD="your_secure_admin_password"
 # Cloud Storage (Cloudinary)
 CLOUD_NAME="your_cloudinary_cloud_name"
 CLOUDINARY_API_KEY="123456789012345"
-CLOUDINARY_SECRET_KEY="your_cloudinary_secret_key"`}
+CLOUDINARY_SECRET_KEY="your_cloudinary_secret_key
+
+PYTHON_VERSION = "3.10.13"`}
         />
 
         <SectionHeading id="contributing" level={2}>Contributing</SectionHeading>
@@ -506,7 +508,7 @@ CLOUDINARY_SECRET_KEY="your_cloudinary_secret_key"`}
 
         <div className="mt-8">
           <a
-            href="/installation"
+            href="/setup"
             className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-colors group"
           >
             Go to Installation
