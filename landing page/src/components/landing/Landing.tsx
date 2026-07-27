@@ -932,32 +932,12 @@ function RealtimeVisual() {
 
 function DeployVisual() {
   return (
-    <div className="rounded-xl bg-[#0b0b0f] p-5 font-mono text-[12px] leading-relaxed text-white/90">
-      <div className="mb-2 flex items-center gap-1.5">
-        <span className="h-2 w-2 rounded-full bg-white/20" />
-        <span className="h-2 w-2 rounded-full bg-white/20" />
-        <span className="h-2 w-2 rounded-full bg-white/20" />
-        <span className="ml-2 text-white/40">~/beehive</span>
-      </div>
-      {[
-        "$ git clone github.com/beehive/beehive",
-        "$ docker compose up -d",
-        "→ postgres  ready in 1.2s",
-        "→ realtime  ready in 0.8s",
-        "→ web       ready on :3000",
-        "✓ BeeHive is live at http://localhost:3000",
-      ].map((l, i) => (
-        <motion.div
-          key={l}
-          initial={{ opacity: 0, x: -6 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: i * 0.12, duration: 0.4 }}
-          className={l.startsWith("→") ? "text-white/60" : l.startsWith("✓") ? "text-emerald-400" : ""}
-        >
-          {l}
-        </motion.div>
-      ))}
+    <div className="overflow-hidden rounded-xl">
+      <img
+        src="/features/deployment.png"
+        alt="Deployment Feature"
+        className="w-full h-auto object-cover rounded-xl"
+      />
     </div>
   );
 }
