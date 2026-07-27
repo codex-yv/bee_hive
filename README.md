@@ -1,15 +1,35 @@
-# 🚀 BeeHive - Open Source Collaboration Platform
-![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![SendGrid](https://img.shields.io/badge/SendGrid-Email-0099FF?style=for-the-badge&logo=sendgrid&logoColor=white)
-![Jinja2](https://img.shields.io/badge/Jinja2-Templates-B41717?style=for-the-badge&logo=jinja&logoColor=white)
-![HTML5](https://img.shields.io/badge/HTML5-Markup-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-Styling-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+<p align="center">
+  <img src="landing page/public/logo.png" width="120" alt="BeeHive Logo" />
+</p>
+
+<h1 align="center">BeeHive</h1>
+
+<p align="center">
+  <strong>Open Source Collaboration Platform</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/frontend-HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
+  <img src="https://img.shields.io/badge/styling-CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  <img src="https://img.shields.io/badge/language-JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/backend-Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/framework-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/database-MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
+  <img src="https://img.shields.io/badge/images-Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary" />
+  <img src="https://img.shields.io/badge/email-SendGrid-1A82E2?style=for-the-badge&logo=sendgrid&logoColor=white" alt="SendGrid" />
+  <img src="https://img.shields.io/badge/deploy-Render-000000?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
+  <img src="https://img.shields.io/badge/deploy-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+</p>
+
+<p align="center">
+  🌐 <strong><a href="https://beehivecollab.onrender.com/">Official Page</a></strong> &nbsp;|&nbsp; 
+  📚 <strong><a href="https://beehivecollab.onrender.com/docs">Documentation</a></strong> &nbsp;|&nbsp; 
+  🛠️ <strong><a href="https://beehivecollab.onrender.com/setup">Setup & Deployment</a></strong>
+</p>
+
 ## 💡 Project Overview
 
-BeeHive is a web-based collaboration and team management system designed to help startups, freelancers, hackathon teams, and coding groups work efficiently under a single, unified platform. Built using HTML, CSS, JavaScript, and Python, the system focuses on **clarity, collaboration, and momentum** — three essential elements every growing team needs.
+BeeHive is a self-hostable, open-source collaboration platform designed to help organizations efficiently manage teams, projects, and workflows from a single unified workspace. It is ideal for startups, hackathon teams, freelance agencies, coding communities, educational groups, and other collaborative environments.
 
 ## 🎯 What Problem Does It Solve?
 
@@ -147,36 +167,36 @@ uvicorn main:app --reload
 # Screenshots
 ## Admin Page
 ### Dashboards
-<img width="1919" height="877" alt="Screenshot 2026-03-20 144528" src="https://github.com/user-attachments/assets/94402c3c-f37d-46a1-a007-85649d4f99d4" />
+<img alt="Admin Dashboard" src="landing page/public/features/adminDash.png" />
 
 ### Approve Pending Signups
-<img width="2560" height="1600" alt="admin-approvals" src="https://github.com/user-attachments/assets/c6dd9163-f6c7-4464-8ebf-8b1d08898d59" />
+<img alt="Approve Pending Signups" src="landing page/public/features/members3.png" />
 
 ### Project Status
-<img width="1919" height="878" alt="Screenshot 2026-03-20 144547" src="https://github.com/user-attachments/assets/6d6b1633-2497-4aec-b72d-cd417210ea6c" />
+<img alt="Project Status" src="landing page/public/features/project.png" />
 
 ### Task Status
-<img width="1919" height="878" alt="Screenshot 2026-03-20 144604" src="https://github.com/user-attachments/assets/9f0df7ab-b2c1-4ec9-9212-3adda5fa4715" />
+<img alt="Task Status" src="landing page/public/features/task.png" />
 
 ### Member's Profile
-<img width="2560" height="1600" alt="members-profile" src="https://github.com/user-attachments/assets/f03b0810-c850-42fd-8b36-7d6fa42b3438" />
+<img alt="Member Profile" src="landing page/public/features/members1.png" />
 
 
 ## Member's Page
 ### Dashboard
-<img width="1919" height="872" alt="Screenshot 2026-03-20 145758" src="https://github.com/user-attachments/assets/2ca853a0-23c1-42bd-8d6f-5b42b93a7337" />
+<img alt="Member Dashboard" src="landing page/public/features/userdash.png" />
 
 ### Member's Profile
-<img width="2560" height="1600" alt="profile-client" src="https://github.com/user-attachments/assets/38e1c96e-edd2-40d0-a71f-dcb822036ddf" />
+<img alt="Member Profile" src="landing page/public/features/userprofile.png" />
 
 ### Projects Assigned to Members    
-<img width="1919" height="874" alt="Screenshot 2026-03-20 145900" src="https://github.com/user-attachments/assets/ee58bc49-2905-4856-91e6-6cb4706d5e93" />
+<img alt="Projects Assigned to Members" src="landing page/public/features/userproj.png" />
 
 ### Tasks Assigned to Members
-<img width="1919" height="874" alt="Screenshot 2026-03-20 150134" src="https://github.com/user-attachments/assets/7b0987c3-f599-4f83-ad1b-dc9ff9243e0e" />
+<img alt="Tasks Assigned to Members" src="landing page/public/features/usertask.png" />
 
 ### Community Chat (Admin/Members)
-<img width="1919" height="875" alt="Screenshot 2026-03-01 175004" src="https://github.com/user-attachments/assets/a20cab9a-84cd-40b8-b401-a2589febc505" />
+<img alt="Community Chat" src="landing page/public/features/community.png" />
 
 ## 🤝 Contributing
 We welcome contributions from the community! Here's how you can help:
