@@ -361,8 +361,14 @@
     <div class="modal-overlay" id="profileModalOverlay"></div>
     <div class="profile-modal" id="profileModal">
         <div class="profile-header">
-            <div class="profile-icon">
-                <i class="fas fa-user"></i>
+            <div class="profile-icon-wrapper" style="position: relative; display: inline-block; margin: 0 auto 15px;">
+                <div class="profile-icon" style="margin: 0;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <button type="button" class="profile-image-upload-btn" id="uploadProfileImageBtn" title="Update Profile Image">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <input type="file" id="profileImageFileInput" accept=".jpeg,.jpg,.png,image/jpeg,image/png" style="display: none;">
             </div>
             <h2 class="profile-name">{{ fullname if fullname else 'User' }}</h2>
             <p class="profile-email" id="profileEmail">{{ user_email if user_email else 'user@example.com' }}</p>
@@ -478,6 +484,40 @@
 
     <!-- Emoji Picker Container -->
     <div id="emojiPickerWrapper" style="display:none; position:fixed; z-index:10001;"></div>
+
+    <!-- Profile Image Adjustment Modal -->
+    <div id="profileImageCropModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="width: 90%; max-width: 440px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1.5px solid rgba(17,17,17,0.08); border-radius: 16px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; gap: 16px; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 12px;">
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: #111; margin: 0;">Adjust Profile Image</h3>
+                <button id="closeProfileImageCropModal" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #71717a;"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Preview & Crop Container -->
+            <div id="cropViewport" style="display: flex; justify-content: center; align-items: center; background: #0f172a; border-radius: 12px; height: 260px; overflow: hidden; position: relative; user-select: none; -webkit-user-select: none; touch-action: none; cursor: grab;">
+                <!-- Circular Mask -->
+                <div style="position: absolute; width: 180px; height: 180px; border-radius: 50%; border: 3px solid #8b5cf6; box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.7); pointer-events: none; z-index: 2;"></div>
+                <!-- Image Preview -->
+                <img id="cropImagePreview" src="" alt="Crop Preview" draggable="false" style="max-width: none; position: absolute; transform-origin: center center; z-index: 1; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; pointer-events: none;">
+            </div>
+
+            <!-- Controls: Zoom -->
+            <div style="display: flex; align-items: center; gap: 12px; padding: 0 8px;">
+                <i class="fas fa-search-minus" style="color: #71717a; font-size: 0.9rem;"></i>
+                <input type="range" id="cropZoomSlider" min="0.2" max="3" step="0.02" value="1" style="flex: 1; accent-color: #8b5cf6; cursor: pointer;">
+                <i class="fas fa-search-plus" style="color: #71717a; font-size: 0.9rem;"></i>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px;">
+                <button type="button" id="cancelCropBtn" class="btn btn-outline btn-sm" style="padding: 8px 16px; border-radius: 8px;">Cancel</button>
+                <button type="button" id="doneCropBtn" class="btn valorant-button btn-sm" style="padding: 8px 24px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <span id="doneCropBtnText">Done</span>
+                    <span id="doneCropBtnSpinner" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Notification -->
     <div class="toast" id="toastNotification"></div>

@@ -67,3 +67,28 @@ async def save_unified_chat_message(chat_data: dict, msg_type:str):
     }
 
     await collection.insert_one(format_chat)
+
+async def db_update_client_profile_image(image_url:str, client_email: str):
+    db = client["Clients"]
+    collection = db[client_email]
+
+    try:
+        result = await collection.update_one({"email":client_email},
+                                    {"$set":{"profileImg":image_url}})
+        if result.modified_count:
+            return {
+                "status": True,
+                "message": "Profile Image Updated Successfully."
+            }
+        else:
+            print("'email' doest match with client_email.")
+            return {
+                "status": "",
+                "message": "Client does not exist."
+            }
+    except Exception as e:
+        print(f"Error has occurred while saving image in database:\n\n {e}")
+        return {
+            "status": False,
+            "message": f"Can't save image due to {e}"
+        }

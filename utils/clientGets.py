@@ -167,7 +167,7 @@ async def get_user_tasks(collection_name:str):
 
 
 
-async def get_client_profile(collection_name:str):
+async def get_client_profile(collection_name:str) -> dict:
     db = client["Clients"]
     collection = db[collection_name]
     documents = await collection.find({}, {"_id": 0}).to_list(None)
@@ -182,11 +182,17 @@ async def get_client_profile(collection_name:str):
     except KeyError:
         tnp = []
 
+    if documents[0]["profileImg"]:
+        profile_img = documents[0]["profileImg"]
+    else:
+        profile_img = None
 
     profile = {
+        "status": True,
         "skills":skills,
         "tnp":tnp,
         "team":documents[0]["team"],
+        "profile": profile_img,
         "email":collection_name
     }
 

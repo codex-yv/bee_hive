@@ -47,7 +47,7 @@ function buildImageCollageHtml(images) {
 }
 
 // Lightbox modal popup
-window.showImageLightbox = function(src) {
+window.showImageLightbox = function (src) {
     let overlay = document.getElementById('imageLightboxOverlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -85,7 +85,7 @@ function renderSelectedImagesPreview() {
     }).join('');
 }
 
-window.removeSelectedImage = function(index) {
+window.removeSelectedImage = function (index) {
     selectedImages.splice(index, 1);
     renderSelectedImagesPreview();
 };
@@ -757,11 +757,11 @@ function createProjectCard(project, index) {
     } else if (pct >= 30) {
         ringColor = '#f59e0b';
     }
-    
+
     const radius = 20;
     const circumference = 2 * Math.PI * radius; // ~125.66
     const offset = circumference - (circumference * pct) / 100;
-    
+
     ringHtml = `
         <div class="percentage-ring-container" style="display: inline-flex; align-items: center; justify-content: center; position: relative; width: 48px; height: 48px;" title="${Math.round(pct)}% Completed">
             <svg style="transform: rotate(-90deg); width: 48px; height: 48px;">
@@ -803,13 +803,13 @@ function createProjectCard(project, index) {
 function openProjectDetailsModal(idx) {
     const project = clientProjectsData[idx];
     if (!project) return;
-    
+
     const modal = document.getElementById('projectDetailsModal');
     if (!modal) return;
-    
+
     document.getElementById('projectDetailsTitle').textContent = `Project Details: ${project.project_name || 'Project'}`;
     document.getElementById('projectDetailsDesc').textContent = project.project_description || 'No description provided.';
-    
+
     // Set status tag in modal
     const modalStatus = document.getElementById('projectDetailsStatus');
     if (modalStatus) {
@@ -821,7 +821,7 @@ function openProjectDetailsModal(idx) {
 
     const compContainer = document.getElementById('projectDetailsComponents');
     compContainer.innerHTML = '';
-    
+
     const compData = project.components && project.components.data ? project.components.data : {};
     if (compData && typeof compData === 'object' && Object.keys(compData).length > 0) {
         Object.entries(compData).forEach(([compId, compObj]) => {
@@ -833,9 +833,9 @@ function openProjectDetailsModal(idx) {
             div.style.border = '1px solid rgba(17,17,17,0.08)';
             div.style.borderRadius = '8px';
             div.style.background = '#fcfcfc';
-            
+
             const isChecked = compObj.status === true;
-            
+
             div.innerHTML = `
                 <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.toggleComponentCheckbox(this, ${idx}, '${compId}')" style="width: 22px; height: 22px; margin-right: 12px; margin-top: 4px; cursor: pointer; accent-color: #2b7fff;">
                 <div>
@@ -848,7 +848,7 @@ function openProjectDetailsModal(idx) {
     } else {
         compContainer.innerHTML = '<p style="font-size: 0.85rem; color: #71717a;">No components found.</p>';
     }
-    
+
     modal.style.display = 'flex';
 }
 
@@ -862,14 +862,14 @@ function closeProjectDetailsModal() {
 async function toggleComponentCheckbox(checkbox, projectIndex, componentId) {
     const project = clientProjectsData[projectIndex];
     if (!project) return;
-    
+
     let projectId = project._id;
     if (projectId && typeof projectId === 'object' && projectId.$oid) {
         projectId = projectId.$oid;
     }
-    
+
     const newStatus = checkbox.checked ? 1 : 0;
-    
+
     try {
         checkbox.disabled = true;
         const response = await fetch('/client/projects/component-checkbox', {
@@ -883,11 +883,11 @@ async function toggleComponentCheckbox(checkbox, projectIndex, componentId) {
                 component_id: componentId
             })
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
         if (result.success) {
             project.percentage = String(result.percentage);
@@ -899,7 +899,7 @@ async function toggleComponentCheckbox(checkbox, projectIndex, componentId) {
                 }
             }
             project.Status = result.status ? 1 : 0;
-            
+
             // Update status tag in modal
             const modalStatus = document.getElementById('projectDetailsStatus');
             if (modalStatus) {
@@ -1027,13 +1027,9 @@ function createTaskCard(task) {
 
 async function loadProfileData() {
     try {
-        // Send POST request to FastAPI server
+        // Send GET request to FastAPI server
         const response = await fetch('/client/dashboard/client-profile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ x: 'any string value' })
+            method: 'GET'
         });
 
         if (!response.ok) {
@@ -1052,6 +1048,16 @@ async function loadProfileData() {
 }
 
 function updateProfileModal(data) {
+    // Update profile icon / image based on status and profile URL
+    const profileIconContainer = document.querySelector('.profile-icon');
+    if (profileIconContainer) {
+        if (data.status && data.profile && typeof data.profile === 'string' && data.profile.trim() !== '') {
+            profileIconContainer.innerHTML = `<img src="${data.profile}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        } else {
+            profileIconContainer.innerHTML = `<i class="fas fa-user"></i>`;
+        }
+    }
+
     // Update email
     const profileEmail = document.getElementById('profileEmail');
     if (profileEmail && data.email) {
@@ -1067,9 +1073,10 @@ function updateProfileModal(data) {
     // Update skills
     const skillsDisplay = document.getElementById('skillsDisplay');
     if (skillsDisplay) {
-        if (data.skills && data.skills.length > 0) {
-            currentSkills = [...data.skills];
-            skillsDisplay.innerHTML = data.skills.map(skill => `
+        const skillsList = data.skills;
+        if (skillsList && skillsList.length > 0) {
+            currentSkills = [...skillsList];
+            skillsDisplay.innerHTML = skillsList.map(skill => `
                 <span class="tag">${skill}</span>
             `).join('');
         } else {
@@ -1093,183 +1100,441 @@ function updateProfileModal(data) {
     }
 }
 
-async function saveProfileData(section) {
-    try {
-        // Get the current values from input fields
-        const editContainer = document.getElementById(`${section}Edit`);
-        if (!editContainer) return;
+// ====== Profile Image Upload & Adjustment ======
 
-        const inputs = editContainer.querySelectorAll('.editable-input');
+    function initProfileImageUpload() {
+        const uploadBtn = document.getElementById('uploadProfileImageBtn');
+        const fileInput = document.getElementById('profileImageFileInput');
+        const cropModal = document.getElementById('profileImageCropModal');
+        const closeCropModalBtn = document.getElementById('closeProfileImageCropModal');
+        const cancelCropBtn = document.getElementById('cancelCropBtn');
+        const doneCropBtn = document.getElementById('doneCropBtn');
+        const cropViewport = document.getElementById('cropViewport');
+        const cropImgPreview = document.getElementById('cropImagePreview');
+        const zoomSlider = document.getElementById('cropZoomSlider');
 
-        // Extract values from inputs, filtering out empty ones
-        const values = Array.from(inputs)
-            .map(input => input.value.trim())
-            .filter(value => value !== '');
+        if (!uploadBtn || !fileInput || !cropModal) return;
 
-        // Prepare data for the request
-        let requestData = {};
+        let cropZoom = 1;
+        let cropPosX = 0;
+        let cropPosY = 0;
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let originalWidth = 0, originalHeight = 0;
 
-        if (section === 'skills') {
-            requestData = {
-                skills: values,
-                tnp: []
-            };
-        } else if (section === 'tools') {
-            requestData = {
-                skills: [],
-                tnp: values
-            };
-        }
-
-        console.log('Saving profile data:', requestData);
-
-        // Send POST request to FastAPI server
-        const response = await fetch('/client/dashboard/update-profile', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData)
+        // Open file picker on + icon click
+        uploadBtn.addEventListener('click', function () {
+            fileInput.click();
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Handle file selection
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
 
-        const result = await response.json();
-        console.log('Profile update response:', result);
+            // Allowed extensions and MIME types
+            const validExts = ['jpg', 'jpeg', 'png'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            const validMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
 
-        // Show appropriate toast message based on response
-        if (result === 0) {
-            showToast('Updated successfully!', 'success');
-
-            // Update the current data and display
-            if (section === 'skills') {
-                currentSkills = values;
-                updateSkillsDisplay(values);
-            } else if (section === 'tools') {
-                currentTools = values;
-                updateToolsDisplay(values);
+            if (!validExts.includes(ext) || (file.type && !validMimeTypes.includes(file.type.toLowerCase()))) {
+                showToast('Only JPEG, JPG, and PNG format images are allowed.', 'error');
+                fileInput.value = '';
+                return;
             }
 
-            // Switch back to display mode
-            toggleEdit(section);
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                cropImgPreview.src = evt.target.result;
+                const tempImg = new Image();
+                tempImg.onload = function () {
+                    originalWidth = tempImg.width;
+                    originalHeight = tempImg.height;
 
-        } else if (result === 1) {
-            showToast('Update unsuccessful!', 'error');
-        }
+                    // Reset position & zoom
+                    cropZoom = 1;
+                    cropPosX = 0;
+                    cropPosY = 0;
+                    if (zoomSlider) zoomSlider.value = 1;
+                    updatePreviewTransform();
 
-    } catch (error) {
-        console.error('Error saving profile data:', error);
-        showToast('Error updating profile. Please try again.', 'error');
-    }
-}
-
-function updateSkillsDisplay(skills) {
-    const skillsDisplay = document.getElementById('skillsDisplay');
-    if (!skillsDisplay) return;
-
-    if (skills && skills.length > 0) {
-        skillsDisplay.innerHTML = skills.map(skill => `
-            <span class="tag">${skill}</span>
-        `).join('');
-    } else {
-        skillsDisplay.innerHTML = '<span>No skills added yet</span>';
-    }
-}
-
-function updateToolsDisplay(tools) {
-    const toolsDisplay = document.getElementById('toolsDisplay');
-    if (!toolsDisplay) return;
-
-    if (tools && tools.length > 0) {
-        toolsDisplay.innerHTML = tools.map(tool => `
-            <span class="tag tag-tools">${tool}</span>
-        `).join('');
-    } else {
-        toolsDisplay.innerHTML = '<span>No tools added yet</span>';
-    }
-}
-
-// ====== Toast Notification ======
-
-function showToast(message, type) {
-    const toast = document.getElementById('toastNotification');
-    if (!toast) return;
-
-    toast.textContent = message;
-    toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
-
-    // Show the toast
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 100);
-
-    // Hide the toast after 3 seconds
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
-// ====== Notification Modal Functions ======
-
-function toggleNotificationModal() {
-    const modal = document.getElementById('notificationModal');
-    if (!modal) return;
-
-    if (modal.classList.contains('active')) {
-        closeNotificationModal();
-    } else {
-        openNotificationModal();
-    }
-}
-
-function openNotificationModal() {
-    const modal = document.getElementById('notificationModal');
-    if (!modal) return;
-
-    modal.classList.add('active');
-
-    // Reset notification badge to zero when modal is opened
-    resetNotificationBadge();
-
-    // Load notifications
-    loadNotifications();
-}
-
-function closeNotificationModal() {
-    const modal = document.getElementById('notificationModal');
-    if (modal) modal.classList.remove('active');
-}
-
-async function loadNotifications() {
-    const notificationBody = document.getElementById('notificationBody');
-    if (!notificationBody) return;
-
-    try {
-        // Send POST request to FastAPI server
-        const response = await fetch('/client/dashboard/notification-user', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ x: 'any string value' })
+                    // Open modal
+                    cropModal.style.display = 'flex';
+                };
+                tempImg.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        function updatePreviewTransform() {
+            if (cropImgPreview) {
+                cropImgPreview.style.transform = `translate(${cropPosX}px, ${cropPosY}px) scale(${cropZoom})`;
+            }
         }
 
-        const notifications = await response.json();
-        console.log('Received notifications:', notifications);
+        // Zoom slider listener
+        if (zoomSlider) {
+            zoomSlider.addEventListener('input', function (e) {
+                cropZoom = parseFloat(e.target.value);
+                updatePreviewTransform();
+            });
+        }
 
-        // Render notifications
-        if (notifications && notifications.length > 0) {
-            notificationBody.innerHTML = notifications.map((notification, index) => {
-                const [message, status] = notification;
-                const isUnread = status === 0;
+        // Dragging image preview inside crop area
+        if (cropViewport) {
+            cropViewport.addEventListener('dragstart', function (e) {
+                e.preventDefault();
+            });
+            cropViewport.addEventListener('selectstart', function (e) {
+                e.preventDefault();
+            });
 
-                return `
+            cropViewport.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                isDragging = true;
+                startX = e.clientX - cropPosX;
+                startY = e.clientY - cropPosY;
+                cropViewport.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', function (e) {
+                if (!isDragging) return;
+                cropPosX = e.clientX - startX;
+                cropPosY = e.clientY - startY;
+                updatePreviewTransform();
+            });
+
+            window.addEventListener('mouseup', function () {
+                if (isDragging) {
+                    isDragging = false;
+                    if (cropViewport) cropViewport.style.cursor = 'grab';
+                }
+            });
+
+            // Touch support for touch devices
+            cropViewport.addEventListener('touchstart', function (e) {
+                if (e.touches.length === 1) {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.touches[0].clientX - cropPosX;
+                    startY = e.touches[0].clientY - cropPosY;
+                }
+            });
+
+            window.addEventListener('touchmove', function (e) {
+                if (!isDragging || e.touches.length !== 1) return;
+                cropPosX = e.touches[0].clientX - startX;
+                cropPosY = e.touches[0].clientY - startY;
+                updatePreviewTransform();
+            });
+
+            window.addEventListener('touchend', function () {
+                isDragging = false;
+            });
+        }
+
+        function closeCropModal() {
+            cropModal.style.display = 'none';
+            fileInput.value = '';
+        }
+
+        if (closeCropModalBtn) closeCropModalBtn.addEventListener('click', closeCropModal);
+        if (cancelCropBtn) cancelCropBtn.addEventListener('click', closeCropModal);
+
+        // Done button upload logic
+        if (doneCropBtn) {
+            doneCropBtn.addEventListener('click', async function () {
+                if (!cropImgPreview.src) return;
+
+                const doneBtnText = document.getElementById('doneCropBtnText');
+                const doneBtnSpinner = document.getElementById('doneCropBtnSpinner');
+
+                if (doneBtnText) doneBtnText.style.display = 'none';
+                if (doneBtnSpinner) doneBtnSpinner.style.display = 'inline-block';
+                doneCropBtn.disabled = true;
+
+                try {
+                    // Crop image onto high resolution 300x300 canvas
+                    const canvas = document.createElement('canvas');
+                    const outputSize = 300;
+                    canvas.width = outputSize;
+                    canvas.height = outputSize;
+                    const ctx = canvas.getContext('2d');
+
+                    const cropCircleDiameter = 180;
+                    const scaleFactor = outputSize / cropCircleDiameter;
+
+                    const displayWidth = cropImgPreview.clientWidth || originalWidth;
+                    const displayHeight = cropImgPreview.clientHeight || originalHeight;
+
+                    // Circular clipping path
+                    ctx.beginPath();
+                    ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+
+                    const centerX = outputSize / 2 + cropPosX * scaleFactor;
+                    const centerY = outputSize / 2 + cropPosY * scaleFactor;
+                    const drawWidth = displayWidth * cropZoom * scaleFactor;
+                    const drawHeight = displayHeight * cropZoom * scaleFactor;
+
+                    ctx.drawImage(
+                        cropImgPreview,
+                        centerX - drawWidth / 2,
+                        centerY - drawHeight / 2,
+                        drawWidth,
+                        drawHeight
+                    );
+
+                    canvas.toBlob(async function (blob) {
+                        if (!blob) {
+                            showToast('Failed to process image.', 'error');
+                            resetDoneBtnState();
+                            return;
+                        }
+
+                        const formData = new FormData();
+                        formData.append('image', blob, 'profile_image.png');
+
+                        try {
+                            const response = await fetch('/client/dashboard/add-profile-image', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            const result = await response.json();
+
+                            // Response schema: UpdateProfileImage { status: bool, message: str }
+                            if (response.ok && result.status === true) {
+                                // Show message
+                                showToast(result.message || 'Profile image updated successfully!', 'success');
+
+                                // Display image in profile icon
+                                const profileIconContainer = document.querySelector('.profile-icon');
+                                if (profileIconContainer) {
+                                    const imageUrl = URL.createObjectURL(blob);
+                                    profileIconContainer.innerHTML = `<img src="${imageUrl}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                                }
+
+                                // Reload profile data to synchronize
+                                if (typeof loadProfileData === 'function') {
+                                    loadProfileData();
+                                }
+                            } else {
+                                // If status is false or error
+                                const msg = result.message || (result.detail && result.detail.message) || 'Failed to update profile image.';
+                                showToast(msg, 'error');
+                                // Keep profile icon as it is now
+                            }
+                        } catch (err) {
+                            console.error('Error uploading profile image:', err);
+                            showToast('An error occurred while uploading profile image.', 'error');
+                        } finally {
+                            closeCropModal();
+                            resetDoneBtnState();
+                        }
+                    }, 'image/png');
+                } catch (err) {
+                    console.error('Error cropping image:', err);
+                    showToast('Failed to adjust image.', 'error');
+                    resetDoneBtnState();
+                }
+            });
+        }
+
+        function resetDoneBtnState() {
+            const doneBtnText = document.getElementById('doneCropBtnText');
+            const doneBtnSpinner = document.getElementById('doneCropBtnSpinner');
+            if (doneBtnText) doneBtnText.style.display = 'inline';
+            if (doneBtnSpinner) doneBtnSpinner.style.display = 'none';
+            if (doneCropBtn) doneCropBtn.disabled = false;
+        }
+    }
+
+    // Initialize profile image upload feature
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProfileImageUpload);
+    } else {
+        initProfileImageUpload();
+    }
+
+    async function saveProfileData(section) {
+        try {
+            // Get the current values from input fields
+            const editContainer = document.getElementById(`${section}Edit`);
+            if (!editContainer) return;
+
+            const inputs = editContainer.querySelectorAll('.editable-input');
+
+            // Extract values from inputs, filtering out empty ones
+            const values = Array.from(inputs)
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            // Prepare data for the request
+            let requestData = {};
+
+            if (section === 'skills') {
+                requestData = {
+                    skills: values,
+                    tnp: []
+                };
+            } else if (section === 'tools') {
+                requestData = {
+                    skills: [],
+                    tnp: values
+                };
+            }
+
+            console.log('Saving profile data:', requestData);
+
+            // Send POST request to FastAPI server
+            const response = await fetch('/client/dashboard/update-profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Profile update response:', result);
+
+            // Show appropriate toast message based on response
+            if (result === 0) {
+                showToast('Updated successfully!', 'success');
+
+                // Update the current data and display
+                if (section === 'skills') {
+                    currentSkills = values;
+                    updateSkillsDisplay(values);
+                } else if (section === 'tools') {
+                    currentTools = values;
+                    updateToolsDisplay(values);
+                }
+
+                // Switch back to display mode
+                toggleEdit(section);
+
+            } else if (result === 1) {
+                showToast('Update unsuccessful!', 'error');
+            }
+
+        } catch (error) {
+            console.error('Error saving profile data:', error);
+            showToast('Error updating profile. Please try again.', 'error');
+        }
+    }
+
+    function updateSkillsDisplay(skills) {
+        const skillsDisplay = document.getElementById('skillsDisplay');
+        if (!skillsDisplay) return;
+
+        if (skills && skills.length > 0) {
+            skillsDisplay.innerHTML = skills.map(skill => `
+            <span class="tag">${skill}</span>
+        `).join('');
+        } else {
+            skillsDisplay.innerHTML = '<span>No skills added yet</span>';
+        }
+    }
+
+    function updateToolsDisplay(tools) {
+        const toolsDisplay = document.getElementById('toolsDisplay');
+        if (!toolsDisplay) return;
+
+        if (tools && tools.length > 0) {
+            toolsDisplay.innerHTML = tools.map(tool => `
+            <span class="tag tag-tools">${tool}</span>
+        `).join('');
+        } else {
+            toolsDisplay.innerHTML = '<span>No tools added yet</span>';
+        }
+    }
+
+    // ====== Toast Notification ======
+
+    function showToast(message, type) {
+        const toast = document.getElementById('toastNotification');
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
+
+        // Show the toast
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 100);
+
+        // Hide the toast after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    // ====== Notification Modal Functions ======
+
+    function toggleNotificationModal() {
+        const modal = document.getElementById('notificationModal');
+        if (!modal) return;
+
+        if (modal.classList.contains('active')) {
+            closeNotificationModal();
+        } else {
+            openNotificationModal();
+        }
+    }
+
+    function openNotificationModal() {
+        const modal = document.getElementById('notificationModal');
+        if (!modal) return;
+
+        modal.classList.add('active');
+
+        // Reset notification badge to zero when modal is opened
+        resetNotificationBadge();
+
+        // Load notifications
+        loadNotifications();
+    }
+
+    function closeNotificationModal() {
+        const modal = document.getElementById('notificationModal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    async function loadNotifications() {
+        const notificationBody = document.getElementById('notificationBody');
+        if (!notificationBody) return;
+
+        try {
+            // Send POST request to FastAPI server
+            const response = await fetch('/client/dashboard/notification-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ x: 'any string value' })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const notifications = await response.json();
+            console.log('Received notifications:', notifications);
+
+            // Render notifications
+            if (notifications && notifications.length > 0) {
+                notificationBody.innerHTML = notifications.map((notification, index) => {
+                    const [message, status] = notification;
+                    const isUnread = status === 0;
+
+                    return `
                     <div class="notification-item ${isUnread ? 'notification-unread' : ''}">
                         <div class="notification-icon-container ${isUnread ? 'notification-warning' : 'notification-success'}">
                             <i class="fas ${isUnread ? 'fa-exclamation' : 'fa-check'}"></i>
@@ -1279,123 +1544,123 @@ async function loadNotifications() {
                         </div>
                     </div>
                 `;
-            }).join('');
-        } else {
-            notificationBody.innerHTML = `
+                }).join('');
+            } else {
+                notificationBody.innerHTML = `
                 <div class="notification-empty">
                     <i class="fas fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px;"></i>
                     <p>No notifications</p>
                 </div>
             `;
-        }
+            }
 
-    } catch (error) {
-        console.error('Error loading notifications:', error);
-        notificationBody.innerHTML = `
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+            notificationBody.innerHTML = `
             <div class="notification-empty">
                 <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
                 <p>Error loading notifications</p>
             </div>
         `;
-    }
-}
-
-// ====== Community Chat Functions ======
-
-async function loadCommunityChat() {
-    const chatArea = document.getElementById('chatArea');
-    const loadingSpinner = document.getElementById('communityLoading');
-
-    if (!chatArea || !loadingSpinner) return;
-
-    // Show loading spinner
-    chatArea.innerHTML = '';
-    loadingSpinner.style.display = 'block';
-
-    try {
-        // Send POST request to FastAPI server
-        const response = await fetch('/websocket/community', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ x: 'any string value' })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
         }
+    }
 
-        const chats = await response.json();
-        console.log('Received community chats:', chats);
+    // ====== Community Chat Functions ======
 
-        // Hide loading spinner
-        loadingSpinner.style.display = 'none';
+    async function loadCommunityChat() {
+        const chatArea = document.getElementById('chatArea');
+        const loadingSpinner = document.getElementById('communityLoading');
 
-        // Render chats
-        if (chats && chats.length > 0) {
-            renderChatMessages(chats);
-        } else {
-            chatArea.innerHTML = `
+        if (!chatArea || !loadingSpinner) return;
+
+        // Show loading spinner
+        chatArea.innerHTML = '';
+        loadingSpinner.style.display = 'block';
+
+        try {
+            // Send POST request to FastAPI server
+            const response = await fetch('/websocket/community', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ x: 'any string value' })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const chats = await response.json();
+            console.log('Received community chats:', chats);
+
+            // Hide loading spinner
+            loadingSpinner.style.display = 'none';
+
+            // Render chats
+            if (chats && chats.length > 0) {
+                renderChatMessages(chats);
+            } else {
+                chatArea.innerHTML = `
                 <div class="chat-empty">
                     <i class="fas fa-comments"></i>
                     <p>No messages yet. Start the conversation!</p>
                 </div>
             `;
-        }
+            }
 
-    } catch (error) {
-        console.error('Error loading community chat:', error);
-        loadingSpinner.style.display = 'none';
-        chatArea.innerHTML = `
+        } catch (error) {
+            console.error('Error loading community chat:', error);
+            loadingSpinner.style.display = 'none';
+            chatArea.innerHTML = `
             <div class="chat-empty">
                 <i class="fas fa-exclamation-triangle"></i>
                 <p>Error loading messages. Please try again.</p>
             </div>
         `;
+        }
     }
-}
 
-function renderChatMessages(chats) {
-    const chatArea = document.getElementById('chatArea');
-    if (!chatArea) return;
+    function renderChatMessages(chats) {
+        const chatArea = document.getElementById('chatArea');
+        if (!chatArea) return;
 
-    chatArea.innerHTML = chats.map(chat => {
-        const isOwnMessage = chat.user === currentUserId;
-        const messageClass = isOwnMessage ? 'own-message' : 'other-message';
+        chatArea.innerHTML = chats.map(chat => {
+            const isOwnMessage = chat.user === currentUserId;
+            const messageClass = isOwnMessage ? 'own-message' : 'other-message';
 
-        let actualMessage = chat.message;
-        let repliedData = chat.replied;
+            let actualMessage = chat.message;
+            let repliedData = chat.replied;
 
-        let replyHtml = '';
-        if (repliedData && repliedData.message_id) {
-            let words = repliedData.message.split(/\\s+/);
-            let truncText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : repliedData.message;
-            replyHtml = `
+            let replyHtml = '';
+            if (repliedData && repliedData.message_id) {
+                let words = repliedData.message.split(/\\s+/);
+                let truncText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : repliedData.message;
+                replyHtml = `
                 <div class="attached-reply" onclick="scrollToMessageHighlight('${repliedData.message_id}')">
                     <div class="attached-reply-header">${repliedData.username}</div>
                     <div class="attached-reply-text">${truncText}</div>
                 </div>
             `;
-        }
+            }
 
-        const isDeleted = chat.is_deleted === 'DFE';
-        let displayMessage = isDeleted
-            ? `<em style="color:#ef4444; font-style:italic; font-weight:500;">${chat.del_message || 'This message was deleted'}</em>`
-            : actualMessage;
+            const isDeleted = chat.is_deleted === 'DFE';
+            let displayMessage = isDeleted
+                ? `<em style="color:#ef4444; font-style:italic; font-weight:500;">${chat.del_message || 'This message was deleted'}</em>`
+                : actualMessage;
 
-        if (!isDeleted && chat.msg_type === 'image_upload') {
-            const collageHtml = buildImageCollageHtml(chat.images || {});
-            const captionHtml = chat.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${chat.message}</div>` : '';
-            displayMessage = `<div class="image-upload-content">${collageHtml}${captionHtml}</div>`;
-        }
+            if (!isDeleted && chat.msg_type === 'image_upload') {
+                const collageHtml = buildImageCollageHtml(chat.images || {});
+                const captionHtml = chat.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${chat.message}</div>` : '';
+                displayMessage = `<div class="image-upload-content">${collageHtml}${captionHtml}</div>`;
+            }
 
-        // Build reaction summary bar from persisted data
-        const reactionBarHtml = _buildReactionBarHtml(chat.message_id, chat.react_count || {}, chat.reactions || {});
+            // Build reaction summary bar from persisted data
+            const reactionBarHtml = _buildReactionBarHtml(chat.message_id, chat.react_count || {}, chat.reactions || {});
 
-        const rawMessageForEscaping = (chat.message || '').replace(/'/g, "\\'");
+            const rawMessageForEscaping = (chat.message || '').replace(/'/g, "\\'");
 
-        return `
+            return `
             <div class="message-container ${messageClass}">
                 <div class="message-bubble" id="${chat.message_id}">
                     ${isDeleted ? '' : `
@@ -1419,121 +1684,73 @@ function renderChatMessages(chats) {
                 ${reactionBarHtml}
             </div>
         `;
-    }).join('');
+        }).join('');
 
-    // Scroll to bottom
-    scrollToBottom();
-}
-
-function formatTime(timeString) {
-    if (!timeString) return '';
-
-    try {
-        const date = new Date(timeString);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch (e) {
-        return timeString;
-    }
-}
-
-function scrollToBottom() {
-    const chatArea = document.getElementById('chatArea');
-    if (chatArea) {
-        chatArea.scrollTop = chatArea.scrollHeight;
-    }
-}
-
-function scrollToMessageHighlight(msgId) {
-    const el = document.getElementById(msgId);
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.classList.add('highlight-reply');
-        setTimeout(() => {
-            el.classList.remove('highlight-reply');
-        }, 2000);
-    }
-}
-
-function initializeCommunityWebSocket() {
-    if (!currentUserId) {
-        console.error('User ID not found for Community WebSocket connection');
-        return;
+        // Scroll to bottom
+        scrollToBottom();
     }
 
-    try {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/websocket/ws/community/${currentUserId}`;
+    function formatTime(timeString) {
+        if (!timeString) return '';
 
-        communitySocket = new WebSocket(wsUrl);
+        try {
+            const date = new Date(timeString);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch (e) {
+            return timeString;
+        }
+    }
 
-        communitySocket.onopen = function (event) {
-            console.log('Unified Community WebSocket connected successfully');
-        };
+    function scrollToBottom() {
+        const chatArea = document.getElementById('chatArea');
+        if (chatArea) {
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+    }
 
-        communitySocket.onmessage = function (event) {
-            const data = JSON.parse(event.data);
+    function scrollToMessageHighlight(msgId) {
+        const el = document.getElementById(msgId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('highlight-reply');
+            setTimeout(() => {
+                el.classList.remove('highlight-reply');
+            }, 2000);
+        }
+    }
 
-            if (data.type === 'chat_message') {
-                if (data.message.user === currentUserId) {
-                    const tempBubbles = document.querySelectorAll('.message-bubble[id^="temp-"]');
-                    let found = false;
-                    for (let bubble of tempBubbles) {
-                        const contentEl = bubble.querySelector('.message-content');
-                        if (contentEl && contentEl.textContent.trim() === data.message.message.trim()) {
-                            bubble.id = data.message.message_id;
-                            const menuItems = bubble.querySelectorAll('.menu-item');
-                            menuItems.forEach(item => {
-                                const onclickAttr = item.getAttribute('onclick');
-                                if (onclickAttr) {
-                                    const updatedAttr = onclickAttr.replace(/temp-\d+/g, data.message.message_id);
-                                    item.setAttribute('onclick', updatedAttr);
-                                }
-                            });
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (found) return;
-                }
-                handleNewChatMessage(data.message);
-            } else if (data.type === 'image_upload') {
-                const chat = {
-                    message_id: data.message_id || 'temp-' + Date.now(),
-                    user: data.user || 'system',
-                    username: data.username || 'User',
-                    user_type: data.user_type || 'client',
-                    msg_type: 'image_upload',
-                    message: data.text || '',
-                    images: data.images || {},
-                    time: data.time || getFormattedDateTime(),
-                    replied: {},
-                    is_deleted: '',
-                    del_message: '',
-                    reactions: {},
-                    react_count: {}
-                };
+    function initializeCommunityWebSocket() {
+        if (!currentUserId) {
+            console.error('User ID not found for Community WebSocket connection');
+            return;
+        }
 
-                if (chat.user === currentUserId) {
-                    const tempBubbles = document.querySelectorAll('.message-bubble[id^="temp-"]');
-                    let found = false;
-                    for (let bubble of tempBubbles) {
-                        const imgUploadContent = bubble.querySelector('.image-upload-content');
-                        if (imgUploadContent) {
-                            const captionEl = bubble.querySelector('.chat-message-caption');
-                            const captionText = captionEl ? captionEl.textContent.trim() : '';
-                            if (captionText === chat.message.trim()) {
-                                bubble.id = chat.message_id;
-                                const imagesHtml = buildImageCollageHtml(chat.images);
-                                const captionHtml = chat.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${chat.message}</div>` : '';
-                                const contentEl = bubble.querySelector('.message-content');
-                                if (contentEl) {
-                                    contentEl.innerHTML = `<div class="image-upload-content">${imagesHtml}${captionHtml}</div>`;
-                                }
+        try {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/websocket/ws/community/${currentUserId}`;
+
+            communitySocket = new WebSocket(wsUrl);
+
+            communitySocket.onopen = function (event) {
+                console.log('Unified Community WebSocket connected successfully');
+            };
+
+            communitySocket.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'chat_message') {
+                    if (data.message.user === currentUserId) {
+                        const tempBubbles = document.querySelectorAll('.message-bubble[id^="temp-"]');
+                        let found = false;
+                        for (let bubble of tempBubbles) {
+                            const contentEl = bubble.querySelector('.message-content');
+                            if (contentEl && contentEl.textContent.trim() === data.message.message.trim()) {
+                                bubble.id = data.message.message_id;
                                 const menuItems = bubble.querySelectorAll('.menu-item');
                                 menuItems.forEach(item => {
                                     const onclickAttr = item.getAttribute('onclick');
                                     if (onclickAttr) {
-                                        const updatedAttr = onclickAttr.replace(/temp-\d+/g, chat.message_id);
+                                        const updatedAttr = onclickAttr.replace(/temp-\d+/g, data.message.message_id);
                                         item.setAttribute('onclick', updatedAttr);
                                     }
                                 });
@@ -1541,85 +1758,133 @@ function initializeCommunityWebSocket() {
                                 break;
                             }
                         }
+                        if (found) return;
                     }
-                    if (found) return;
-                }
-                handleNewChatMessage(chat);
-            } else if (data.type === 'user_joined') {
-                showSystemMessage(`${data.username} joined the chat`);
-            } else if (data.type === 'user_left') {
-                showSystemMessage(`${data.username} left the chat`);
-            } else if (data.type === 'message_deleted') {
-                // Real-time DFE: update the bubble for all connected users
-                const msgEl = document.getElementById(data.message_id);
-                if (msgEl) {
-                    const dots = msgEl.querySelector('.message-menu-dots');
-                    const dropdown = msgEl.querySelector('.message-menu-dropdown');
-                    if (dots) dots.style.display = 'none';
-                    if (dropdown) dropdown.style.display = 'none';
-                    const contentEl = msgEl.querySelector('.message-content');
-                    if (contentEl) {
-                        contentEl.innerHTML = `<em style="color:#ef4444; font-style:italic; font-weight:500;">${data.del_message || 'This message was deleted'}</em>`;
+                    handleNewChatMessage(data.message);
+                } else if (data.type === 'image_upload') {
+                    const chat = {
+                        message_id: data.message_id || 'temp-' + Date.now(),
+                        user: data.user || 'system',
+                        username: data.username || 'User',
+                        user_type: data.user_type || 'client',
+                        msg_type: 'image_upload',
+                        message: data.text || '',
+                        images: data.images || {},
+                        time: data.time || getFormattedDateTime(),
+                        replied: {},
+                        is_deleted: '',
+                        del_message: '',
+                        reactions: {},
+                        react_count: {}
+                    };
+
+                    if (chat.user === currentUserId) {
+                        const tempBubbles = document.querySelectorAll('.message-bubble[id^="temp-"]');
+                        let found = false;
+                        for (let bubble of tempBubbles) {
+                            const imgUploadContent = bubble.querySelector('.image-upload-content');
+                            if (imgUploadContent) {
+                                const captionEl = bubble.querySelector('.chat-message-caption');
+                                const captionText = captionEl ? captionEl.textContent.trim() : '';
+                                if (captionText === chat.message.trim()) {
+                                    bubble.id = chat.message_id;
+                                    const imagesHtml = buildImageCollageHtml(chat.images);
+                                    const captionHtml = chat.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${chat.message}</div>` : '';
+                                    const contentEl = bubble.querySelector('.message-content');
+                                    if (contentEl) {
+                                        contentEl.innerHTML = `<div class="image-upload-content">${imagesHtml}${captionHtml}</div>`;
+                                    }
+                                    const menuItems = bubble.querySelectorAll('.menu-item');
+                                    menuItems.forEach(item => {
+                                        const onclickAttr = item.getAttribute('onclick');
+                                        if (onclickAttr) {
+                                            const updatedAttr = onclickAttr.replace(/temp-\d+/g, chat.message_id);
+                                            item.setAttribute('onclick', updatedAttr);
+                                        }
+                                    });
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (found) return;
                     }
+                    handleNewChatMessage(chat);
+                } else if (data.type === 'user_joined') {
+                    showSystemMessage(`${data.username} joined the chat`);
+                } else if (data.type === 'user_left') {
+                    showSystemMessage(`${data.username} left the chat`);
+                } else if (data.type === 'message_deleted') {
+                    // Real-time DFE: update the bubble for all connected users
+                    const msgEl = document.getElementById(data.message_id);
+                    if (msgEl) {
+                        const dots = msgEl.querySelector('.message-menu-dots');
+                        const dropdown = msgEl.querySelector('.message-menu-dropdown');
+                        if (dots) dots.style.display = 'none';
+                        if (dropdown) dropdown.style.display = 'none';
+                        const contentEl = msgEl.querySelector('.message-content');
+                        if (contentEl) {
+                            contentEl.innerHTML = `<em style="color:#ef4444; font-style:italic; font-weight:500;">${data.del_message || 'This message was deleted'}</em>`;
+                        }
+                    }
+                } else if (data.type === 'reaction_added') {
+                    // Real-time reaction: update the reaction bar for all connected users
+                    _handleReactionAdded(data.message_id, data.react_count || {}, data.reactions || {});
                 }
-            } else if (data.type === 'reaction_added') {
-                // Real-time reaction: update the reaction bar for all connected users
-                _handleReactionAdded(data.message_id, data.react_count || {}, data.reactions || {});
-            }
-        };
+            };
 
-        communitySocket.onclose = function (event) {
-            console.log('Community WebSocket disconnected:', event);
-        };
+            communitySocket.onclose = function (event) {
+                console.log('Community WebSocket disconnected:', event);
+            };
 
-        communitySocket.onerror = function (error) {
-            console.error('Community WebSocket error:', error);
-        };
+            communitySocket.onerror = function (error) {
+                console.error('Community WebSocket error:', error);
+            };
 
-    } catch (error) {
-        console.error('Error initializing Community WebSocket:', error);
-    }
-}
-
-function handleNewChatMessage(messageData) {
-    const chatArea = document.getElementById('chatArea');
-    if (!chatArea) return;
-
-    // Remove empty state if it exists
-    const emptyState = chatArea.querySelector('.chat-empty');
-    if (emptyState) {
-        emptyState.remove();
+        } catch (error) {
+            console.error('Error initializing Community WebSocket:', error);
+        }
     }
 
-    const isOwnMessage = messageData.user === currentUserId;
-    const messageClass = isOwnMessage ? 'own-message' : 'other-message';
+    function handleNewChatMessage(messageData) {
+        const chatArea = document.getElementById('chatArea');
+        if (!chatArea) return;
 
-    let actualMessage = messageData.message;
-    let repliedData = messageData.replied;
+        // Remove empty state if it exists
+        const emptyState = chatArea.querySelector('.chat-empty');
+        if (emptyState) {
+            emptyState.remove();
+        }
 
-    let replyHtml = '';
-    if (repliedData && repliedData.message_id) {
-        let words = repliedData.message.split(/\\s+/);
-        let truncText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : repliedData.message;
-        replyHtml = `
+        const isOwnMessage = messageData.user === currentUserId;
+        const messageClass = isOwnMessage ? 'own-message' : 'other-message';
+
+        let actualMessage = messageData.message;
+        let repliedData = messageData.replied;
+
+        let replyHtml = '';
+        if (repliedData && repliedData.message_id) {
+            let words = repliedData.message.split(/\\s+/);
+            let truncText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : repliedData.message;
+            replyHtml = `
             <div class="attached-reply" onclick="scrollToMessageHighlight('${repliedData.message_id}')">
                 <div class="attached-reply-header">${repliedData.username}</div>
                 <div class="attached-reply-text">${truncText}</div>
             </div>
         `;
-    }
+        }
 
-    if (messageData.msg_type === 'image_upload') {
-        const collageHtml = buildImageCollageHtml(messageData.images || {});
-        const captionHtml = messageData.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${messageData.message}</div>` : '';
-        actualMessage = `<div class="image-upload-content">${collageHtml}${captionHtml}</div>`;
-    }
+        if (messageData.msg_type === 'image_upload') {
+            const collageHtml = buildImageCollageHtml(messageData.images || {});
+            const captionHtml = messageData.message ? `<div class="chat-message-caption text-zinc-800 mt-2">${messageData.message}</div>` : '';
+            actualMessage = `<div class="image-upload-content">${collageHtml}${captionHtml}</div>`;
+        }
 
-    const rawMessageForEscaping = (messageData.message || '').replace(/'/g, "\\'");
+        const rawMessageForEscaping = (messageData.message || '').replace(/'/g, "\\'");
 
-    const messageElement = document.createElement('div');
-    messageElement.className = `message-container ${messageClass}`;
-    messageElement.innerHTML = `
+        const messageElement = document.createElement('div');
+        messageElement.className = `message-container ${messageClass}`;
+        messageElement.innerHTML = `
         <div class="message-bubble" id="${messageData.message_id}">
             <div class="message-menu-dots"><i class="fas fa-ellipsis-h"></i></div>
             <div class="message-menu-dropdown">
@@ -1634,78 +1899,145 @@ function handleNewChatMessage(messageData) {
             <div class="message-time">
                 ${messageData.time}
                 <span class="message-status-icon" id="status-${messageData.message_id}">
-                    ${isOwnMessage 
-                        ? (messageData.status === 'pending' 
-                            ? '<i class="far fa-clock" style="margin-left: 5px; color: #a1a1aa;" title="Sending..."></i>' 
-                            : '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>') 
-                        : ''}
+                    ${isOwnMessage
+                ? (messageData.status === 'pending'
+                    ? '<i class="far fa-clock" style="margin-left: 5px; color: #a1a1aa;" title="Sending..."></i>'
+                    : '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>')
+                : ''}
                 </span>
             </div>
         </div>
     `;
 
-    chatArea.appendChild(messageElement);
-    scrollToBottom();
-}
-
-function showSystemMessage(message) {
-    const chatArea = document.getElementById('chatArea');
-    if (!chatArea) return;
-
-    // Remove empty state if it exists
-    const emptyState = chatArea.querySelector('.chat-empty');
-    if (emptyState) {
-        emptyState.remove();
+        chatArea.appendChild(messageElement);
+        scrollToBottom();
     }
 
-    const systemElement = document.createElement('div');
-    systemElement.style.display = 'flex';
-    systemElement.style.justifyContent = 'center';
-    systemElement.style.width = '100%';
-    systemElement.style.margin = '12px 0';
+    function showSystemMessage(message) {
+        const chatArea = document.getElementById('chatArea');
+        if (!chatArea) return;
 
-    let tagStyle = 'background-color: rgba(17, 17, 17, 0.03); color: #71717a; border: 1.5px solid rgba(17, 17, 17, 0.08);';
-    if (message.includes('joined')) {
-        tagStyle = 'background-color: #d1fae5; color: #065f46; border: 1.5px solid rgba(6, 95, 70, 0.15);';
-    } else if (message.includes('left')) {
-        tagStyle = 'background-color: #fee2e2; color: #991b1b; border: 1.5px solid rgba(153, 27, 27, 0.15);';
-    }
+        // Remove empty state if it exists
+        const emptyState = chatArea.querySelector('.chat-empty');
+        if (emptyState) {
+            emptyState.remove();
+        }
 
-    systemElement.innerHTML = `
+        const systemElement = document.createElement('div');
+        systemElement.style.display = 'flex';
+        systemElement.style.justifyContent = 'center';
+        systemElement.style.width = '100%';
+        systemElement.style.margin = '12px 0';
+
+        let tagStyle = 'background-color: rgba(17, 17, 17, 0.03); color: #71717a; border: 1.5px solid rgba(17, 17, 17, 0.08);';
+        if (message.includes('joined')) {
+            tagStyle = 'background-color: #d1fae5; color: #065f46; border: 1.5px solid rgba(6, 95, 70, 0.15);';
+        } else if (message.includes('left')) {
+            tagStyle = 'background-color: #fee2e2; color: #991b1b; border: 1.5px solid rgba(153, 27, 27, 0.15);';
+        }
+
+        systemElement.innerHTML = `
         <div style="${tagStyle} padding: 5px 14px; border-radius: 4px; font-size: 0.8rem; font-weight: 500; text-align: center; box-shadow: 0 2px 6px rgba(17,17,17,0.02);">
             ${message}
         </div>
     `;
 
-    chatArea.appendChild(systemElement);
-    scrollToBottom();
-}
+        chatArea.appendChild(systemElement);
+        scrollToBottom();
+    }
 
-async function sendMessage() {
-    const messageInput = document.getElementById('messageInput');
-    if (!messageInput) return;
+    async function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        if (!messageInput) return;
 
-    const message = messageInput.value.trim();
-    if (!message && selectedImages.length === 0) return;
+        const message = messageInput.value.trim();
+        if (!message && selectedImages.length === 0) return;
 
-    const username = window.fullname || 'User';
-    const tempId = 'temp-' + Date.now();
-    const timeStr = getFormattedDateTime();
+        const username = window.fullname || 'User';
+        const tempId = 'temp-' + Date.now();
+        const timeStr = getFormattedDateTime();
 
-    if (selectedImages.length > 0) {
-        const tempImages = {};
-        selectedImages.forEach((file, index) => {
-            tempImages[`local-${index}`] = URL.createObjectURL(file);
-        });
+        if (selectedImages.length > 0) {
+            const tempImages = {};
+            selectedImages.forEach((file, index) => {
+                tempImages[`local-${index}`] = URL.createObjectURL(file);
+            });
+
+            const tempChat = {
+                message_id: tempId,
+                user: currentUserId,
+                username: username,
+                user_type: "client",
+                msg_type: 'image_upload',
+                message: message,
+                images: tempImages,
+                time: timeStr,
+                replied: window.currentReply ? window.currentReply : {},
+                status: 'pending'
+            };
+
+            handleNewChatMessage(tempChat);
+
+            const filesToUpload = [...selectedImages];
+
+            messageInput.value = '';
+            selectedImages = [];
+            renderSelectedImagesPreview();
+            if (window.cancelReply) window.cancelReply();
+
+            const formData = new FormData();
+            formData.append('data', JSON.stringify({
+                alt_text: message,
+                user_id: currentUserId,
+                user_name: username,
+                user_type: 'client',
+                replied: tempChat.replied
+            }));
+
+            filesToUpload.forEach(file => {
+                formData.append('images', file);
+            });
+
+            try {
+                const response = await fetch('/websocket/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const statusSpan = document.getElementById('status-' + tempId);
+                if (response.ok) {
+                    const resData = await response.json();
+                    if (resData.status === true) {
+                        if (statusSpan) {
+                            statusSpan.innerHTML = '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>';
+                        }
+                    } else {
+                        if (statusSpan) {
+                            statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+                        }
+                    }
+                } else {
+                    if (statusSpan) {
+                        statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error uploading images:', error);
+                const statusSpan = document.getElementById('status-' + tempId);
+                if (statusSpan) {
+                    statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+                }
+            }
+            return;
+        }
 
         const tempChat = {
             message_id: tempId,
             user: currentUserId,
             username: username,
             user_type: "client",
-            msg_type: 'image_upload',
+            msg_type: 'chat_message',
             message: message,
-            images: tempImages,
             time: timeStr,
             replied: window.currentReply ? window.currentReply : {},
             status: 'pending'
@@ -1713,36 +2045,29 @@ async function sendMessage() {
 
         handleNewChatMessage(tempChat);
 
-        const filesToUpload = [...selectedImages];
-
         messageInput.value = '';
-        selectedImages = [];
-        renderSelectedImagesPreview();
         if (window.cancelReply) window.cancelReply();
 
-        const formData = new FormData();
-        formData.append('data', JSON.stringify({
-            alt_text: message,
-            user_id: currentUserId,
-            user_name: username,
-            user_type: 'client',
+        let payload = {
+            msg_type: 'chat_message',
+            message: message,
+            user_type: "client",
             replied: tempChat.replied
-        }));
-
-        filesToUpload.forEach(file => {
-            formData.append('images', file);
-        });
+        };
 
         try {
-            const response = await fetch('/websocket/upload-image', {
+            const response = await fetch('/websocket/send-message', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
             });
 
             const statusSpan = document.getElementById('status-' + tempId);
             if (response.ok) {
                 const resData = await response.json();
-                if (resData.status === true) {
+                if (resData.success === true) {
                     if (statusSpan) {
                         statusSpan.innerHTML = '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>';
                     }
@@ -1757,551 +2082,491 @@ async function sendMessage() {
                 }
             }
         } catch (error) {
-            console.error('Error uploading images:', error);
+            console.error('Error sending message:', error);
             const statusSpan = document.getElementById('status-' + tempId);
             if (statusSpan) {
                 statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
             }
         }
-        return;
     }
 
-    const tempChat = {
-        message_id: tempId,
-        user: currentUserId,
-        username: username,
-        user_type: "client",
-        msg_type: 'chat_message',
-        message: message,
-        time: timeStr,
-        replied: window.currentReply ? window.currentReply : {},
-        status: 'pending'
-    };
-
-    handleNewChatMessage(tempChat);
-
-    messageInput.value = '';
-    if (window.cancelReply) window.cancelReply();
-
-    let payload = {
-        msg_type: 'chat_message',
-        message: message,
-        user_type: "client",
-        replied: tempChat.replied
-    };
-
-    try {
-        const response = await fetch('/websocket/send-message', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload)
-        });
-
-        const statusSpan = document.getElementById('status-' + tempId);
-        if (response.ok) {
-            const resData = await response.json();
-            if (resData.success === true) {
-                if (statusSpan) {
-                    statusSpan.innerHTML = '<i class="fas fa-check" style="margin-left: 5px; color: #22c55e;" title="Sent"></i>';
-                }
-            } else {
-                if (statusSpan) {
-                    statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
-                }
-            }
-        } else {
-            if (statusSpan) {
-                statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
-            }
-        }
-    } catch (error) {
-        console.error('Error sending message:', error);
-        const statusSpan = document.getElementById('status-' + tempId);
-        if (statusSpan) {
-            statusSpan.innerHTML = '<i class="fas fa-exclamation-circle" style="margin-left: 5px; color: #ef4444;" title="Failed to send"></i>';
+    function closeCommunityWebSocket() {
+        if (communitySocket) {
+            communitySocket.close();
+            communitySocket = null;
         }
     }
-}
 
-function closeCommunityWebSocket() {
-    if (communitySocket) {
-        communitySocket.close();
-        communitySocket = null;
-    }
-}
-
-function refreshCommunity() {
-    loadCommunityChat();
-}
-
-// ====== Event Listeners Initialization ======
-
-function initializeEventListeners() {
-    // Notification icon
-    const notificationIcon = document.getElementById('notificationIcon');
-    if (notificationIcon) {
-        notificationIcon.addEventListener('click', toggleNotificationModal);
+    function refreshCommunity() {
+        loadCommunityChat();
     }
 
-    // Notification modal close
-    const notificationClose = document.getElementById('notificationClose');
-    if (notificationClose) {
-        notificationClose.addEventListener('click', closeNotificationModal);
-    }
+    // ====== Event Listeners Initialization ======
 
-    // Profile modal
-    const userProfileBtn = document.getElementById('userProfileBtn');
-    if (userProfileBtn) {
-        userProfileBtn.addEventListener('click', openProfileModal);
-    }
+    function initializeEventListeners() {
+        // Notification icon
+        const notificationIcon = document.getElementById('notificationIcon');
+        if (notificationIcon) {
+            notificationIcon.addEventListener('click', toggleNotificationModal);
+        }
 
-    const profileModalOverlay = document.getElementById('profileModalOverlay');
-    if (profileModalOverlay) {
-        profileModalOverlay.addEventListener('click', closeProfileModal);
-    }
+        // Notification modal close
+        const notificationClose = document.getElementById('notificationClose');
+        if (notificationClose) {
+            notificationClose.addEventListener('click', closeNotificationModal);
+        }
 
-    // Sidebar navigation
-    const dashboardBtn = document.getElementById('dashboardBtn');
-    if (dashboardBtn) {
-        dashboardBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showSection('dashboardContent', 'Dashboard');
-        });
-    }
+        // Profile modal
+        const userProfileBtn = document.getElementById('userProfileBtn');
+        if (userProfileBtn) {
+            userProfileBtn.addEventListener('click', openProfileModal);
+        }
 
-    const projectsBtn = document.getElementById('projectsBtn');
-    if (projectsBtn) {
-        projectsBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showSection('projectsSection', 'Projects');
-        });
-    }
+        const profileModalOverlay = document.getElementById('profileModalOverlay');
+        if (profileModalOverlay) {
+            profileModalOverlay.addEventListener('click', closeProfileModal);
+        }
 
-    const tasksBtn = document.getElementById('tasksBtn');
-    if (tasksBtn) {
-        tasksBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showSection('tasksSection', 'Tasks');
-        });
-    }
-
-    const communityBtn = document.getElementById('communityBtn');
-    if (communityBtn) {
-        communityBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showSection('communitySection', 'Community');
-        });
-    }
-
-    const documentsBtn = document.getElementById('documentsBtn');
-    if (documentsBtn) {
-        documentsBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showSection('documentsSection', 'Documents');
-        });
-    }
-
-    const settingsBtn = document.getElementById('settingsBtn');
-    if (settingsBtn) {
-        settingsBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            showSection('settingsSection', 'Settings');
-        });
-    }
-
-    // Refresh buttons
-    const refreshProjects = document.getElementById('refreshProjects');
-    if (refreshProjects) {
-        refreshProjects.addEventListener('click', function (e) {
-            e.preventDefault();
-            loadProjects();
-        });
-    }
-
-    const refreshTasks = document.getElementById('refreshTasks');
-    if (refreshTasks) {
-        refreshTasks.addEventListener('click', function (e) {
-            e.preventDefault();
-            loadTasks();
-        });
-    }
-
-    const refreshCommunity = document.getElementById('refreshCommunity');
-    if (refreshCommunity) {
-        refreshCommunity.addEventListener('click', function (e) {
-            e.preventDefault();
-            loadCommunityChat();
-        });
-    }
-
-    // Community chat
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-    if (sendMessageBtn) {
-        sendMessageBtn.addEventListener('click', sendMessage);
-    }
-
-    const attachBtn = document.getElementById('attachBtn');
-    const imageInput = document.getElementById('imageInput');
-    if (attachBtn && imageInput) {
-        attachBtn.addEventListener('click', function() {
-            imageInput.click();
-        });
-        imageInput.addEventListener('change', function(e) {
-            const files = Array.from(e.target.files);
-            const validFiles = files.filter(file => {
-                const ext = file.name.split('.').pop().toLowerCase();
-                return ['jpg', 'jpeg', 'png'].includes(ext);
+        // Sidebar navigation
+        const dashboardBtn = document.getElementById('dashboardBtn');
+        if (dashboardBtn) {
+            dashboardBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showSection('dashboardContent', 'Dashboard');
             });
-            if (validFiles.length !== files.length) {
-                showToast("Only JPG, JPEG, and PNG images are supported.", "error");
-            }
-            if (selectedImages.length + validFiles.length > 4) {
-                showToast("Maximum 4 images can be selected at a time.", "error");
-                const remaining = 4 - selectedImages.length;
-                selectedImages = selectedImages.concat(validFiles.slice(0, remaining));
-            } else {
-                selectedImages = selectedImages.concat(validFiles);
-            }
-            renderSelectedImagesPreview();
-            imageInput.value = ''; // reset file input
-        });
-    }
+        }
 
-    const messageInput = document.getElementById('messageInput');
-    if (messageInput) {
-        messageInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    }
+        const projectsBtn = document.getElementById('projectsBtn');
+        if (projectsBtn) {
+            projectsBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showSection('projectsSection', 'Projects');
+            });
+        }
 
-    const chatArea = document.getElementById('chatArea');
-    if (chatArea) {
-        let lastScrollTop = 0;
-        chatArea.addEventListener('scroll', function () {
-            const inputContainer = document.getElementById('messageInputContainer');
-            const replyPreview = document.getElementById('replyPreviewContainer');
-            if (!inputContainer) return;
+        const tasksBtn = document.getElementById('tasksBtn');
+        if (tasksBtn) {
+            tasksBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showSection('tasksSection', 'Tasks');
+            });
+        }
 
-            let scrollTop = chatArea.scrollTop;
-            
-            // Show typing area when scrolled close to the bottom
-            if (scrollTop + chatArea.clientHeight >= chatArea.scrollHeight - 15) {
-                inputContainer.classList.remove('typing-area-hidden');
-                if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+        const communityBtn = document.getElementById('communityBtn');
+        if (communityBtn) {
+            communityBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showSection('communitySection', 'Community');
+            });
+        }
+
+        const documentsBtn = document.getElementById('documentsBtn');
+        if (documentsBtn) {
+            documentsBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showSection('documentsSection', 'Documents');
+            });
+        }
+
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                showSection('settingsSection', 'Settings');
+            });
+        }
+
+        // Refresh buttons
+        const refreshProjects = document.getElementById('refreshProjects');
+        if (refreshProjects) {
+            refreshProjects.addEventListener('click', function (e) {
+                e.preventDefault();
+                loadProjects();
+            });
+        }
+
+        const refreshTasks = document.getElementById('refreshTasks');
+        if (refreshTasks) {
+            refreshTasks.addEventListener('click', function (e) {
+                e.preventDefault();
+                loadTasks();
+            });
+        }
+
+        const refreshCommunity = document.getElementById('refreshCommunity');
+        if (refreshCommunity) {
+            refreshCommunity.addEventListener('click', function (e) {
+                e.preventDefault();
+                loadCommunityChat();
+            });
+        }
+
+        // Community chat
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        if (sendMessageBtn) {
+            sendMessageBtn.addEventListener('click', sendMessage);
+        }
+
+        const attachBtn = document.getElementById('attachBtn');
+        const imageInput = document.getElementById('imageInput');
+        if (attachBtn && imageInput) {
+            attachBtn.addEventListener('click', function () {
+                imageInput.click();
+            });
+            imageInput.addEventListener('change', function (e) {
+                const files = Array.from(e.target.files);
+                const validFiles = files.filter(file => {
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    return ['jpg', 'jpeg', 'png'].includes(ext);
+                });
+                if (validFiles.length !== files.length) {
+                    showToast("Only JPG, JPEG, and PNG images are supported.", "error");
+                }
+                if (selectedImages.length + validFiles.length > 4) {
+                    showToast("Maximum 4 images can be selected at a time.", "error");
+                    const remaining = 4 - selectedImages.length;
+                    selectedImages = selectedImages.concat(validFiles.slice(0, remaining));
+                } else {
+                    selectedImages = selectedImages.concat(validFiles);
+                }
+                renderSelectedImagesPreview();
+                imageInput.value = ''; // reset file input
+            });
+        }
+
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        const chatArea = document.getElementById('chatArea');
+        if (chatArea) {
+            let lastScrollTop = 0;
+            chatArea.addEventListener('scroll', function () {
+                const inputContainer = document.getElementById('messageInputContainer');
+                const replyPreview = document.getElementById('replyPreviewContainer');
+                if (!inputContainer) return;
+
+                let scrollTop = chatArea.scrollTop;
+
+                // Show typing area when scrolled close to the bottom
+                if (scrollTop + chatArea.clientHeight >= chatArea.scrollHeight - 15) {
+                    inputContainer.classList.remove('typing-area-hidden');
+                    if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+                    lastScrollTop = scrollTop;
+                    return;
+                }
+
+                // Scroll change threshold to prevent jitter
+                if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
+
+                if (scrollTop > lastScrollTop) {
+                    // Scrolling down -> Show typing area
+                    inputContainer.classList.remove('typing-area-hidden');
+                    if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
+                } else {
+                    // Scrolling up -> Hide typing area
+                    inputContainer.classList.add('typing-area-hidden');
+                    if (replyPreview) replyPreview.classList.add('typing-area-hidden');
+                }
                 lastScrollTop = scrollTop;
-                return;
-            }
+            });
+        }
 
-            // Scroll change threshold to prevent jitter
-            if (Math.abs(scrollTop - lastScrollTop) <= 5) return;
+        // Profile save buttons
+        const saveSkillsBtn = document.getElementById('saveSkillsBtn');
+        if (saveSkillsBtn) {
+            saveSkillsBtn.addEventListener('click', function () {
+                saveProfileData('skills');
+            });
+        }
 
-            if (scrollTop > lastScrollTop) {
-                // Scrolling down -> Show typing area
-                inputContainer.classList.remove('typing-area-hidden');
-                if (replyPreview) replyPreview.classList.remove('typing-area-hidden');
-            } else {
-                // Scrolling up -> Hide typing area
-                inputContainer.classList.add('typing-area-hidden');
-                if (replyPreview) replyPreview.classList.add('typing-area-hidden');
-            }
-            lastScrollTop = scrollTop;
-        });
+        const saveToolsBtn = document.getElementById('saveToolsBtn');
+        if (saveToolsBtn) {
+            saveToolsBtn.addEventListener('click', function () {
+                saveProfileData('tools');
+            });
+        }
+
+        // Profile edit buttons
+        const editSkillsBtn = document.getElementById('editSkillsBtn');
+        if (editSkillsBtn) {
+            editSkillsBtn.addEventListener('click', function () {
+                toggleEdit('skills');
+            });
+        }
+
+        const editToolsBtn = document.getElementById('editToolsBtn');
+        if (editToolsBtn) {
+            editToolsBtn.addEventListener('click', function () {
+                toggleEdit('tools');
+            });
+        }
+
+        // Profile cancel buttons
+        const cancelSkillsBtn = document.getElementById('cancelSkillsBtn');
+        if (cancelSkillsBtn) {
+            cancelSkillsBtn.addEventListener('click', function () {
+                toggleEdit('skills');
+            });
+        }
+
+        const cancelToolsBtn = document.getElementById('cancelToolsBtn');
+        if (cancelToolsBtn) {
+            cancelToolsBtn.addEventListener('click', function () {
+                toggleEdit('tools');
+            });
+        }
     }
 
-    // Profile save buttons
-    const saveSkillsBtn = document.getElementById('saveSkillsBtn');
-    if (saveSkillsBtn) {
-        saveSkillsBtn.addEventListener('click', function () {
-            saveProfileData('skills');
-        });
-    }
+    // ====== Reply State Management ======
+    window.currentReply = null;
 
-    const saveToolsBtn = document.getElementById('saveToolsBtn');
-    if (saveToolsBtn) {
-        saveToolsBtn.addEventListener('click', function () {
-            saveProfileData('tools');
-        });
-    }
+    window.triggerReply = function (messageId, username, messageText) {
+        window.currentReply = {
+            message_id: messageId,
+            username: username,
+            message: messageText
+        };
 
-    // Profile edit buttons
-    const editSkillsBtn = document.getElementById('editSkillsBtn');
-    if (editSkillsBtn) {
-        editSkillsBtn.addEventListener('click', function () {
-            toggleEdit('skills');
-        });
-    }
+        let words = messageText.split(/\\s+/);
+        let previewText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : messageText;
 
-    const editToolsBtn = document.getElementById('editToolsBtn');
-    if (editToolsBtn) {
-        editToolsBtn.addEventListener('click', function () {
-            toggleEdit('tools');
-        });
-    }
+        const replyContainer = document.getElementById('replyPreviewContainer');
+        const replyName = document.getElementById('replyPreviewName');
+        const replyText = document.getElementById('replyPreviewText');
 
-    // Profile cancel buttons
-    const cancelSkillsBtn = document.getElementById('cancelSkillsBtn');
-    if (cancelSkillsBtn) {
-        cancelSkillsBtn.addEventListener('click', function () {
-            toggleEdit('skills');
-        });
-    }
+        if (replyContainer && replyName && replyText) {
+            replyName.textContent = username;
+            replyText.textContent = previewText;
+            replyContainer.style.display = 'flex';
 
-    const cancelToolsBtn = document.getElementById('cancelToolsBtn');
-    if (cancelToolsBtn) {
-        cancelToolsBtn.addEventListener('click', function () {
-            toggleEdit('tools');
-        });
-    }
-}
-
-// ====== Reply State Management ======
-window.currentReply = null;
-
-window.triggerReply = function (messageId, username, messageText) {
-    window.currentReply = {
-        message_id: messageId,
-        username: username,
-        message: messageText
+            const input = document.getElementById('messageInput');
+            if (input) input.focus();
+        }
     };
 
-    let words = messageText.split(/\\s+/);
-    let previewText = words.length > 10 ? words.slice(0, 10).join(' ') + '....' : messageText;
-
-    const replyContainer = document.getElementById('replyPreviewContainer');
-    const replyName = document.getElementById('replyPreviewName');
-    const replyText = document.getElementById('replyPreviewText');
-
-    if (replyContainer && replyName && replyText) {
-        replyName.textContent = username;
-        replyText.textContent = previewText;
-        replyContainer.style.display = 'flex';
-
-        const input = document.getElementById('messageInput');
-        if (input) input.focus();
-    }
-};
-
-window.cancelReply = function () {
-    window.currentReply = null;
-    const replyContainer = document.getElementById('replyPreviewContainer');
-    if (replyContainer) {
-        replyContainer.style.display = 'none';
-    }
-};
-
-// Listen for reply cancel
-document.addEventListener('DOMContentLoaded', () => {
-    const closeReplyBtn = document.getElementById('closeReplyBtn');
-    if (closeReplyBtn) {
-        closeReplyBtn.addEventListener('click', window.cancelReply);
-    }
-});
-
-// ====== Make Functions Available Globally ======
-
-window.toggleCheckbox = toggleCheckbox;
-window.toggleComponentDetails = toggleComponentDetails;
-window.toggleEdit = toggleEdit;
-window.addNewInput = addNewInput;
-window.saveProfileData = saveProfileData;
-window.openProfileModal = openProfileModal;
-window.closeProfileModal = closeProfileModal;
-window.showSection = showSection;
-window.loadDashboardData = loadDashboardData;
-window.loadProjects = loadProjects;
-window.openProjectDetailsModal = openProjectDetailsModal;
-window.closeProjectDetailsModal = closeProjectDetailsModal;
-window.toggleComponentCheckbox = toggleComponentCheckbox;
-window.loadTasks = loadTasks;
-window.loadCommunityChat = loadCommunityChat;
-window.refreshCommunity = refreshCommunity;
-window.sendMessage = sendMessage;
-window.toggleNotificationModal = toggleNotificationModal;
-window.openNotificationModal = openNotificationModal;
-window.closeNotificationModal = closeNotificationModal;
-window.initializeCommunityWebSocket = initializeCommunityWebSocket;
-window.closeCommunityWebSocket = closeCommunityWebSocket;
-window.sendTestNotification = sendTestNotification;
-
-// ====== Message Dropdown Position Logic ======
-document.addEventListener('mouseover', function (e) {
-    const dots = e.target.closest('.message-menu-dots');
-    if (dots) {
-        const dropdown = dots.nextElementSibling;
-        if (dropdown && dropdown.classList.contains('message-menu-dropdown')) {
-            const rect = dots.getBoundingClientRect();
-            // Get the chat container to check boundaries
-            const chatArea = dots.closest('.chat-area');
-            const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
-
-            // Estimate dropdown height as ~150px
-            if (rect.bottom + 150 > containerBottom) {
-                dropdown.classList.add('show-upwards');
-            } else {
-                dropdown.classList.remove('show-upwards');
-            }
+    window.cancelReply = function () {
+        window.currentReply = null;
+        const replyContainer = document.getElementById('replyPreviewContainer');
+        if (replyContainer) {
+            replyContainer.style.display = 'none';
         }
-    }
-});
+    };
 
-// ====== Context Menu (Right Click) on Chat Bubbles ======
-document.addEventListener('contextmenu', function (e) {
-    const bubble = e.target.closest('.message-bubble');
-    if (bubble) {
-        const dropdown = bubble.querySelector('.message-menu-dropdown');
-        if (dropdown) {
-            e.preventDefault();
-
-            // Close other dropdowns
-            document.querySelectorAll('.message-menu-dropdown').forEach(d => {
-                if (d !== dropdown) d.classList.remove('active-dropdown');
-            });
-
-            // Toggle active state
-            dropdown.classList.toggle('active-dropdown');
-
-            // Position boundary checks
-            const chatArea = bubble.closest('.chat-area');
-            const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
-            if (e.clientY + 150 > containerBottom) {
-                dropdown.classList.add('show-upwards');
-            } else {
-                dropdown.classList.remove('show-upwards');
-            }
+    // Listen for reply cancel
+    document.addEventListener('DOMContentLoaded', () => {
+        const closeReplyBtn = document.getElementById('closeReplyBtn');
+        if (closeReplyBtn) {
+            closeReplyBtn.addEventListener('click', window.cancelReply);
         }
-    }
-});
+    });
 
-// Close dropdown on click outside
-document.addEventListener('click', function (e) {
-    if (!e.target.closest('.message-menu-dots') && !e.target.closest('.message-menu-dropdown')) {
-        document.querySelectorAll('.message-menu-dropdown').forEach(d => {
-            d.classList.remove('active-dropdown');
-        });
-    }
-});
+    // ====== Make Functions Available Globally ======
 
-// ====== Message Delete Logic ======
-let messageToDelete = null;
+    window.toggleCheckbox = toggleCheckbox;
+    window.toggleComponentDetails = toggleComponentDetails;
+    window.toggleEdit = toggleEdit;
+    window.addNewInput = addNewInput;
+    window.saveProfileData = saveProfileData;
+    window.openProfileModal = openProfileModal;
+    window.closeProfileModal = closeProfileModal;
+    window.showSection = showSection;
+    window.loadDashboardData = loadDashboardData;
+    window.loadProjects = loadProjects;
+    window.openProjectDetailsModal = openProjectDetailsModal;
+    window.closeProjectDetailsModal = closeProjectDetailsModal;
+    window.toggleComponentCheckbox = toggleComponentCheckbox;
+    window.loadTasks = loadTasks;
+    window.loadCommunityChat = loadCommunityChat;
+    window.refreshCommunity = refreshCommunity;
+    window.sendMessage = sendMessage;
+    window.toggleNotificationModal = toggleNotificationModal;
+    window.openNotificationModal = openNotificationModal;
+    window.closeNotificationModal = closeNotificationModal;
+    window.initializeCommunityWebSocket = initializeCommunityWebSocket;
+    window.closeCommunityWebSocket = closeCommunityWebSocket;
+    window.sendTestNotification = sendTestNotification;
 
-window.triggerDeleteMessage = function (event, msgId) {
-    if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-    messageToDelete = msgId;
-    const overlay = document.getElementById('messageDeleteOverlay');
-    const modal = document.getElementById('messageDeleteModal');
-    if (overlay) overlay.style.display = 'block';
-    if (modal) modal.style.display = 'block';
-};
+    // ====== Message Dropdown Position Logic ======
+    document.addEventListener('mouseover', function (e) {
+        const dots = e.target.closest('.message-menu-dots');
+        if (dots) {
+            const dropdown = dots.nextElementSibling;
+            if (dropdown && dropdown.classList.contains('message-menu-dropdown')) {
+                const rect = dots.getBoundingClientRect();
+                // Get the chat container to check boundaries
+                const chatArea = dots.closest('.chat-area');
+                const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
 
-window.closeMessageDeleteModal = function () {
-    messageToDelete = null;
-    const overlay = document.getElementById('messageDeleteOverlay');
-    const modal = document.getElementById('messageDeleteModal');
-    if (overlay) overlay.style.display = 'none';
-    if (modal) modal.style.display = 'none';
-};
-
-window.deleteMessageForMe = async function () {
-    const msgId = messageToDelete;
-    window.closeMessageDeleteModal();
-
-    if (!msgId) return;
-
-    try {
-        const response = await fetch('/websocket/delete-message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message_id: msgId, deletion_type: 'DFM' })
-        });
-
-        const data = await response.json();
-
-        // Show server message as toast
-        if (data.success) {
-            showToast(data.message || 'Message deleted.', 'success');
-            // Remove the message bubble from UI
-            const msgEl = document.getElementById(msgId);
-            if (msgEl) {
-                const container = msgEl.closest('.message-container');
-                if (container) container.remove();
-                else msgEl.remove();
-            }
-        } else {
-            showToast(data.message || data.error || 'Could not delete message.', 'error');
-        }
-    } catch (err) {
-        console.error('Delete for me error:', err);
-        showToast('Error deleting message. Please try again.', 'error');
-    }
-};
-
-window.deleteMessageForEveryone = async function () {
-    const msgId = messageToDelete;
-    window.closeMessageDeleteModal();
-
-    if (!msgId) return;
-
-    try {
-        const response = await fetch('/websocket/delete-message', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message_id: msgId, deletion_type: 'DFE' })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            showToast(data.message || 'Message deleted for everyone.', 'success');
-            // Replace message bubble content with deleted placeholder
-            const msgEl = document.getElementById(msgId);
-            if (msgEl) {
-                // Hide menu dots
-                const dots = msgEl.querySelector('.message-menu-dots');
-                const dropdown = msgEl.querySelector('.message-menu-dropdown');
-                if (dots) dots.style.display = 'none';
-                if (dropdown) dropdown.style.display = 'none';
-                // Replace message content
-                const contentEl = msgEl.querySelector('.message-content');
-                if (contentEl) {
-                    contentEl.innerHTML = '<em style="color:#ef4444; font-style:italic; font-weight:500;">This message was deleted</em>';
+                // Estimate dropdown height as ~150px
+                if (rect.bottom + 150 > containerBottom) {
+                    dropdown.classList.add('show-upwards');
+                } else {
+                    dropdown.classList.remove('show-upwards');
                 }
             }
-        } else {
-            showToast(data.message || data.error || 'Could not delete message.', 'error');
         }
-    } catch (err) {
-        console.error('Delete for everyone error:', err);
-        showToast('Error deleting message. Please try again.', 'error');
-    }
-};
+    });
+
+    // ====== Context Menu (Right Click) on Chat Bubbles ======
+    document.addEventListener('contextmenu', function (e) {
+        const bubble = e.target.closest('.message-bubble');
+        if (bubble) {
+            const dropdown = bubble.querySelector('.message-menu-dropdown');
+            if (dropdown) {
+                e.preventDefault();
+
+                // Close other dropdowns
+                document.querySelectorAll('.message-menu-dropdown').forEach(d => {
+                    if (d !== dropdown) d.classList.remove('active-dropdown');
+                });
+
+                // Toggle active state
+                dropdown.classList.toggle('active-dropdown');
+
+                // Position boundary checks
+                const chatArea = bubble.closest('.chat-area');
+                const containerBottom = chatArea ? chatArea.getBoundingClientRect().bottom : window.innerHeight;
+                if (e.clientY + 150 > containerBottom) {
+                    dropdown.classList.add('show-upwards');
+                } else {
+                    dropdown.classList.remove('show-upwards');
+                }
+            }
+        }
+    });
+
+    // Close dropdown on click outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.message-menu-dots') && !e.target.closest('.message-menu-dropdown')) {
+            document.querySelectorAll('.message-menu-dropdown').forEach(d => {
+                d.classList.remove('active-dropdown');
+            });
+        }
+    });
+
+    // ====== Message Delete Logic ======
+    let messageToDelete = null;
+
+    window.triggerDeleteMessage = function (event, msgId) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        messageToDelete = msgId;
+        const overlay = document.getElementById('messageDeleteOverlay');
+        const modal = document.getElementById('messageDeleteModal');
+        if (overlay) overlay.style.display = 'block';
+        if (modal) modal.style.display = 'block';
+    };
+
+    window.closeMessageDeleteModal = function () {
+        messageToDelete = null;
+        const overlay = document.getElementById('messageDeleteOverlay');
+        const modal = document.getElementById('messageDeleteModal');
+        if (overlay) overlay.style.display = 'none';
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.deleteMessageForMe = async function () {
+        const msgId = messageToDelete;
+        window.closeMessageDeleteModal();
+
+        if (!msgId) return;
+
+        try {
+            const response = await fetch('/websocket/delete-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message_id: msgId, deletion_type: 'DFM' })
+            });
+
+            const data = await response.json();
+
+            // Show server message as toast
+            if (data.success) {
+                showToast(data.message || 'Message deleted.', 'success');
+                // Remove the message bubble from UI
+                const msgEl = document.getElementById(msgId);
+                if (msgEl) {
+                    const container = msgEl.closest('.message-container');
+                    if (container) container.remove();
+                    else msgEl.remove();
+                }
+            } else {
+                showToast(data.message || data.error || 'Could not delete message.', 'error');
+            }
+        } catch (err) {
+            console.error('Delete for me error:', err);
+            showToast('Error deleting message. Please try again.', 'error');
+        }
+    };
+
+    window.deleteMessageForEveryone = async function () {
+        const msgId = messageToDelete;
+        window.closeMessageDeleteModal();
+
+        if (!msgId) return;
+
+        try {
+            const response = await fetch('/websocket/delete-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message_id: msgId, deletion_type: 'DFE' })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showToast(data.message || 'Message deleted for everyone.', 'success');
+                // Replace message bubble content with deleted placeholder
+                const msgEl = document.getElementById(msgId);
+                if (msgEl) {
+                    // Hide menu dots
+                    const dots = msgEl.querySelector('.message-menu-dots');
+                    const dropdown = msgEl.querySelector('.message-menu-dropdown');
+                    if (dots) dots.style.display = 'none';
+                    if (dropdown) dropdown.style.display = 'none';
+                    // Replace message content
+                    const contentEl = msgEl.querySelector('.message-content');
+                    if (contentEl) {
+                        contentEl.innerHTML = '<em style="color:#ef4444; font-style:italic; font-weight:500;">This message was deleted</em>';
+                    }
+                }
+            } else {
+                showToast(data.message || data.error || 'Could not delete message.', 'error');
+            }
+        } catch (err) {
+            console.error('Delete for everyone error:', err);
+            showToast('Error deleting message. Please try again.', 'error');
+        }
+    };
 
 
-// ====== Reaction helpers ======
+    // ====== Reaction helpers ======
 
-/**
- * Builds the HTML for the reaction bar shown after a message bubble on load.
- * react_count: { "👍": 2, "😂": 1, ... }
- * reactions:   { userId: { reaction, username }, ... }
- */
-function _buildReactionBarHtml(msgId, reactCount, reactions) {
-    if (!reactCount || !Object.keys(reactCount).length) return '';
+    /**
+     * Builds the HTML for the reaction bar shown after a message bubble on load.
+     * react_count: { "👍": 2, "😂": 1, ... }
+     * reactions:   { userId: { reaction, username }, ... }
+     */
+    function _buildReactionBarHtml(msgId, reactCount, reactions) {
+        if (!reactCount || !Object.keys(reactCount).length) return '';
 
-    const emojis = Object.entries(reactCount)
-        .map(([icon, count]) => `<span class="reaction-chip">${icon}<span class="reaction-count">${count}</span></span>`)
-        .join('');
+        const emojis = Object.entries(reactCount)
+            .map(([icon, count]) => `<span class="reaction-chip">${icon}<span class="reaction-count">${count}</span></span>`)
+            .join('');
 
-    // Encode data safely for inline onclick
-    const countsB64 = btoa(unescape(encodeURIComponent(JSON.stringify(reactCount))));
-    const reactionsB64 = btoa(unescape(encodeURIComponent(JSON.stringify(reactions))));
+        // Encode data safely for inline onclick
+        const countsB64 = btoa(unescape(encodeURIComponent(JSON.stringify(reactCount))));
+        const reactionsB64 = btoa(unescape(encodeURIComponent(JSON.stringify(reactions))));
 
-    return `<div class="reaction-bar">
+        return `<div class="reaction-bar">
         <div class="reaction-summary"
              data-counts='${JSON.stringify(reactCount).replace(/'/g, "&#39;")}'
              data-reactions='${JSON.stringify(reactions).replace(/'/g, "&#39;")}'
@@ -2309,179 +2574,179 @@ function _buildReactionBarHtml(msgId, reactCount, reactions) {
             ${emojis}
         </div>
     </div>`;
-}
-
-/** Re-renders a .reaction-summary pill element from counts + reactions objects */
-function _renderSummaryPill(el, counts, reactions) {
-    const emojis = Object.entries(counts)
-        .map(([icon, count]) => `<span class="reaction-chip">${icon}<span class="reaction-count">${count}</span></span>`)
-        .join('');
-    el.innerHTML = emojis;
-    el.onclick = (e) => window._showReactionTooltip(e, el);
-    // bump animation
-    el.classList.add('reaction-bump');
-    setTimeout(() => el.classList.remove('reaction-bump'), 300);
-}
-
-/** Show a floating tooltip listing who reacted with what */
-window._showReactionTooltip = function (event, summaryEl) {
-    event.stopPropagation();
-
-    // Remove any existing tooltip
-    document.querySelectorAll('.reaction-tooltip').forEach(t => t.remove());
-
-    let reactions = {};
-    try { reactions = JSON.parse(summaryEl.dataset.reactions || '{}'); } catch (e) { }
-
-    if (!Object.keys(reactions).length) return;
-
-    const tooltip = document.createElement('div');
-    tooltip.className = 'reaction-tooltip';
-
-    const rows = Object.values(reactions).map(r =>
-        `<div class="reaction-tooltip-row"><span class="rt-emoji">${r.reaction}</span><span class="rt-name">${r.username}</span></div>`
-    ).join('');
-
-    tooltip.innerHTML = `<div class="reaction-tooltip-title">Reactions</div>${rows}`;
-
-    document.body.appendChild(tooltip);
-
-    // Position
-    const rect = summaryEl.getBoundingClientRect();
-    let top = rect.top - tooltip.offsetHeight - 8;
-    let left = rect.left;
-    if (top < 8) top = rect.bottom + 8;
-    if (left + 200 > window.innerWidth) left = window.innerWidth - 208;
-    tooltip.style.top = top + 'px';
-    tooltip.style.left = left + 'px';
-
-    // Close on next click anywhere
-    setTimeout(() => {
-        document.addEventListener('click', () => tooltip.remove(), { once: true });
-    }, 0);
-};
-
-/**
- * Upsert the reaction pill below a message bubble from server-authoritative data.
- * Called by both the REST response handler and the WS reaction_added event.
- */
-function _handleReactionAdded(msgId, counts, reactions) {
-    const bubble = document.getElementById(msgId);
-    if (!bubble) return;
-
-    const container = bubble.closest('.message-container') || bubble.parentElement;
-    let bar = container.querySelector('.reaction-bar');
-    if (!bar) {
-        bar = document.createElement('div');
-        bar.className = 'reaction-bar';
-        bubble.insertAdjacentElement('afterend', bar);
     }
 
-    let summaryEl = bar.querySelector('.reaction-summary');
-    if (!summaryEl) {
-        summaryEl = document.createElement('div');
-        summaryEl.className = 'reaction-summary';
-        bar.appendChild(summaryEl);
+    /** Re-renders a .reaction-summary pill element from counts + reactions objects */
+    function _renderSummaryPill(el, counts, reactions) {
+        const emojis = Object.entries(counts)
+            .map(([icon, count]) => `<span class="reaction-chip">${icon}<span class="reaction-count">${count}</span></span>`)
+            .join('');
+        el.innerHTML = emojis;
+        el.onclick = (e) => window._showReactionTooltip(e, el);
+        // bump animation
+        el.classList.add('reaction-bump');
+        setTimeout(() => el.classList.remove('reaction-bump'), 300);
     }
 
-    summaryEl.dataset.counts = JSON.stringify(counts);
-    summaryEl.dataset.reactions = JSON.stringify(reactions);
-    _renderSummaryPill(summaryEl, counts, reactions);
-}
+    /** Show a floating tooltip listing who reacted with what */
+    window._showReactionTooltip = function (event, summaryEl) {
+        event.stopPropagation();
 
+        // Remove any existing tooltip
+        document.querySelectorAll('.reaction-tooltip').forEach(t => t.remove());
 
-// ====== Emoji Picker (emoji-mart v5) ======
-let _emojiPicker = null;
-let _emojiTargetMsgId = null;
+        let reactions = {};
+        try { reactions = JSON.parse(summaryEl.dataset.reactions || '{}'); } catch (e) { }
 
-function _getOrCreateEmojiPicker() {
-    if (_emojiPicker) return _emojiPicker;
-    const wrapper = document.getElementById('emojiPickerWrapper');
-    if (!wrapper || typeof EmojiMart === 'undefined') return null;
+        if (!Object.keys(reactions).length) return;
 
-    _emojiPicker = new EmojiMart.Picker({
-        onEmojiSelect: (emoji) => {
-            if (_emojiTargetMsgId) {
-                _addReactionToMessage(_emojiTargetMsgId, emoji.native);
-            }
-            _closeEmojiPicker();
-        },
-        theme: 'dark',
-        previewPosition: 'none',
-        skinTonePosition: 'none',
-    });
-    wrapper.appendChild(_emojiPicker);
-    return _emojiPicker;
-}
+        const tooltip = document.createElement('div');
+        tooltip.className = 'reaction-tooltip';
 
-function _closeEmojiPicker() {
-    const wrapper = document.getElementById('emojiPickerWrapper');
-    if (wrapper) wrapper.style.display = 'none';
-    _emojiTargetMsgId = null;
-}
+        const rows = Object.values(reactions).map(r =>
+            `<div class="reaction-tooltip-row"><span class="rt-emoji">${r.reaction}</span><span class="rt-name">${r.username}</span></div>`
+        ).join('');
 
-window.triggerEmojiPicker = function (event, msgId) {
-    event.preventDefault();
-    event.stopPropagation();
+        tooltip.innerHTML = `<div class="reaction-tooltip-title">Reactions</div>${rows}`;
 
-    const wrapper = document.getElementById('emojiPickerWrapper');
-    if (!wrapper) return;
+        document.body.appendChild(tooltip);
 
-    // If same msg and already open, close it
-    if (wrapper.style.display !== 'none' && _emojiTargetMsgId === msgId) {
-        _closeEmojiPicker();
-        return;
+        // Position
+        const rect = summaryEl.getBoundingClientRect();
+        let top = rect.top - tooltip.offsetHeight - 8;
+        let left = rect.left;
+        if (top < 8) top = rect.bottom + 8;
+        if (left + 200 > window.innerWidth) left = window.innerWidth - 208;
+        tooltip.style.top = top + 'px';
+        tooltip.style.left = left + 'px';
+
+        // Close on next click anywhere
+        setTimeout(() => {
+            document.addEventListener('click', () => tooltip.remove(), { once: true });
+        }, 0);
+    };
+
+    /**
+     * Upsert the reaction pill below a message bubble from server-authoritative data.
+     * Called by both the REST response handler and the WS reaction_added event.
+     */
+    function _handleReactionAdded(msgId, counts, reactions) {
+        const bubble = document.getElementById(msgId);
+        if (!bubble) return;
+
+        const container = bubble.closest('.message-container') || bubble.parentElement;
+        let bar = container.querySelector('.reaction-bar');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.className = 'reaction-bar';
+            bubble.insertAdjacentElement('afterend', bar);
+        }
+
+        let summaryEl = bar.querySelector('.reaction-summary');
+        if (!summaryEl) {
+            summaryEl = document.createElement('div');
+            summaryEl.className = 'reaction-summary';
+            bar.appendChild(summaryEl);
+        }
+
+        summaryEl.dataset.counts = JSON.stringify(counts);
+        summaryEl.dataset.reactions = JSON.stringify(reactions);
+        _renderSummaryPill(summaryEl, counts, reactions);
     }
 
-    _emojiTargetMsgId = msgId;
-    _getOrCreateEmojiPicker();
 
-    // Position near the clicked button
-    const rect = event.currentTarget.getBoundingClientRect();
-    const pickerWidth = 352;
-    const pickerHeight = 435;
-    let left = rect.right + 8;
-    let top = rect.top;
+    // ====== Emoji Picker (emoji-mart v5) ======
+    let _emojiPicker = null;
+    let _emojiTargetMsgId = null;
 
-    // Prevent overflow off screen
-    if (left + pickerWidth > window.innerWidth) left = rect.left - pickerWidth - 8;
-    if (top + pickerHeight > window.innerHeight) top = window.innerHeight - pickerHeight - 8;
-    if (top < 8) top = 8;
+    function _getOrCreateEmojiPicker() {
+        if (_emojiPicker) return _emojiPicker;
+        const wrapper = document.getElementById('emojiPickerWrapper');
+        if (!wrapper || typeof EmojiMart === 'undefined') return null;
 
-    wrapper.style.left = left + 'px';
-    wrapper.style.top = top + 'px';
-    wrapper.style.display = 'block';
-};
-
-async function _addReactionToMessage(msgId, emoji) {
-    let data;
-    try {
-        const res = await fetch('/websocket/add-reaction', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message_id: msgId, reaction: emoji })
+        _emojiPicker = new EmojiMart.Picker({
+            onEmojiSelect: (emoji) => {
+                if (_emojiTargetMsgId) {
+                    _addReactionToMessage(_emojiTargetMsgId, emoji.native);
+                }
+                _closeEmojiPicker();
+            },
+            theme: 'dark',
+            previewPosition: 'none',
+            skinTonePosition: 'none',
         });
-        data = await res.json();
-        if (!data.success) {
-            showToast(data.message || 'Could not add reaction.', 'error');
+        wrapper.appendChild(_emojiPicker);
+        return _emojiPicker;
+    }
+
+    function _closeEmojiPicker() {
+        const wrapper = document.getElementById('emojiPickerWrapper');
+        if (wrapper) wrapper.style.display = 'none';
+        _emojiTargetMsgId = null;
+    }
+
+    window.triggerEmojiPicker = function (event, msgId) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const wrapper = document.getElementById('emojiPickerWrapper');
+        if (!wrapper) return;
+
+        // If same msg and already open, close it
+        if (wrapper.style.display !== 'none' && _emojiTargetMsgId === msgId) {
+            _closeEmojiPicker();
             return;
         }
-    } catch (err) {
-        console.error('Add reaction error:', err);
-        showToast('Error adding reaction.', 'error');
-        return;
-    }
-    // DOM update is handled by the WS broadcast (reaction_added event)
-    // but also update immediately for the sender in case WS is slow
-    _handleReactionAdded(msgId, data.react_count || {}, data.reactions || {});
-}
 
-// Close emoji picker when clicking outside
-document.addEventListener('click', function (e) {
-    const wrapper = document.getElementById('emojiPickerWrapper');
-    if (wrapper && wrapper.style.display !== 'none') {
-        if (!wrapper.contains(e.target) && !e.target.closest('.menu-item')) {
-            _closeEmojiPicker();
+        _emojiTargetMsgId = msgId;
+        _getOrCreateEmojiPicker();
+
+        // Position near the clicked button
+        const rect = event.currentTarget.getBoundingClientRect();
+        const pickerWidth = 352;
+        const pickerHeight = 435;
+        let left = rect.right + 8;
+        let top = rect.top;
+
+        // Prevent overflow off screen
+        if (left + pickerWidth > window.innerWidth) left = rect.left - pickerWidth - 8;
+        if (top + pickerHeight > window.innerHeight) top = window.innerHeight - pickerHeight - 8;
+        if (top < 8) top = 8;
+
+        wrapper.style.left = left + 'px';
+        wrapper.style.top = top + 'px';
+        wrapper.style.display = 'block';
+    };
+
+    async function _addReactionToMessage(msgId, emoji) {
+        let data;
+        try {
+            const res = await fetch('/websocket/add-reaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message_id: msgId, reaction: emoji })
+            });
+            data = await res.json();
+            if (!data.success) {
+                showToast(data.message || 'Could not add reaction.', 'error');
+                return;
+            }
+        } catch (err) {
+            console.error('Add reaction error:', err);
+            showToast('Error adding reaction.', 'error');
+            return;
         }
+        // DOM update is handled by the WS broadcast (reaction_added event)
+        // but also update immediately for the sender in case WS is slow
+        _handleReactionAdded(msgId, data.react_count || {}, data.reactions || {});
     }
-});
+
+    // Close emoji picker when clicking outside
+    document.addEventListener('click', function (e) {
+        const wrapper = document.getElementById('emojiPickerWrapper');
+        if (wrapper && wrapper.style.display !== 'none') {
+            if (!wrapper.contains(e.target) && !e.target.closest('.menu-item')) {
+                _closeEmojiPicker();
+            }
+        }
+    });  
