@@ -1,5 +1,98 @@
 from configs.trendyDB import client
 from utils.clientGets import get_project_by_id, get_task_by_id
+from utils.adminPosts import createDefaultSettings
+
+class AdminSettings:
+    def __init__(self):
+        self.db = client["Admins"]
+        self.collection = None
+
+    async def initialize(self):
+        collections = await self.db.list_collection_names()
+        if len(collections) > 1:
+            self.collection = self.db["settings"]
+        else:
+            res = await createDefaultSettings()
+            if res:
+                self.collection = self.db["settings"]
+
+            # else collection will stay none
+
+    async def getAllSettings(self):
+        try:
+            if self.collection is None:
+                await self.initialize()
+
+            result = await self.collection.find({})
+            result["_id"] = str(result["_id"])
+            
+            return {
+                "configs": result,
+                "status": True,
+                "message": "Settings fetched."
+            }
+        
+        except Exception as e:
+            return {
+                "config": None,
+                "status": False,
+                "message": f"Failed to fetch settings:{e}"
+            }
+
+    async def getAdminInfo(self):
+        if self.collection is None:
+            await self.initialize()
+
+        admin_info = await self.collection.find_one({"unique": "qwertyuiop"},
+                                                        {"admin_username": 1, "admin_password": 1})
+        return admin_info
+    
+    async def getAdminDocs(self):
+        if self.collection is None:
+            await self.initialize()
+        admin_docs = await self.collection.find_one({"unique": "qwertyuiop"},
+                                                        {"doc_username": 1, "doc_password": 1})
+        return admin_docs
+    
+
+    async def sendgridEmail(self):
+        if self.collection is None:
+            await self.initialize()
+
+        # email: do we have to verify the email?
+        email: dict = await self.collection.find_one({"unique": "qwertyuiop"},
+                                                        {"email_verification": 1})
+        return email["email_verification"]
+    
+    async def sendgridProject(self):
+            if self.collection is None:
+                await self.initialize()
+
+            # project: do we have to notify client on email when project assigned?
+            project: dict = await self.collection.find_one({"unique": "qwertyuiop"},
+                                                            {"project_email": 1})
+            return project["project_email"]
+            
+    async def sendgridTask(self):
+                if self.collection is None:
+                    await self.initialize()
+
+                # task: do we have to notify client on email when task assigned?
+                task: dict = await self.collection.find_one({"unique": "qwertyuiop"},
+                                                                {"task_email": 1})
+                return task["task_email"]
+                
+    async def sendgridApprove(self):
+            if self.collection is None:
+                await self.initialize()
+                
+            # approve: do we have to notify client on email when signup request is approved?
+            approve: dict = await self.collection.find_one({"unique": "qwertyuiop"},
+                                                            {"approve_email": 1})
+            return approve["approve_email"]
+    
+
+admin_setting = AdminSettings()
 
 async def get_users():
     db = client["Clients"]

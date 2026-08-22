@@ -92,3 +92,47 @@ async def first_admin_login():
         }
         await collection.insert_one(admin_format)
 
+async def createDefaultSettings():
+    db = client["Admins"]
+    collection = db["settings"]
+
+    setting_format = {
+        "unique": "qwertyuiop",
+        "doc_username": "admin",
+        "doc_password": "admins",
+        "admin_username": "admin",
+        "admin_password": "admin",
+        "project_email": False,
+        "task_email": False,
+        "approve_email": False,
+        "email_verification": False,
+    }
+
+    result = await collection.insert_one(setting_format)
+
+    if result.inserted_id:
+        return True
+    return False
+
+
+async def updateAdminSettings(configs:dict) -> dict:
+    db = client["Admins"]
+    collection = db["settings"]
+    try:
+        result = await collection.update_one({"unique":"qwertyuiop"},
+                                            {"$set": configs})
+
+        if result.matched_count:
+            return {
+                "message": "Settings updated Successfully.",
+                "status": True
+            }
+        return {
+            "message": "Failed to update settings.",
+            "status": False
+        }
+    except Exception as e:
+        return {
+            "message": f"Failed to update settings: {e}",
+            "status": False
+        }

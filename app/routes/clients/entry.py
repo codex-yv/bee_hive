@@ -9,9 +9,11 @@ from schemas.loginSchemas import LoginSchema
 from utils.clientPost import add_new_client, push_notification_by_client
 from utils.clientGets import check_existing_user, check_password, get_username, get_user_action
 
+from utils.adminGets import admin_setting
+
 from utils.general import send_otp, send_password
 from utils.IST import ISTTime, ISTdate
-from utils.settings import Settings
+
 from utils.IST import ISTTime, ISTdate
 
 from templates_jinja import templates_clients
@@ -20,7 +22,6 @@ from app.rtc import manager
 
 router = APIRouter(prefix="/client/entry", tags=["Client Entry"])
 
-settings = Settings()
 
 
 @router.get("/login") # FOR Client PAGE.
@@ -52,7 +53,8 @@ async def add_new_user(request: Request, data: NewUser = Body(...)):
         return JSONResponse(content=0)  # Email already exists
 
     # Validate OTP
-    to_validate = await settings.email_verification_enabled()
+    to_validate = await admin_setting.sendgridEmail()
+    print(to_validate)
     if to_validate:
         try:
             if int(data.otp)!= int(request.session.get("otp")):  # Replace with real OTP validation
@@ -75,7 +77,7 @@ async def add_new_user(request: Request, data: NewUser = Body(...)):
 
 @router.post("/send-otp") # FOR Client PAGE.
 async def validate_otp(request: Request, data: OTPDetails = Body(...)):
-    to_validate = await settings.email_verification_enabled()
+    to_validate = await admin_setting.sendgridEmail()
     if to_validate:
         request.session["otp"] = await send_otp(email=data.email)
     return 1

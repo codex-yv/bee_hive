@@ -7,27 +7,29 @@ from schemas.adminTasksSchemas import Task
 from schemas.useless import Useless, UselessClient
 
 from utils.adminPosts import insert_project, insert_task, push_notification_by_admin, first_admin_login
-from utils.adminGets import get_users, get_projects, get_tasks, get_projet_info, get_task_info, get_admin_notification
+from utils.adminGets import (get_users, get_projects, get_tasks, get_projet_info,
+                            get_task_info, get_admin_notification, admin_setting)
 from utils.adminPuts import update_admin_notification
 
 from utils.clientPuts import update_assign_member, update_project_manager, update_task_member
 
 from utils.general import create_message, get_users_list, send_group_email_for_projects, send_email_for_task
-from utils.settings import Settings
 
 from templates_jinja import templates_admin
-from configs.access_configs import admin_password, admin_username
+
 
 from app.rtc import manager
 
 router = APIRouter(prefix="/admin/dashboard", tags=["Admin Dashboard"])
 
-settings = Settings()
 
 security = HTTPBasic()
-def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = admin_username
-    correct_password = admin_password
+async def verify_credentials(credentials: HTTPBasicCredentials = Depends(security)):
+    admin_info = await admin_setting.getAdminInfo()
+
+    correct_username = admin_info["admin_username"]
+    correct_password = admin_info["admin_password"]
+
     if credentials.username != correct_username or credentials.password != correct_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -67,7 +69,7 @@ async def admin_add_projects(request: Request, project: AddProjectRequest):
         to_users = await get_users_list(data = project.assigned_members)
 
         await manager.send_notification(notification, to_users)
-        notify_for_project = await settings.projects_notifications_enabled()
+        notify_for_project = await admin_setting.sendgridProject()
         if notify_for_project:
             await send_group_email_for_projects(emails = to_users, project_name=project.project_name)
         
@@ -96,7 +98,7 @@ async def admin_add_tasks(request: Request, task: Task):
     notification = [rmessage, 0, "2023-12-07T10:30:00"]
     to_users = await get_users_list(data = task.assigned_members)
     await manager.send_notification(notification, to_users)
-    notify_for_task = await settings.tasks_notifications_enabled()
+    notify_for_task = await admin_setting.sendgridTask()
     if notify_for_task:
         await send_email_for_task(emails=to_users, task=task)
 

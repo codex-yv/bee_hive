@@ -10,7 +10,7 @@ from fastapi.openapi.docs import get_swagger_ui_html
 import secrets
 
 from configs.access_configs import doc_username, doc_password
-
+from utils.adminGets import admin_setting
 from utils.clientGets import get_all_clients
 
 from utils.IST import ISTTime, ISTdate
@@ -64,9 +64,11 @@ app.add_middleware(
 settings = Settings()
 security = HTTPBasic()
 
-def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = secrets.compare_digest(credentials.username, doc_username)
-    correct_password = secrets.compare_digest(credentials.password, doc_password)
+async def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):
+    doc_info = await admin_setting.getAdminDocs()
+
+    correct_username = secrets.compare_digest(credentials.username, doc_info["doc_username"])
+    correct_password = secrets.compare_digest(credentials.password, doc_info["doc_password"])
     if not (correct_username and correct_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

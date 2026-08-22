@@ -1,3 +1,10 @@
+"""
+* This file is not serving any role in the project and it can be deleted in
+  near future.
+
+* setting.json file can also be deleted as it is associated with this file.
+"""
+
 import json
 import aiofiles
 
