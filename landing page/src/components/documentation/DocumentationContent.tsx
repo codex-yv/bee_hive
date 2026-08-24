@@ -309,6 +309,15 @@ export function DocumentationContent() {
             className="w-full object-cover"
           />
         </div>
+        <SectionHeading id="admin-settings" level={2}>Settings</SectionHeading>
+        <p className="text-slate-500 mb-6">The Settings section provides administrators with centralized control over platform credentials and email notification preferences. You can configure and update credentials for Admin Panel Access and API Documentation Access, as well as toggle Sendgrid configurations for email verification (OTPs), sign-up request approval notifications, project notifications, and task notifications.</p>
+        <div className="my-6 overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
+          <img
+            src="/features/adminsettings.png"
+            alt="Admin Settings"
+            className="w-full object-cover"
+          />
+        </div>
         <SectionHeading id="admin-community" level={2}>Community</SectionHeading>
         <p className="text-slate-500 mb-6">The Community section is designed to foster collaboration and engagement among team members. Members can share updates, reply to messages, and react with emojis to encourage meaningful discussions. To maintain a healthy and organized environment, administrators have the authority to delete messages for everyone whenever necessary.</p>
         <div className="my-6 overflow-hidden rounded-xl border border-slate-200 shadow-sm dark:border-slate-800">
@@ -479,14 +488,6 @@ MONGO_URI="mongodb+srv://<username>:<password>@<cluster-name>.<cluster-id>.mongo
 # Email Service (SendGrid)
 SENDGRID_API_KEY="SG.your_sendgrid_api_key_here"
 EMAIL="notifications@yourdomain.com"
-
-# Documentation Access Credentials
-DOC_USERNAME="doc_admin"
-DOC_PASSWORD="your_secure_doc_password"
-
-# Workspace Admin Credentials
-ADMIN_USERNAME="admin"
-ADMIN_PASSWORD="your_secure_admin_password"
 
 # Cloud Storage (Cloudinary)
 CLOUD_NAME="your_cloudinary_cloud_name"

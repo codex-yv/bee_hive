@@ -41,6 +41,7 @@ export const docsConfig = {
         { title: "Projects", href: "#admin-projects" },
         { title: "Tasks", href: "#admin-tasks" },
         { title: "Notification", href: "#admin-notification" },
+        { title: "Settings", href: "#admin-settings" },
         { title: "Community", href: "#admin-community" },
       ],
     },

@@ -568,12 +568,6 @@ CLOUDINARY_SECRET_KEY=abcdefghijklmnopqrstuvwxyz123456`}
 SENDGRID_API_KEY = "your_sendgrid_key"
 EMAIL = "your_verified_sender_email@domain.com"
 
-DOC_USERNAME = "docs_user"
-DOC_PASSWORD = "docs_password"
-
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin_secure_password"
-
 CLOUD_NAME = "your_cloud_name"
 CLOUDINARY_API_KEY = "your_cloudinary_key"
 CLOUDINARY_SECRET_KEY = "your_cloudinary_secret"
