@@ -134,6 +134,12 @@
                         alt="Community" />
                     <span class="sidebar-text">Community</span>
                 </button>
+                <button id="settingsBtn"
+                    class="w-full text-left px-4 py-3 rounded-lg text-zinc-600 hover:bg-zinc-100 transition-colors flex items-center space-x-3">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3524/3524636.png" class="w-5 h-5 object-contain"
+                        alt="Settings" />
+                    <span class="sidebar-text">Settings</span>
+                </button>
             </nav>
         </div>
     </div>
@@ -394,6 +400,114 @@
                     </table>
                 </div>
             </div>
+            <!-- Settings Section -->
+            <div id="settingsSection" class="mb-6 hidden">
+                <h2 class="text-2xl font-bold text-secondary mb-6">Settings</h2>
+
+                <!-- Settings Message Banner -->
+                <div id="settingsMessage" class="hidden mb-4 px-4 py-3 rounded-lg text-sm font-medium"></div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Admin Panel Access -->
+                    <div class="valorant-card p-6 flex flex-col gap-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-primary/10 p-2.5 rounded-full">
+                                <i class="fas fa-shield-alt text-primary text-lg"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-secondary">Admin Panel Access</h3>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Admin Username</label>
+                                <input type="text" id="settingsAdminUsername" placeholder="Enter admin username"
+                                    class="form-input w-full p-2.5 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary focus:border-primary text-sm text-zinc-800 bg-white" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Admin Password</label>
+                                <div class="relative">
+                                    <input type="password" id="settingsAdminPassword" placeholder="Enter admin password"
+                                        class="form-input w-full p-2.5 pr-10 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary focus:border-primary text-sm text-zinc-800 bg-white" />
+                                    <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-700 cursor-pointer focus:outline-none"
+                                        onclick="toggleSettingsPassword('settingsAdminPassword', this)" title="Toggle password visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API Documentation Access -->
+                    <div class="valorant-card p-6 flex flex-col gap-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-secondary/10 p-2.5 rounded-full">
+                                <i class="fas fa-book text-secondary text-lg"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-secondary">API Documentation Access</h3>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">DOCs Username</label>
+                                <input type="text" id="settingsDocUsername" placeholder="Enter docs username"
+                                    class="form-input w-full p-2.5 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary focus:border-primary text-sm text-zinc-800 bg-white" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">DOCs Password</label>
+                                <div class="relative">
+                                    <input type="password" id="settingsDocPassword" placeholder="Enter docs password"
+                                        class="form-input w-full p-2.5 pr-10 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary focus:border-primary text-sm text-zinc-800 bg-white" />
+                                    <button type="button" class="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-700 cursor-pointer focus:outline-none"
+                                        onclick="toggleSettingsPassword('settingsDocPassword', this)" title="Toggle password visibility">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sendgrid Configs -->
+                    <div class="valorant-card p-6 flex flex-col gap-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div class="bg-orange-500/10 p-2.5 rounded-full">
+                                <i class="fas fa-envelope text-orange-500 text-lg"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-secondary">Sendgrid Configs</h3>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="settingsEmailVerification" class="w-4 h-4 rounded accent-primary cursor-pointer" />
+                                <span class="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">Enable Email Verification (OTPs)</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="settingsApproveEmail" class="w-4 h-4 rounded accent-primary cursor-pointer" />
+                                <span class="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">Sign Up Request Approval Notification</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="settingsProjectEmail" class="w-4 h-4 rounded accent-primary cursor-pointer" />
+                                <span class="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">Project Notifications (Email)</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" id="settingsTaskEmail" class="w-4 h-4 rounded accent-primary cursor-pointer" />
+                                <span class="text-sm text-zinc-700 group-hover:text-zinc-900 transition-colors">Task Notifications (Email)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-3 mt-6">
+                    <button id="settingsResetBtn"
+                        class="px-5 py-2.5 border border-zinc-300 rounded-lg text-zinc-700 hover:bg-zinc-50 font-medium transition-colors flex items-center gap-2">
+                        <i class="fas fa-undo text-sm"></i> Reset (Prev)
+                    </button>
+                    <button id="settingsUpdateBtn"
+                        class="valorant-button px-5 py-2.5 rounded-lg font-medium flex items-center gap-2">
+                        <span id="settingsUpdateBtnText"><i class="fas fa-save text-sm mr-1"></i> Update</span>
+                        <span id="settingsUpdateBtnSpinner" class="hidden"><i class="fas fa-spinner fa-spin text-sm"></i></span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Community Section -->
             <div id="communitySection" class="valorant-card p-6 mb-6 hidden">
                 <div class="flex justify-between items-center mb-6">
@@ -849,6 +963,144 @@
         }
     </script>
     <script src="{{ url_for('static', path='admin/js/script.js') }}?v=19"></script>
+    <script>
+    // ====== Settings Section Logic ======
+
+    function showSettingsMessage(message, isSuccess) {
+        const el = document.getElementById('settingsMessage');
+        if (!el) return;
+        el.textContent = message;
+        el.className = 'mb-4 px-4 py-3 rounded-lg text-sm font-medium ' +
+            (isSuccess
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700');
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 5000);
+    }
+
+    function populateSettingsFields(configs) {
+        document.getElementById('settingsAdminUsername').value   = configs.admin_username  || '';
+        document.getElementById('settingsAdminPassword').value   = configs.admin_password  || '';
+        document.getElementById('settingsDocUsername').value     = configs.doc_username    || '';
+        document.getElementById('settingsDocPassword').value     = configs.doc_password    || '';
+        document.getElementById('settingsEmailVerification').checked = !!configs.email_verification;
+        document.getElementById('settingsApproveEmail').checked      = !!configs.approve_email;
+        document.getElementById('settingsProjectEmail').checked      = !!configs.project_email;
+        document.getElementById('settingsTaskEmail').checked         = !!configs.task_email;
+    }
+
+    async function fetchSettings() {
+        try {
+            const response = await fetch('/admin/settings/fetch', { method: 'GET' });
+            const data = await response.json();
+            if (data.status && data.configs) {
+                populateSettingsFields(data.configs);
+            } else {
+                showSettingsMessage(data.message || 'Failed to load settings.', false);
+            }
+        } catch (err) {
+            console.error('Error fetching settings:', err);
+            showSettingsMessage('An error occurred while fetching settings.', false);
+        }
+    }
+
+    document.getElementById('settingsResetBtn').addEventListener('click', function () {
+        fetchSettings();
+    });
+
+    document.getElementById('settingsUpdateBtn').addEventListener('click', async function () {
+        const btnText    = document.getElementById('settingsUpdateBtnText');
+        const btnSpinner = document.getElementById('settingsUpdateBtnSpinner');
+        const updateBtn  = document.getElementById('settingsUpdateBtn');
+
+        // Snapshot current field values before sending (for potential rollback)
+        const snapshot = {
+            admin_username:     document.getElementById('settingsAdminUsername').value,
+            admin_password:     document.getElementById('settingsAdminPassword').value,
+            doc_username:       document.getElementById('settingsDocUsername').value,
+            doc_password:       document.getElementById('settingsDocPassword').value,
+            email_verification: document.getElementById('settingsEmailVerification').checked,
+            approve_email:      document.getElementById('settingsApproveEmail').checked,
+            project_email:      document.getElementById('settingsProjectEmail').checked,
+            task_email:         document.getElementById('settingsTaskEmail').checked,
+        };
+
+        btnText.classList.add('hidden');
+        btnSpinner.classList.remove('hidden');
+        updateBtn.disabled = true;
+
+        try {
+            const response = await fetch('/admin/settings/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(snapshot)
+            });
+            const data = await response.json();
+            if (data.status) {
+                showSettingsMessage(data.message || 'Settings updated successfully!', true);
+            } else {
+                // Rollback to previous values
+                populateSettingsFields(snapshot);
+                showSettingsMessage(data.message || 'Failed to update settings.', false);
+            }
+        } catch (err) {
+            console.error('Error saving settings:', err);
+            populateSettingsFields(snapshot);
+            showSettingsMessage('An error occurred while saving settings.', false);
+        } finally {
+            btnText.classList.remove('hidden');
+            btnSpinner.classList.add('hidden');
+            updateBtn.disabled = false;
+        }
+    });
+
+    window.toggleSettingsPassword = function (inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    };
+
+    // Hook Settings button in sidebar
+    document.getElementById('settingsBtn').addEventListener('click', function () {
+        if (typeof showSection === 'function') {
+            showSection('settingsSection');
+        } else {
+            // Fallback: show settings section and hide others
+            const sections = [
+                'dashboardSection', 'signUpRequestsSection', 'projectStatusSection',
+                'taskStatusSection', 'membersProfileSection', 'communitySection', 'settingsSection'
+            ];
+            sections.forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            const settingsSection = document.getElementById('settingsSection');
+            if (settingsSection) settingsSection.classList.remove('hidden');
+
+            // Update active tab styling
+            document.querySelectorAll('nav button').forEach(function (btn) {
+                btn.classList.remove('active-tab');
+            });
+            document.getElementById('settingsBtn').classList.add('active-tab');
+        }
+
+        // Fetch settings data
+        fetchSettings();
+    });
+    </script>
 
 </body>
 

@@ -11,8 +11,6 @@ class SettingsPostRequest(BaseModel):
     task_email: bool
     approve_email: bool
     email_verification: bool
-    message: str
-    status: bool
 
 class SettingsGetResponse(BaseModel):
     configs: Union[Dict[str, Union[str, bool]], None]

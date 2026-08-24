@@ -41,7 +41,7 @@ async def fetchAdminSettings(request:Request):
              responses={500 : {"model": ErrorResponse}})
 async def updateSettingsRoute(request: Request, configs: SettingsPostRequest):
     try:
-        result = await updateAdminSettings(configs)
+        result = await updateAdminSettings(configs.model_dump())
         return SettingsResponse(**result)
     except Exception as e:
         print(f"Internal Server Error while updating the settings.{e}")

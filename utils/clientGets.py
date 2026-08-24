@@ -87,9 +87,13 @@ async def get_project_by_id(project_id):
         "Status": doc['status'],
         "assigned_member": doc['assigned_members'],
         "project_manager": doc['project_manager'],
-        "components": doc['components'],
-        "percentage": str((doc['components']['done_comp']/doc['components']['total_comp']) * 100)
+        "components": doc['components']
     }
+
+    try:
+        project["percentage"] = str((doc['components']['done_comp']/doc['components']['total_comp']) * 100)
+    except ZeroDivisionError:
+        project["percentage"] = "0"
 
     return project
 

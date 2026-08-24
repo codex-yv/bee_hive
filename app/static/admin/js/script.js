@@ -1403,7 +1403,7 @@ function setActiveMemberFilter(filter) {
 function showSection(sectionId) {
     // Hide all sections
     const sections = ['dashboardSection', 'signUpRequestsSection', 'projectStatusSection',
-        'taskStatusSection', 'membersProfileSection', 'communitySection'];
+        'taskStatusSection', 'membersProfileSection', 'communitySection', 'settingsSection'];
 
     sections.forEach(id => {
         const section = document.getElementById(id);
@@ -1421,7 +1421,8 @@ function showSection(sectionId) {
         'projectStatusSection': 'showProjectStatusBtn',
         'taskStatusSection': 'showTaskStatusBtn',
         'membersProfileSection': 'membersProfileBtn',
-        'communitySection': 'communityBtn'
+        'communitySection': 'communityBtn',
+        'settingsSection': 'settingsBtn'
     };
 
     // Remove active class from all tabs
