@@ -14,7 +14,7 @@ class SettingsPostRequest(BaseModel):
     message: str
     status: bool
 
-class SettingsGetRequest(BaseModel):
+class SettingsGetResponse(BaseModel):
     configs: Union[Dict[str, Union[str, bool]], None]
     status: bool
     message: str

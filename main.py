@@ -32,6 +32,7 @@ from app.routes.admin.pendings import router as admin_pendings
 from app.routes.admin.profiles import router as admin_profiles
 from app.routes.admin.projects import router as admin_projects
 from app.routes.admin.tasks import router as admin_tasks
+from app.routes.admin.settings import router as admin_settings
 
 from app.routes.community import router as all_community
 
@@ -47,6 +48,7 @@ app.include_router(admin_projects)
 app.include_router(admin_tasks)
 app.include_router(admin_pendings)
 app.include_router(admin_profiles)
+app.include_router(admin_settings)
 
 app.include_router(all_community)
 
