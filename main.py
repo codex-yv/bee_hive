@@ -15,7 +15,6 @@ from utils.clientGets import get_all_clients
 
 from utils.IST import ISTTime, ISTdate
 from utils.devgets import push_notification_by_dev
-from utils.settings import Settings
 
 from schemas.DevSchemas import DevMessage
 
@@ -63,7 +62,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-settings = Settings()
+
 security = HTTPBasic()
 
 async def get_current_user(credentials: HTTPBasicCredentials = Depends(security)):

@@ -1,8 +1,0 @@
-{
-    "sendgrid": {
-        "email_verification": false,
-        "projects": true,
-        "tasks": true,
-        "approvals": true
-    }
-}
