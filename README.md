@@ -19,6 +19,7 @@
   <img src="https://img.shields.io/badge/email-SendGrid-1A82E2?style=for-the-badge&logo=sendgrid&logoColor=white" alt="SendGrid" />
   <img src="https://img.shields.io/badge/deploy-Render-000000?style=for-the-badge&logo=render&logoColor=white" alt="Render" />
   <img src="https://img.shields.io/badge/deploy-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+  <img src="https://img.shields.io/badge/Container-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
 </p>
 
 <p align="center">
@@ -104,42 +105,8 @@ The goal of BeeHive is to create a simple yet powerful collaboration tool that:
 - **Thrives on community contributions** and shared innovation
 
 ## 📦 Getting Started
-### Configuration
-**Open `settings.json` file to configure the operations.** <br>
-***Keys and their meaning***
-- **sendgrid** -> to controll emailed notifications via sendgrid
-    - `email_verification` : to verify email and otp during sign-up
-    - `projects` : to notify user that he hass been assigned project
-    - `tasks` : to notify user that he has been assigned task
-    - `approvals` : to notify user that he has been approved by the admin
 
- **NOTE :** *The sendgrid configuration can be helpful to you when you don't have sendgrid API.Update the key's value to false for each one and no sendgrid API required. Just create a sendgrid variable in `.env` folder and pass an empty string.*
-### Setup
-
-- **Step-1**: Clone the repository
-- **Step-2**: Navigate to project directory
-- **Step-3**: Create a .env file
-- **Step-4**: Add the following variables to the `.env` file
-
-```
-MONGO_URI = "mongodb://localhost:27017"
-SENDGRID_API_KEY = "your_sendgrid_api_key"
-EMAIL = "your_email" 
-DOC_USERNAME = "your_doc_username" # it can be anything
-DOC_PASSWORD = "your_doc_password" # it can be anything
-
-ADMIN_USERNAME = "admin" # create a admin username
-ADMIN_PASSWORD = "admin" # create a admin password
-
-DEV_ID = "your_dev_id" # it can be anything
-
-```
-- **Step-5**: Create a virtual environment (optional but recommended)
-- **Step-6**: Activate the virtual environment
-- **Step-7**: Install dependencies
-- **Step-8**: Run the application
-
-### Installation
+### Installation (cloning the repo)
 ```bash
 # Clone the repository
 git clone https://github.com/codex-yv/bee_hive.git
@@ -160,8 +127,73 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
+#create environment variables (.env)
+
+MONGO_URI = "mongodb://localhost:27017"
+SENDGRID_API_KEY = "your_sendgrid_api_key"
+EMAIL = "your_email" 
+DOC_USERNAME = "your_doc_username" # it can be anything
+DOC_PASSWORD = "your_doc_password" # it can be anything
+
+ADMIN_USERNAME = "admin" # create a admin username
+ADMIN_PASSWORD = "admin" # create a admin password
+
+CLOUD_NAME = 'folder_name'
+CLOUDINARY_API_KEY = 'api_key'
+CLOUDINARY_SECRET_KEY = 'secret_key'
+
+PYTHON_VERSION = '3.10.13'
+
 # Run the application
 uvicorn main:app --reload
+
+# visit the url to the page
+http://127.0.0.1:8000/
+
+```
+
+### Installation(using Docker)
+
+**`Note:`** *You should have docker installled and configured on your computer*
+
+```bash
+# Clone the repository
+git clone https://github.com/codex-yv/bee_hive.git
+
+# Navigate to project directory
+cd bee_hive
+
+#create environment variables (.env)
+
+# No need of MONGO_URI when launching using docker.
+
+SENDGRID_API_KEY = "your_sendgrid_api_key"
+EMAIL = "your_email" 
+DOC_USERNAME = "your_doc_username" # it can be anything
+DOC_PASSWORD = "your_doc_password" # it can be anything
+
+ADMIN_USERNAME = "admin" # create a admin username
+ADMIN_PASSWORD = "admin" # create a admin password
+
+CLOUD_NAME = 'folder_name'
+CLOUDINARY_API_KEY = 'api_key'
+CLOUDINARY_SECRET_KEY = 'secret_key'
+
+PYTHON_VERSION = '3.10.13'
+
+# runn the below command
+docker compose up --build -d
+
+# to see the logs of fastapi (optional)
+docker compose logs -f app
+
+
+# visit the url to see the app page
+http://127.0.0.1:8000/
+
+# visit the url to see the db page (mongo-express)
+http://127.0.0.1:8081/
+
 ```
 
 # Screenshots
