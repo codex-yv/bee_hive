@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Menu, X, Moon, Sun, ChevronRight, Settings, Database, Mail, Image, KeyRound, Cloud, Box, Server } from "lucide-react";
+import { Menu, X, Moon, Sun, ChevronRight, Settings, Database, Mail, Image, KeyRound, Cloud, Box, Server, Container } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { SectionHeading } from "../documentation/ui/SectionHeading";
@@ -577,6 +577,151 @@ PYTHON_VERSION = "3.10.13"`}
             </section>
 
 
+            <section id="docker" className="mb-16">
+                <SectionHeading id="docker" level={1}>
+                    Docker
+                </SectionHeading>
+
+                <SectionHeading id="docker-overview" level={2} icon={<Container />}>
+                    Overview
+                </SectionHeading>
+                <p className="text-slate-600 dark:text-slate-300 leading-7 mb-4">
+                    BeeHive can be fully containerized using Docker, allowing you to package the entire application—along with its dependencies and database—into portable containers that run consistently on any machine. Whether you're developing locally, testing in CI/CD pipelines, or deploying to production servers, Docker ensures your environment is reproducible and isolated.
+                </p>
+                <Callout type="info" title="Why Docker?">
+                    With Docker, you don't need to install Python, MongoDB, or any other dependency on your host machine. Everything runs inside containers. Just clone, configure, and run—anywhere.
+                </Callout>
+
+                <SectionHeading id="docker-prerequisites" level={2} icon={<Settings />}>
+                    Prerequisites
+                </SectionHeading>
+                <p className="text-slate-600 dark:text-slate-300 leading-7 mb-4">
+                    Before you begin, make sure you have the following installed and configured on your computer:
+                </p>
+                <div className="space-y-6 mb-8">
+                    <ul className="list-disc pl-6 space-y-1.5 text-slate-600 dark:text-slate-300 marker:text-slate-600 dark:marker:text-white">
+                        <li><a href="https://docs.docker.com/get-docker/" target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">Docker</a> — Container runtime engine.</li>
+                        <li><a href="https://docs.docker.com/compose/install/" target="_blank" rel="noreferrer" className="text-primary hover:underline font-medium">Docker Compose</a> — Comes bundled with Docker Desktop on Windows and macOS. Linux users may need to install it separately.</li>
+                    </ul>
+                    <Callout type="warning" title="Important">
+                        Ensure Docker is running before executing any commands. You can verify by running <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">docker --version</code> in your terminal.
+                    </Callout>
+                </div>
+
+                <SectionHeading id="docker-environment-variables" level={2} icon={<KeyRound />}>
+                    Environment Variables
+                </SectionHeading>
+                <p className="text-slate-600 dark:text-slate-300 leading-7 mb-4">
+                    Create a <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">.env</code> file in the project root directory. When using Docker, MongoDB runs inside a container alongside the app, so you <strong>do not</strong> need a <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">MONGO_URI</code>.
+                </p>
+                <div className="space-y-6 mb-8">
+                    <CodeBlock
+                        filename=".env"
+                        language="bash"
+                        code={`# No need of MONGO_URI when launching using Docker.
+
+SENDGRID_API_KEY = "your_sendgrid_api_key"
+EMAIL = "your_email"
+DOC_USERNAME = "your_doc_username"   # it can be anything
+DOC_PASSWORD = "your_doc_password"   # it can be anything
+
+ADMIN_USERNAME = "admin"   # create an admin username
+ADMIN_PASSWORD = "admin"   # create an admin password
+
+CLOUD_NAME = 'folder_name'
+CLOUDINARY_API_KEY = 'api_key'
+CLOUDINARY_SECRET_KEY = 'secret_key'
+
+PYTHON_VERSION = '3.10.13'`}
+                    />
+                    <Callout type="info" title="Note">
+                        The Docker Compose configuration automatically sets up a MongoDB instance inside a container, so there is no need to configure MongoDB Atlas or provide a <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">MONGO_URI</code>.
+                    </Callout>
+                </div>
+
+                <SectionHeading id="docker-build-run" level={2} icon={<Box />}>
+                    Build & Run
+                </SectionHeading>
+                <p className="text-slate-600 dark:text-slate-300 leading-7 mb-4">
+                    Once your environment variables are configured, build and start all services with a single command:
+                </p>
+                <div className="space-y-6 mb-8">
+                    <div>
+                        <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Step 1: Clone the Repository</h4>
+                        <CodeBlock
+                            filename="Terminal"
+                            language="bash"
+                            code={`git clone https://github.com/codex-yv/bee_hive.git
+cd bee_hive`}
+                        />
+                    </div>
+
+                    <div>
+                        <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Step 2: Build and Start Containers</h4>
+                        <p className="text-slate-600 dark:text-slate-300 leading-7 mb-2">
+                            Run the following command to build the Docker images and start all services in detached mode:
+                        </p>
+                        <CodeBlock
+                            filename="Terminal"
+                            language="bash"
+                            code={`docker compose up --build -d`}
+                        />
+                        <p className="text-slate-600 dark:text-slate-300 leading-7 text-sm mt-2">
+                            The <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">--build</code> flag rebuilds the images, and <code className="text-sm bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">-d</code> runs the containers in the background.
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Step 3: View Logs (Optional)</h4>
+                        <p className="text-slate-600 dark:text-slate-300 leading-7 mb-2">
+                            To monitor the FastAPI application logs in real time:
+                        </p>
+                        <CodeBlock
+                            filename="Terminal"
+                            language="bash"
+                            code={`docker compose logs -f app`}
+                        />
+                    </div>
+                </div>
+
+                <SectionHeading id="docker-accessing-services" level={2} icon={<Server />}>
+                    Accessing Services
+                </SectionHeading>
+                <p className="text-slate-600 dark:text-slate-300 leading-7 mb-4">
+                    Once the containers are running, you can access the following services in your browser:
+                </p>
+                <div className="space-y-6 mb-8">
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 mb-4">
+                        <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                            <thead className="bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-semibold border-b border-slate-200 dark:border-slate-800">
+                                <tr>
+                                    <th className="px-4 py-2.5">Service</th>
+                                    <th className="px-4 py-2.5">URL</th>
+                                    <th className="px-4 py-2.5">Description</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                                <tr>
+                                    <td className="px-4 py-2.5 font-medium text-slate-900 dark:text-slate-100">BeeHive App</td>
+                                    <td className="px-4 py-2.5"><code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">http://127.0.0.1:8000/</code></td>
+                                    <td className="px-4 py-2.5">The main BeeHive application</td>
+                                </tr>
+                                <tr>
+                                    <td className="px-4 py-2.5 font-medium text-slate-900 dark:text-slate-100">Mongo Express</td>
+                                    <td className="px-4 py-2.5"><code className="text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">http://127.0.0.1:8081/</code></td>
+                                    <td className="px-4 py-2.5">Web-based MongoDB admin interface</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <Callout type="info" title="You're Ready!">
+                        Your BeeHive application is now running inside Docker containers. You can develop, test, and deploy with confidence knowing the environment is fully reproducible.
+                    </Callout>
+                </div>
+            </section>
+
+
             <section id="deployment" className="mb-16">
                 <SectionHeading id="deployment" level={1}>
                     Deployment
@@ -835,6 +980,7 @@ export function Setup() {
                                     { category: "database", name: "MongoDB", bg: "bg-[#47A248]", text: "text-white" },
                                     { category: "images", name: "Cloudinary", bg: "bg-[#3448C5]", text: "text-white" },
                                     { category: "email", name: "SendGrid", bg: "bg-[#1A82E2]", text: "text-white" },
+                                    { category: "container", name: "Docker", bg: "bg-[#2496ED]", text: "text-white" },
                                     { category: "deploy", name: "Render", bg: "bg-black", text: "text-white" },
                                     { category: "deploy", name: "Vercel", bg: "bg-black", text: "text-white" },
                                     { category: "cloud", name: "AWS", bg: "bg-[#FF9900]", text: "text-slate-950" },

@@ -18,6 +18,17 @@ export const setupConfig = {
       ],
     },
     {
+      title: "Docker",
+      href: "#docker",
+      items: [
+        { title: "Overview", href: "#docker-overview" },
+        { title: "Prerequisites", href: "#docker-prerequisites" },
+        { title: "Environment Variables", href: "#docker-environment-variables" },
+        { title: "Build & Run", href: "#docker-build-run" },
+        { title: "Accessing Services", href: "#docker-accessing-services" },
+      ],
+    },
+    {
       title: "Deployment",
       href: "#deployment",
       items: [
